@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "./providers";
@@ -8,11 +8,20 @@ import "./globals.css";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  display: "swap",
+  axes: ["opsz", "SOFT"],
 });
 
 export const metadata: Metadata = {
@@ -22,15 +31,18 @@ export const metadata: Metadata = {
     template: "%s — JC Electrofields",
   },
   description:
-    "JC Electrofields Power System, Inc. — electrical power systems and engineering services for solar farms, distribution utilities, and grid infrastructure across the Philippines.",
+    "Electrical power systems EPC — Philippines, since 1997. Substation, transmission, and renewable-energy projects for utilities, NGCP, and industrial clients.",
   openGraph: {
     type: "website",
     siteName: "JC Electrofields Power System",
     locale: "en_PH",
     description:
-      "JC Electrofields Power System, Inc. — electrical power systems and engineering services for solar farms, distribution utilities, and grid infrastructure across the Philippines.",
+      "Electrical power systems EPC — Philippines, since 1997. Substation, transmission, and renewable-energy projects for utilities, NGCP, and industrial clients.",
   },
-  themeColor: "#ffffff",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FBFAF7" },
+    { media: "(prefers-color-scheme: dark)", color: "#101814" },
+  ],
 };
 
 export default function RootLayout({
@@ -41,7 +53,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <Providers>{children}</Providers>
