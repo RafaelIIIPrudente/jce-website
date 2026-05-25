@@ -16,8 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "jce",
-  description: "Scaffolded from BASEPLATE.md",
+  title: "JC Electrofields Power System",
+  description:
+    "JC Electrofields Power System, Inc. — electrical power systems and engineering services for solar farms, distribution utilities, and grid infrastructure across the Philippines.",
 };
 
 export default function RootLayout({
