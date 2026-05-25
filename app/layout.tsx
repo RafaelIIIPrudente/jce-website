@@ -16,7 +16,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "JC Electrofields Power System",
+  title: {
+    default: "JC Electrofields Power System",
+    template: "%s — JC Electrofields",
+  },
   description:
     "JC Electrofields Power System, Inc. — electrical power systems and engineering services for solar farms, distribution utilities, and grid infrastructure across the Philippines.",
 };
