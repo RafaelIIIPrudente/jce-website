@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { env } from "@/env";
 import { updateSession } from "@/lib/supabase/middleware";
 
 // URL prefixes that live under app/(app)/ and require an authenticated user.
@@ -7,6 +8,12 @@ import { updateSession } from "@/lib/supabase/middleware";
 const PROTECTED_PREFIXES = ["/dashboard", "/settings"];
 
 export async function proxy(request: NextRequest) {
+  // Skip auth gating when Supabase isn't configured (fresh clone, marketing-only).
+  // Once env is populated, the full session-refresh + protected-route logic runs.
+  if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return NextResponse.next({ request });
+  }
+
   const { supabaseResponse, user } = await updateSession(request);
 
   const { pathname } = request.nextUrl;

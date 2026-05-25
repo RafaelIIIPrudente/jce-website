@@ -43,7 +43,7 @@ For planning a multi-file change, dispatch the `Plan` subagent before editing. F
 Worth persisting across sessions in this project:
 
 - **Site IA**: Home, About Us, Product & Services, Professional Services, Projects (sub-pages: Solar Farm, Distribution Utility, NGCP), Contact Us — all under `app/(marketing)/`.
-- **Known gotcha**: `proxy.ts:9` invokes `lib/supabase/middleware.ts:9` on every request and throws when Supabase env vars are empty. `.env.local` is gitignored and starts as a copy of `.env.example` with empty values. Until it is populated (or a guard is added to `proxy.ts`), every route returns 500.
+- **Supabase posture**: `proxy.ts` short-circuits with `NextResponse.next()` when `env.NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` are unset, so the marketing site boots without a Supabase instance. Auth gating and session refresh resume automatically once `.env.local` is populated. `.env.local` is gitignored.
 - **Stack identity**: see [README.md § Stack](./README.md#stack) — do not assume the BASEPLATE.md stack is fully wired up. Stripe, Inngest, and the AI SDK are installed but unused for a corporate marketing site.
 - **Live reference site**: <https://www.jcepower.com> — the IA above mirrors this.
 

@@ -3,8 +3,11 @@ import { z } from "zod";
 
 export const env = createEnv({
   server: {
-    DATABASE_URL: z.string().url(),
-    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+    // Supabase is optional during local dev / early marketing-only operation.
+    // proxy.ts skips auth gating when these are unset; lib/supabase/* and
+    // lib/db/client.ts assert non-null at their call sites.
+    DATABASE_URL: z.string().url().optional(),
+    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
 
     RESEND_API_KEY: z.string().min(1).optional(),
 
@@ -25,8 +28,8 @@ export const env = createEnv({
     OPENAI_API_KEY: z.string().min(1).optional(),
   },
   client: {
-    NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+    NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
 
     NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).optional(),
     NEXT_PUBLIC_POSTHOG_HOST: z.string().url().optional(),

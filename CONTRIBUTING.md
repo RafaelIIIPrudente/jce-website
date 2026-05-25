@@ -12,7 +12,7 @@ The canonical quick start is in [README.md § Quick start](./README.md#quick-sta
 
 A couple of things README.md does not call out:
 
-- If `pnpm dev` boots but every route returns 500, your `.env.local` is empty. The four required Supabase vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`) must all be populated, because `proxy.ts` runs on every request and crashes when they are missing. The fastest path is running `pnpm dlx supabase@latest start` and pasting its printed output into `.env.local`.
+- `pnpm dev` works against an empty `.env.local` — `proxy.ts` skips auth gating when the Supabase vars are unset, so the marketing routes render. You only need to populate `.env.local` once you start working on auth-gated routes or DB-backed features. The fastest path then is running `pnpm dlx supabase@latest start` and pasting its printed output into `.env.local`.
 - The Husky pre-commit hook runs `lint-staged`, which runs ESLint and Prettier on changed files. If a commit appears to hang, check that Husky was installed — it bootstraps via the `prepare` script during `pnpm install`.
 
 ## Branch and commit conventions

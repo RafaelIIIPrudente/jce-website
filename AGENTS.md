@@ -55,7 +55,7 @@ Compressed AI-readable contract. Rationale and long-form discussion in [`BASEPLA
 
 ## Quirks and known limits
 
-- `proxy.ts` runs on every request and calls `createServerClient` with `env.NEXT_PUBLIC_SUPABASE_URL` and `env.NEXT_PUBLIC_SUPABASE_ANON_KEY`. If `.env.local` has empty Supabase vars, the middleware throws and every route returns 500 (`lib/supabase/middleware.ts:9`). Populate `.env.local` before expecting routes to render.
+- `proxy.ts` early-returns `NextResponse.next()` when `env.NEXT_PUBLIC_SUPABASE_URL` or `env.NEXT_PUBLIC_SUPABASE_ANON_KEY` is unset — the marketing site renders without Supabase configured. Session refresh and `PROTECTED_PREFIXES` gating only activate once `.env.local` is populated. The four Supabase keys are declared `.optional()` in `env.ts` for this reason.
 - `.env.local` is gitignored. On a fresh clone it exists only as a copy of `.env.example` with empty values.
 - No CI workflows are wired up — `.github/workflows/` does not exist.
 - No `vitest.config.ts` or `playwright.config.ts` is checked in despite the test runners being installed.

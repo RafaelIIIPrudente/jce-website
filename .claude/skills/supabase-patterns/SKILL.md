@@ -59,9 +59,9 @@ The service-role key bypasses RLS and must never reach the browser. When you nee
 
 When adding a new protected segment (e.g., `/admin`), append the prefix to `PROTECTED_PREFIXES` in `proxy.ts:7`.
 
-## Known issue — empty env crashes the middleware
+## Unconfigured-env behavior
 
-If `.env.local` does not have `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` populated, `createServerClient` throws at `lib/supabase/middleware.ts:9` and every request returns 500. See AGENTS.md § Quirks and known limits.
+`proxy.ts` early-returns `NextResponse.next()` when Supabase env vars are unset, so routes render without auth gating. Session refresh and `PROTECTED_PREFIXES` activate automatically once `.env.local` is populated. `env.ts` declares the four Supabase keys `.optional()` to permit this.
 
 ## Common mistakes
 
