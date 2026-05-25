@@ -16,8 +16,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "jce",
-  description: "Scaffolded from BASEPLATE.md",
+  metadataBase: new URL("https://jcepower.com"),
+  title: {
+    default: "JC Electrofields Power System",
+    template: "%s — JC Electrofields",
+  },
+  description:
+    "JC Electrofields Power System, Inc. — electrical power systems and engineering services for solar farms, distribution utilities, and grid infrastructure across the Philippines.",
+  openGraph: {
+    type: "website",
+    siteName: "JC Electrofields Power System",
+    locale: "en_PH",
+    description:
+      "JC Electrofields Power System, Inc. — electrical power systems and engineering services for solar farms, distribution utilities, and grid infrastructure across the Philippines.",
+  },
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({
