@@ -38,7 +38,7 @@ export function SiteHeader() {
     <header
       data-scrolled={scrolled}
       className={cn(
-        "sticky top-0 z-40 transition-all duration-280 ease-[var(--ease-spring)]",
+        "sticky top-0 z-40 transition-all duration-300 ease-[var(--ease-spring)]",
         scrolled
           ? "border-b border-border bg-background/90 supports-backdrop-filter:backdrop-blur"
           : "border-b border-transparent bg-background/0",
