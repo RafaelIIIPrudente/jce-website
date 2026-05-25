@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
@@ -39,6 +39,9 @@ export const metadata: Metadata = {
     description:
       "Electrical power systems EPC — Philippines, since 1997. Substation, transmission, and renewable-energy projects for utilities, NGCP, and industrial clients.",
   },
+};
+
+export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#FBFAF7" },
     { media: "(prefers-color-scheme: dark)", color: "#101814" },

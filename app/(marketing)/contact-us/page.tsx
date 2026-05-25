@@ -1,16 +1,29 @@
 import type { Metadata } from "next";
 
+import { EditorialHero } from "@/components/sections/editorial-hero";
+import { ContactSplit } from "@/components/sections/contact-split";
+import { ContactForm } from "@/components/sections/contact-form";
+import { MapEmbed } from "@/components/sections/map-embed";
+
 export const metadata: Metadata = {
   title: "Contact Us",
+  description:
+    "Send us a project brief — utility, developer, or industrial. We respond inside one business day.",
 };
 
 export default function ContactPage() {
   return (
-    <section className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-16">
-      <h1 className="text-4xl font-semibold tracking-tight">Contact Us</h1>
-      <p className="text-lg text-muted-foreground">
-        Contact form and details coming soon.
-      </p>
-    </section>
+    <>
+      <EditorialHero
+        variant="contact"
+        eyebrow="Talk to us"
+        title="Send a project brief."
+        subtitle="We respond inside one business day to inquiries from utilities, developers, and industrial clients."
+      />
+
+      <ContactSplit form={<ContactForm />} />
+
+      <MapEmbed />
+    </>
   );
 }
