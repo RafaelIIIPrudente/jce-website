@@ -15,15 +15,20 @@ export const SITE = {
     open: "8:00 AM – 5:00 PM",
   },
   social: {
-    facebook: "https://facebook.com/jcepower",
+    facebook: "https://web.facebook.com/JCElectrofields",
     youtube: "https://youtube.com/@jcepower",
   },
 } as const;
 
+// Public website IA (S1–S9). Part 1 reconciled the plan §10 divergences:
+//   • /product-services SPLIT into /services (S3) and /products (S5)
+//   • /professional-services folded into Services (Engineering Consultancy row) — PROPOSED
+//   • added /news (S6), /careers (S7), /faq (S9)
+// Contact is the nav CTA (not a link); FAQ lives in the footer.
 export const NAV_LINKS = [
-  { href: "/about-us", label: "About Us" },
-  { href: "/product-services", label: "Product & Services" },
-  { href: "/professional-services", label: "Professional Services" },
+  { href: "/about-us", label: "About" },
+  { href: "/services", label: "Services" },
+  { href: "/products", label: "Products" },
   {
     href: "/projects",
     label: "Projects",
@@ -36,6 +41,14 @@ export const NAV_LINKS = [
       { href: "/projects/ngcp", label: "NGCP" },
     ],
   },
+  { href: "/news", label: "News" },
+  { href: "/careers", label: "Careers" },
 ] as const;
 
 export type NavLink = (typeof NAV_LINKS)[number];
+
+// Footer-only links (not in the primary nav).
+export const FOOTER_LINKS = [
+  { href: "/faq", label: "FAQ" },
+  { href: "/contact-us", label: "Contact" },
+] as const;
