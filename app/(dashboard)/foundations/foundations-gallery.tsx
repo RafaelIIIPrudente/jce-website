@@ -1210,7 +1210,7 @@ export function FoundationsGallery() {
             tags={["Glass", "Solid"]}
             where="top-bar popover, X4"
           >
-            <div className="glass-modal rounded-[var(--r-glass)] p-3">
+            <div className="glass-modal rounded-(--r-glass) p-3">
               <BellFeed
                 notifications={NOTIFICATIONS}
                 onMarkAllRead={() => {}}
