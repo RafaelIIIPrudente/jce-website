@@ -1,28 +1,55 @@
-import Link from "next/link";
+import { WebHero } from "@/components/sections/web-hero";
+import { WebSection, SectionHead } from "@/components/sections/web-section";
+import { WebCapabilityGrid } from "@/components/sections/web-capability-grid";
+import { WebProjectGallery } from "@/components/sections/web-project-gallery";
+import { WebTrustBand } from "@/components/sections/web-trust-band";
+import { WebCta } from "@/components/sections/web-cta";
+import { STATS } from "@/lib/content/website";
 
-import { Button } from "@/components/ui/button";
-
+// S1 · Home (FLAGSHIP, web-pages-a.jsx:10-139). Inherits the default brand title
+// from the root layout template.
 export default function HomePage() {
   return (
-    <section className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-start justify-center gap-6 px-6 py-24">
-      <p className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
-        JC Electrofields Power System, Inc.
-      </p>
-      <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
-        Powering the Philippines — solar, distribution, and grid infrastructure.
-      </h1>
-      <p className="max-w-2xl text-lg text-muted-foreground">
-        Electrical power systems and engineering services for solar farms,
-        distribution utilities, and national grid projects.
-      </p>
-      <div className="flex flex-wrap gap-3">
-        <Button asChild size="lg">
-          <Link href="/projects">See our work</Link>
-        </Button>
-        <Button asChild size="lg" variant="outline">
-          <Link href="/contact-us">Contact us</Link>
-        </Button>
-      </div>
-    </section>
+    <>
+      <WebHero
+        size="home"
+        eyebrow="JC Electrofields Power System, Inc."
+        title={
+          <>
+            Power infrastructure,
+            <br />
+            <span className="text-jce-green-700">engineered to energize.</span>
+          </>
+        }
+        sub="Substations, transmission lines and renewable energy — design-build EPC up to 230 KV, delivered across the Philippines."
+        primary={{ label: "Request a consultation", href: "/contact-us" }}
+        secondary={{ label: "View projects", href: "/projects" }}
+        stats={STATS}
+      />
+
+      <WebSection>
+        <SectionHead
+          eyebrow="What we do"
+          heading="Full-scope power engineering"
+          viewAll={{ href: "/services", label: "All services" }}
+        />
+        <WebCapabilityGrid />
+      </WebSection>
+
+      <WebSection alt>
+        <SectionHead
+          eyebrow="Selected work"
+          heading="Projects energized"
+          viewAll={{ href: "/projects", label: "All projects" }}
+        />
+        <WebProjectGallery limit={3} />
+      </WebSection>
+
+      <WebSection>
+        <WebTrustBand />
+      </WebSection>
+
+      <WebCta />
+    </>
   );
 }

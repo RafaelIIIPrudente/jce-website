@@ -19,6 +19,13 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        // JCE — orange accent (secondary CTAs, sparing)
+        accent: "bg-accent text-accent-foreground hover:bg-jce-orange-500",
+        // JCE workflow verbs — distinct, and conditionally RENDERED (never
+        // disabled) for roles lacking the verb. See lib/rbac.canVerb.
+        approve: "bg-primary text-primary-foreground hover:bg-jce-green-600",
+        post: "bg-[var(--st-info)] text-white hover:opacity-90",
+        lock: "bg-[var(--st-locked)] text-white hover:opacity-90",
       },
       size: {
         default:

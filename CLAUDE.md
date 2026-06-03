@@ -46,6 +46,7 @@ Worth persisting across sessions in this project:
 - **Supabase posture**: `proxy.ts` short-circuits with `NextResponse.next()` when `env.NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` are unset, so the marketing site boots without a Supabase instance. Auth gating and session refresh resume automatically once `.env.local` is populated. `.env.local` is gitignored.
 - **Stack identity**: see [README.md § Stack](./README.md#stack) — do not assume the BASEPLATE.md stack is fully wired up. Stripe, Inngest, and the AI SDK are installed but unused for a corporate marketing site.
 - **Live reference site**: <https://www.jcepower.com> — the IA above mirrors this.
+- **Official Facebook**: <https://web.facebook.com/JCElectrofields> — canonical social link; lives in `SITE.social.facebook` (`lib/content/site.ts`), which drives the footer + contact page.
 
 Do not memorize anything that can be re-derived from `README.md`, `BASEPLATE.md`, or `git log`.
 

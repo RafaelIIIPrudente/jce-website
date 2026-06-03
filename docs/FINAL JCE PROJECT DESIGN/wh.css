@@ -1,0 +1,236 @@
+/* ============================================================================
+   JCE SYSTEM — Warehouse module styles (Stage 7)
+   ============================================================================ */
+.wh-figs {
+  display: flex;
+  gap: 24px;
+  margin: 14px 0 4px;
+}
+.wh-figs > div {
+  display: flex;
+  flex-direction: column;
+}
+.wh-figs .ps-v {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- W2 ledger ---- */
+.whledger {
+  font-size: 12.5px;
+}
+.whledger th.frz,
+.whledger td.frz {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 1;
+  box-shadow: 1px 0 0 var(--jce-line);
+}
+.whledger thead th.frz {
+  background: var(--table-head);
+  z-index: 2;
+}
+.whledger .grp-e {
+  background: rgba(0, 120, 23, 0.035);
+}
+.whledger .grp-d {
+  background: rgba(222, 111, 17, 0.04);
+}
+.whledger .grp-n {
+  background: var(--jce-green-50);
+}
+.whledger thead .grp-e {
+  background: #e9f4ec;
+}
+.whledger thead .grp-d {
+  background: #fbeee2;
+}
+.whledger thead .grp-n {
+  background: var(--jce-green-100);
+}
+.noplan {
+  font-style: italic;
+  color: var(--jce-ink-2);
+  font-size: 11px;
+}
+.offboq-tag {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--jce-orange-600);
+  background: var(--jce-orange-100);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+.var-neg {
+  color: var(--st-danger);
+  font-weight: 600;
+}
+.var-pos {
+  color: var(--st-success);
+  font-weight: 600;
+}
+
+/* ---- 3-state lock gate ---- */
+.lockgate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 20px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.lg-steps {
+  display: flex;
+  align-items: center;
+}
+.lg-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lg-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  background: #eef1ef;
+  color: var(--jce-ink-2);
+  flex: none;
+}
+.lg-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--jce-ink-2);
+}
+.lg-step.done .lg-dot {
+  background: var(--jce-green-700);
+  color: #fff;
+}
+.lg-step.done .lg-label {
+  color: var(--jce-green-900);
+}
+.lg-step.curr .lg-dot {
+  background: #fff;
+  border: 2px solid var(--jce-green-600);
+  color: var(--jce-green-700);
+}
+.lg-step.curr .lg-label {
+  color: var(--jce-green-900);
+}
+.lg-step.locked .lg-dot {
+  background: var(--st-locked);
+  color: #fff;
+  border: none;
+}
+.lg-step.locked .lg-label {
+  color: var(--st-locked);
+}
+.lg-line {
+  width: 40px;
+  height: 2px;
+  background: var(--jce-line);
+  margin: 0 10px;
+}
+.lg-line.done {
+  background: var(--jce-green-600);
+}
+.lg-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lg-note {
+  font-size: 12px;
+  color: var(--jce-ink-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.lg-block {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--st-danger);
+}
+
+.threeway-done {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  border-left: 4px solid var(--st-success);
+}
+
+/* ---- W4 attachments ---- */
+.attach-req {
+}
+.ar-label {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.ar-done {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 10px 12px;
+  background: var(--jce-green-50);
+  border-radius: 8px;
+}
+
+/* ---- W6 transfer flow ---- */
+.transfer-flow {
+  display: flex;
+  align-items: center;
+  padding: 20px 24px;
+  margin-bottom: 14px;
+}
+.tf-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.tf-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #eef1ef;
+  color: var(--jce-ink-2);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+.tf-step.done .tf-dot {
+  background: var(--jce-green-700);
+  color: #fff;
+}
+.tf-name {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.tf-line {
+  flex: 1;
+  height: 2px;
+  background: var(--jce-line);
+  margin: 0 12px;
+  margin-bottom: 26px;
+}
+.tf-line.done {
+  background: var(--jce-green-600);
+}
+
+@media (max-width: 760px) {
+  .lockgate {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
