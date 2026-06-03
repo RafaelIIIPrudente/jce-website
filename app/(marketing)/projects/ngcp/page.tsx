@@ -36,7 +36,7 @@ export default function NgcpPage() {
         primary={{ label: "Start a project", href: "/contact-us" }}
         secondary={{
           label: "Pre-development consulting",
-          href: "/professional-services",
+          href: "/services",
         }}
         tone="primary"
       />

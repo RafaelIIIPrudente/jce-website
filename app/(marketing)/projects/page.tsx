@@ -1,90 +1,77 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowRightIcon } from "lucide-react";
 
-import { EditorialHero } from "@/components/sections/editorial-hero";
-import { ProjectIndexCard } from "@/components/sections/project-index-card";
-import { PortfolioFigures } from "@/components/sections/portfolio-figures";
-import { CTABanner } from "@/components/sections/cta-banner";
-
+import { WebHero } from "@/components/sections/web-hero";
+import { WebSection, SectionHead } from "@/components/sections/web-section";
+import { WebProjectGallery } from "@/components/sections/web-project-gallery";
+import { WebCta } from "@/components/sections/web-cta";
+import { Reveal } from "@/components/sections/web-reveal";
 import {
-  PORTFOLIO_TOTALS,
   CATEGORY_HREF,
-  ALL_PROJECTS,
+  CATEGORY_LABEL,
+  PORTFOLIO_TOTALS,
 } from "@/lib/content/projects";
 
 export const metadata: Metadata = {
   title: "Projects",
   description:
-    "Solar farms, distribution substations, and NGCP transmission projects across the Philippines — capacities, voltages, and clients listed for every project.",
+    "A selection of substations, transmission and distribution lines, and renewable plants delivered across the Philippines — filter by type, or browse detailed case studies by category.",
 };
 
-const TOTAL_PROJECTS = ALL_PROJECTS.length;
+const CATEGORIES = ["solar", "distribution", "ngcp"] as const;
 
-const FIGURES = [
-  { value: String(TOTAL_PROJECTS), label: "Total projects" },
-  { value: String(PORTFOLIO_TOTALS.solar.count), label: "Solar" },
-  { value: String(PORTFOLIO_TOTALS.distribution.count), label: "Distribution" },
-  { value: String(PORTFOLIO_TOTALS.ngcp.count), label: "NGCP" },
-];
-
-const SOLAR_HINT = PORTFOLIO_TOTALS.solar.mwp
-  ? `${PORTFOLIO_TOTALS.solar.mwp}+ MWp commissioned`
-  : undefined;
-
+// S4 · Projects (web-pages-a.jsx:229-285). Tag-filterable gallery + links to the
+// detailed case-study subpages.
 export default function ProjectsPage() {
   return (
     <>
-      <EditorialHero
-        variant="projects"
-        eyebrow="Selected work"
-        title="Three decades on the Philippine grid."
-        subtitle="Browse by category. Every project on the portfolio lists its capacity, voltage, client, and scope."
-        primary={{ label: "Solar Farm", href: "/projects/solar-farm" }}
-        secondary={{
-          label: "Distribution & NGCP",
-          href: "/projects/distribution-utility",
-        }}
+      <WebHero
+        eyebrow="Portfolio"
+        title="Projects delivered across the Philippines."
+        sub="A selection of substations, lines and renewable plants. Filter by type below, or open a detailed case study."
       />
 
-      <section className="border-b border-border bg-background">
-        <div className="mx-auto w-full max-w-6xl px-6 py-section md:px-10">
-          <div className="grid gap-6 md:grid-cols-3">
-            <ProjectIndexCard
-              category="solar"
-              eyebrow="Solar farm portfolio"
-              title="Solar Farm"
-              description="Utility-scale photovoltaic projects across Luzon, Visayas, and Mindanao — from 1 MWp pilots to the largest urban PV array in the country."
-              count={PORTFOLIO_TOTALS.solar.count}
-              capacityHint={SOLAR_HINT}
-              href={CATEGORY_HREF.solar}
-            />
-            <ProjectIndexCard
-              category="distribution"
-              eyebrow="Distribution portfolio"
-              title="Distribution Utility"
-              description="Substation EPC for electric cooperatives, government, and private utilities — LUELCO, INEC, MOPRECO, DMCI Power, CAAP."
-              count={PORTFOLIO_TOTALS.distribution.count}
-              href={CATEGORY_HREF.distribution}
-            />
-            <ProjectIndexCard
-              category="ngcp"
-              eyebrow="NGCP portfolio"
-              title="National Grid"
-              description="Transmission substation assembly, transformer testing, shunt capacitor banks, and submarine-cable substations for the National Grid Corporation."
-              count={PORTFOLIO_TOTALS.ngcp.count}
-              href={CATEGORY_HREF.ngcp}
-            />
-          </div>
+      <WebSection>
+        <SectionHead eyebrow="Selected work" heading="Browse the portfolio" />
+        <WebProjectGallery filterable />
+      </WebSection>
+
+      <WebSection alt>
+        <SectionHead
+          eyebrow="By category"
+          heading="Explore detailed case studies"
+        />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {CATEGORIES.map((cat, i) => (
+            <Reveal key={cat} delay={i * 0.06}>
+              <Link
+                href={CATEGORY_HREF[cat]}
+                className="focus-ring-jce glass group/cat flex h-full flex-col rounded-[var(--r-glass)] p-6 transition-transform duration-300 ease-[var(--ease-jce)] hover:-translate-y-0.5"
+              >
+                <span className="font-mono text-ui-12 font-semibold text-jce-green-600">
+                  {PORTFOLIO_TOTALS[cat].count} projects
+                </span>
+                <span className="mt-2 text-ui-18 font-semibold text-jce-ink">
+                  {CATEGORY_LABEL[cat]}
+                </span>
+                <span className="mt-3 inline-flex items-center gap-1 text-ui-13 text-jce-ink-2 transition-colors group-hover/cat:text-jce-green-700">
+                  View case studies
+                  <ArrowRightIcon
+                    className="size-3.5 transition-transform duration-200 group-hover/cat:translate-x-0.5"
+                    aria-hidden
+                  />
+                </span>
+              </Link>
+            </Reveal>
+          ))}
         </div>
-      </section>
+      </WebSection>
 
-      <PortfolioFigures eyebrow="By the numbers" figures={FIGURES} />
-
-      <CTABanner
-        eyebrow="Talk to us"
-        heading="Plan a project."
-        subhead="Send a project brief — utility, developer, or industrial — and we will respond inside one business day."
-        primary={{ label: "Start a project", href: "/contact-us" }}
-        tone="primary"
+      <WebCta
+        heading="A project for the national grid?"
+        sub="From systems-impact studies through substation commissioning — send a brief and we'll respond inside one business day."
+        ctaLabel="Start a project"
       />
     </>
   );

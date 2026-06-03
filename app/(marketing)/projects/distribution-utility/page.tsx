@@ -34,7 +34,7 @@ export default function DistributionUtilityPage() {
         heading="Specify a substation."
         subhead="Send your single-line and protection scheme — we will respond with a quotation and engineering scope inside one business day."
         primary={{ label: "Start a project", href: "/contact-us" }}
-        secondary={{ label: "Equipment & scope", href: "/product-services" }}
+        secondary={{ label: "Equipment & scope", href: "/products" }}
         tone="primary"
       />
     </>

@@ -1,85 +1,160 @@
 import type { Metadata } from "next";
+import { CheckIcon } from "lucide-react";
 
-import { EditorialHero } from "@/components/sections/editorial-hero";
-import { HistoryNarrative } from "@/components/sections/history-narrative";
-import { TimelineSegment } from "@/components/sections/timeline-segment";
-import { MissionVisionPair } from "@/components/sections/mission-vision-pair";
-import { AccreditationStrip } from "@/components/sections/accreditation-strip";
-import { CTABanner } from "@/components/sections/cta-banner";
-
-import { ACCREDITATIONS } from "@/lib/content/accreditations";
+import { WebHero } from "@/components/sections/web-hero";
+import { WebSection, SectionHead } from "@/components/sections/web-section";
+import { WebCta } from "@/components/sections/web-cta";
+import { Reveal } from "@/components/sections/web-reveal";
+import { ABOUT, STATS } from "@/lib/content/website";
 
 export const metadata: Metadata = {
   title: "About Us",
   description:
-    "Twenty-eight years of substation, transmission, and renewable-energy EPC across the Philippines.",
+    "JC Electrofields Power System, Inc. — a Filipino power-engineering firm founded in 1997, building substations and transmission lines up to 230 KV nationwide. Exclusive Philippine distributor of Shenda Electric.",
 };
 
-const HISTORY_PARAGRAPHS = [
-  "In 1997, JC Electrofields Power System was founded by an electrical engineer with a single conviction: the Philippines needed a contractor who could engineer, build, and commission power infrastructure to the same standard, in-house, end-to-end. The company began with substation work for cooperatives in northern Luzon.",
-  "Twenty-eight years later, JCE has commissioned distribution substations for LUELCO, MOPRECO, INEC, and DMCI Power Corp.; transmission and grid-expansion work for the National Grid Corporation of the Philippines; and utility-scale solar installations across Luzon, Visayas, and Mindanao — including the Brgy. Isla 27 MWp array, the country’s largest urban solar farm at the time of commissioning.",
-  "Today, 124 engineers operate from Valenzuela City, supporting clients in every grid region. The work is the same as it was in 1997: design it once, build it right, commission it to standard.",
-];
-
-const MILESTONES = [
-  {
-    year: 1997,
-    title: "Founded",
-    body: "Established as an electrical-engineering contractor for utilities in northern Luzon.",
-  },
-  {
-    year: 2005,
-    title: "First NGCP project",
-    body: "Began transmission and substation work for the national grid.",
-  },
-  {
-    year: 2015,
-    title: "Renewable EPC",
-    body: "Commissioned first utility-scale photovoltaic generation site.",
-  },
-  {
-    year: 2025,
-    title: "124 engineers",
-    body: "Nationwide team across Luzon, Visayas, and Mindanao.",
-  },
-];
-
+// S2 · About (web-pages-a.jsx:145-185, extended per brief:1131): mission/vision/
+// values, stats, history-since-1997, leadership, accreditations, canonical facts.
 export default function AboutPage() {
   return (
     <>
-      <EditorialHero
-        variant="about"
-        eyebrow="About us"
-        title="Twenty-eight years engineering the grid."
-        subtitle="Founded in 1997 by an electrical engineer with a singular focus on power systems. Today, 124 engineers serving utilities, NGCP, and industrial clients nationwide."
-        primary={{ label: "See projects", href: "/projects" }}
-        secondary={{ label: "Capabilities", href: "/product-services" }}
+      <WebHero
+        eyebrow="Who we are"
+        title="Built on power, driven by precision."
+        sub="JC Electrofields Power System, Inc. is a Filipino power-engineering firm delivering substations, transmission lines and renewable-energy projects nationwide."
       />
 
-      <HistoryNarrative
-        eyebrow="History"
-        heading="From northern Luzon to the national grid."
-        paragraphs={HISTORY_PARAGRAPHS}
-      />
+      {/* Mission / Vision / Values */}
+      <WebSection>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Reveal>
+            <div className="solid h-full rounded-[var(--r-solid)] p-6">
+              <div className="kicker text-jce-green-600">Mission</div>
+              <p className="mt-2.5 text-ui-18 text-pretty text-jce-ink">
+                {ABOUT.mission}
+              </p>
+            </div>
+          </Reveal>
+          <Reveal delay={0.08}>
+            <div className="solid h-full rounded-[var(--r-solid)] p-6">
+              <div className="kicker text-jce-green-600">Vision</div>
+              <p className="mt-2.5 text-ui-18 text-pretty text-jce-ink">
+                {ABOUT.vision}
+              </p>
+            </div>
+          </Reveal>
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {ABOUT.values.map((v, i) => (
+            <Reveal key={v.title} delay={i * 0.06}>
+              <div className="glass h-full rounded-[var(--r-glass)] p-5">
+                <div className="text-ui-16 font-semibold text-jce-green-900">
+                  {v.title}
+                </div>
+                <p className="mt-1.5 text-ui-13 text-pretty text-jce-ink-2">
+                  {v.body}
+                </p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </WebSection>
 
-      <TimelineSegment
-        eyebrow="Milestones"
-        heading="A timeline of work."
-        milestones={MILESTONES}
-      />
+      {/* Stat band */}
+      <WebSection alt>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {STATS.map((s, i) => (
+            <Reveal key={s.k} delay={i * 0.05}>
+              <div className="glass rounded-[var(--r-glass)] p-5">
+                <div className="text-[clamp(24px,4vw,34px)] leading-none font-bold tracking-tight tabular-nums text-jce-ink">
+                  {s.v}
+                </div>
+                <div className="mt-1.5 text-ui-12 text-jce-ink-2">{s.k}</div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </WebSection>
 
-      <MissionVisionPair
-        eyebrow="Operating principles"
-        mission="To design, build, and commission electrical power systems — substations, transmission, renewable generation, and industrial electrical — for utilities, cooperatives, NGCP, and industrial clients across the Philippines, end-to-end, with a single accountable team."
-        vision="To be the Philippines’ most credible privately held electrical-power-systems EPC, judged by the projects we have commissioned and the clients who name us by name."
-      />
+      {/* History + leadership */}
+      <WebSection>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-12">
+          <div className="md:col-span-5">
+            <SectionHead
+              eyebrow="Since 1997"
+              heading="From northern Luzon to the national grid."
+            />
+          </div>
+          <div className="md:col-span-7">
+            <Reveal>
+              <p className="text-ui-16 text-pretty text-jce-ink-2">
+                {ABOUT.history}
+              </p>
+              <p className="mt-4 text-ui-16 text-pretty text-jce-ink-2">
+                {ABOUT.coverage}
+              </p>
+              <div className="mt-6 inline-flex items-center gap-3 rounded-[var(--r-solid)] border border-jce-line bg-card px-5 py-4">
+                <div>
+                  <div className="text-ui-12 text-jce-ink-2">
+                    {ABOUT.leadership.role}
+                  </div>
+                  <div className="text-ui-16 font-semibold text-jce-ink">
+                    {ABOUT.leadership.name}
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </WebSection>
 
-      <AccreditationStrip items={ACCREDITATIONS} />
+      {/* Accreditations */}
+      <WebSection alt>
+        <SectionHead
+          eyebrow="Credentials"
+          heading="Accreditations & memberships"
+        />
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {ABOUT.accreditations.map((a, i) => (
+            <Reveal key={a.code} delay={i * 0.05}>
+              <div className="solid h-full rounded-[var(--r-solid)] p-5">
+                <div className="text-ui-22 font-bold tracking-tight text-jce-green-700">
+                  {a.code}
+                </div>
+                <div className="mt-1.5 text-ui-12 text-jce-ink-2">{a.note}</div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </WebSection>
 
-      <CTABanner
+      {/* Canonical facts block (FR-WEB-16 — plain, extractable sentences for GEO) */}
+      <WebSection>
+        <SectionHead eyebrow="The facts" heading="JCE at a glance" />
+        <Reveal>
+          <ul className="solid flex flex-col gap-3 rounded-[var(--r-solid)] p-6">
+            {ABOUT.canonicalFacts.map((fact) => (
+              <li key={fact} className="flex items-start gap-3">
+                <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-jce-green-50 text-jce-green-700">
+                  <CheckIcon
+                    className="size-3.5"
+                    strokeWidth={2.5}
+                    aria-hidden
+                  />
+                </span>
+                <span className="text-ui-14 text-pretty text-jce-ink">
+                  {fact}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+      </WebSection>
+
+      <WebCta
         heading="Talk to the engineers behind the work."
-        subhead="Send a project brief — utility, developer, or industrial — and we'll respond inside one business day."
-        primary={{ label: "Start a project", href: "/contact-us" }}
+        sub="Send a project brief — utility, developer, or industrial — and we'll respond inside one business day."
+        ctaLabel="Start a project"
       />
     </>
   );
