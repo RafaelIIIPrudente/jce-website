@@ -1,228 +1,381 @@
 "use client";
 
-import * as React from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { ArrowRightIcon } from "lucide-react";
+import { useState } from "react";
+import { CheckIcon } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { sendContact, type ContactInput } from "@/lib/actions/send-contact";
+  INQ_BUDGET,
+  INQ_HEARD,
+  INQ_INDUSTRY,
+  INQ_TIMELINE,
+  INQ_TYPE,
+} from "@/lib/content/website";
+import { addInquiry, type Inquiry } from "@/lib/mock/inquiries";
 
-const PROJECT_TYPES: readonly {
-  value: ContactInput["projectType"];
-  label: string;
-}[] = [
-  { value: "solar", label: "Solar farm / renewable EPC" },
-  { value: "substation", label: "Substation EPC" },
-  { value: "transmission", label: "Transmission / NGCP" },
-  { value: "consulting", label: "Pre-development consulting" },
-  { value: "industrial", label: "Industrial electrical" },
-  { value: "other", label: "Other" },
+// S8 Contact / Inquiry (FLAGSHIP) — web-pages-b.jsx:9-318. CLIENT MOCK: validate,
+// honeypot-drop bot input, then write into the shared in-session inquiry store
+// (lib/mock/inquiries.ts) that BDD B10 reads. No backend / real email.
+// Required: name, company, email, phone, type, subject, message (trim) + email regex.
+
+type FormState = {
+  name: string;
+  company: string;
+  position: string;
+  industry: string;
+  email: string;
+  phone: string;
+  type: string;
+  typeOther: string;
+  projectLocation: string;
+  timeline: string;
+  subject: string;
+  message: string;
+  budget: string;
+  heard: string;
+  website: string; // honeypot
+};
+
+const EMPTY: FormState = {
+  name: "",
+  company: "",
+  position: "",
+  industry: "",
+  email: "",
+  phone: "",
+  type: "",
+  typeOther: "",
+  projectLocation: "",
+  timeline: "",
+  subject: "",
+  message: "",
+  budget: "",
+  heard: "",
+  website: "",
+};
+
+const REQUIRED: (keyof FormState)[] = [
+  "name",
+  "company",
+  "email",
+  "phone",
+  "type",
+  "subject",
+  "message",
 ];
 
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+const FIELD = "field min-h-11";
+
 export function ContactForm() {
-  const [isPending, startTransition] = React.useTransition();
+  const [form, setForm] = useState<FormState>(EMPTY);
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof FormState, string>>
+  >({});
+  const [sent, setSent] = useState<Inquiry | null>(null);
 
-  const form = useForm<ContactInput>({
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      projectType: "substation",
-      message: "",
-    },
-  });
+  const set = (k: keyof FormState, v: string) =>
+    setForm((f) => ({ ...f, [k]: v }));
 
-  function onSubmit(values: ContactInput) {
-    startTransition(async () => {
-      const result = await sendContact(values);
-      if (result.ok) {
-        toast.success("Thanks — we'll be in touch within one business day.");
-        form.reset();
-      } else {
-        toast.error(result.error);
-        if (result.fieldErrors) {
-          for (const [key, msgs] of Object.entries(result.fieldErrors)) {
-            const m = msgs?.[0];
-            if (m) {
-              form.setError(key as keyof ContactInput, { message: m });
-            }
-          }
-        }
-      }
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    // Honeypot tripped — silently drop (a real user never fills a hidden field).
+    if (form.website) return;
+
+    const next: Partial<Record<keyof FormState, string>> = {};
+    REQUIRED.forEach((k) => {
+      if (!form[k].trim()) next[k] = "Required";
     });
+    if (form.email && !EMAIL_RE.test(form.email))
+      next.email = "Enter a valid email";
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+
+    const created = addInquiry({
+      name: form.name.trim(),
+      company: form.company.trim(),
+      position: form.position.trim() || undefined,
+      industry: form.industry || undefined,
+      email: form.email.trim(),
+      phone: form.phone.trim(),
+      type: form.type,
+      typeOther:
+        form.type === "Other" ? form.typeOther.trim() || undefined : undefined,
+      projectLocation: form.projectLocation.trim() || undefined,
+      timeline: form.timeline || undefined,
+      subject: form.subject.trim(),
+      message: form.message.trim(),
+      budget: form.budget || undefined,
+      heard: form.heard || undefined,
+    });
+    setSent(created);
+    window.scrollTo?.({ top: 0, behavior: "smooth" });
+  }
+
+  if (sent) {
+    return (
+      <div className="glass flex flex-col items-center rounded-[var(--r-glass)] p-8 text-center">
+        <span className="grid size-14 place-items-center rounded-full bg-jce-green-50 text-jce-green-700">
+          <CheckIcon className="size-7" strokeWidth={2.25} aria-hidden />
+        </span>
+        <h2 className="mt-4 text-ui-22 font-bold tracking-tight text-jce-ink">
+          Thank you — your inquiry is in.
+        </h2>
+        <p className="mt-2 max-w-[48ch] text-ui-14 text-pretty text-jce-ink-2">
+          Our Business Development team has received your message and will
+          respond shortly. A reference has been created in our system.
+        </p>
+        <dl className="mt-5 flex flex-col items-center gap-1">
+          <dt className="kicker text-jce-ink-2">Inquiry type</dt>
+          <dd className="text-ui-14 font-semibold text-jce-ink">
+            {sent.type || "General"}
+          </dd>
+          <dd className="mt-1 font-mono text-ui-12 text-jce-green-700">
+            {sent.id}
+          </dd>
+        </dl>
+        <Button
+          className="mt-6 h-11 px-5"
+          onClick={() => {
+            setSent(null);
+            setForm(EMPTY);
+            setErrors({});
+          }}
+        >
+          Send another
+        </Button>
+      </div>
+    );
   }
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-5 rounded-lg border border-border bg-card p-6 md:p-8"
-        noValidate
-      >
-        <div className="grid gap-5 sm:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="name"
-            rules={{
-              required: "Please enter your name.",
-              minLength: { value: 2, message: "Please enter your name." },
-            }}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-eyebrow uppercase text-muted-foreground">
-                  Name
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Your full name"
-                    autoComplete="name"
-                    className="h-11"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+    <form
+      onSubmit={onSubmit}
+      noValidate
+      className="solid flex flex-col gap-5 rounded-[var(--r-solid)] p-5 sm:p-6"
+    >
+      {/* Contact */}
+      <FormSection title="Contact" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Field label="Name" required error={errors.name}>
+          <input
+            className={FIELD}
+            value={form.name}
+            autoComplete="name"
+            onChange={(e) => set("name", e.target.value)}
           />
-          <FormField
-            control={form.control}
-            name="email"
-            rules={{
-              required: "Please enter your email.",
-              pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                message: "Please enter a valid email.",
-              },
-            }}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-eyebrow uppercase text-muted-foreground">
-                  Work email
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="you@company.com"
-                    autoComplete="email"
-                    className="h-11"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+        </Field>
+        <Field label="Company / Organization" required error={errors.company}>
+          <input
+            className={FIELD}
+            value={form.company}
+            autoComplete="organization"
+            onChange={(e) => set("company", e.target.value)}
           />
-        </div>
+        </Field>
+        <Field label="Position / Role">
+          <input
+            className={FIELD}
+            value={form.position}
+            autoComplete="organization-title"
+            onChange={(e) => set("position", e.target.value)}
+          />
+        </Field>
+        <Field label="Industry">
+          <select
+            className={FIELD}
+            value={form.industry}
+            onChange={(e) => set("industry", e.target.value)}
+          >
+            <option value="">Select…</option>
+            {INQ_INDUSTRY.map((o) => (
+              <option key={o}>{o}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Email" required error={errors.email}>
+          <input
+            className={FIELD}
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            value={form.email}
+            onChange={(e) => set("email", e.target.value)}
+          />
+        </Field>
+        <Field label="Phone" required error={errors.phone}>
+          <input
+            className={FIELD}
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            value={form.phone}
+            onChange={(e) => set("phone", e.target.value)}
+          />
+        </Field>
+      </div>
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-eyebrow uppercase text-muted-foreground">
-                  Phone (optional)
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="tel"
-                    placeholder="+63 ..."
-                    autoComplete="tel"
-                    className="h-11"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+      {/* Inquiry details */}
+      <FormSection title="Inquiry details" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Field label="Inquiry Type" required error={errors.type} full>
+          <select
+            className={FIELD}
+            value={form.type}
+            onChange={(e) => set("type", e.target.value)}
+          >
+            <option value="">Select…</option>
+            {INQ_TYPE.map((o) => (
+              <option key={o}>{o}</option>
+            ))}
+          </select>
+        </Field>
+        {form.type === "Other" ? (
+          <Field label="Please specify" full>
+            <input
+              className={FIELD}
+              value={form.typeOther}
+              onChange={(e) => set("typeOther", e.target.value)}
+            />
+          </Field>
+        ) : null}
+        <Field label="Project Location">
+          <input
+            className={FIELD}
+            value={form.projectLocation}
+            onChange={(e) => set("projectLocation", e.target.value)}
           />
-          <FormField
-            control={form.control}
-            name="projectType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-eyebrow uppercase text-muted-foreground">
-                  Project type
-                </FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="h-11 w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {PROJECT_TYPES.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+        </Field>
+        <Field label="Estimated Timeline">
+          <select
+            className={FIELD}
+            value={form.timeline}
+            onChange={(e) => set("timeline", e.target.value)}
+          >
+            <option value="">Select…</option>
+            {INQ_TIMELINE.map((o) => (
+              <option key={o}>{o}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Subject" required error={errors.subject} full>
+          <input
+            className={FIELD}
+            value={form.subject}
+            onChange={(e) => set("subject", e.target.value)}
           />
-        </div>
+        </Field>
+        <Field label="Message" required error={errors.message} full>
+          <textarea
+            className="field min-h-[120px]"
+            rows={4}
+            value={form.message}
+            onChange={(e) => set("message", e.target.value)}
+          />
+        </Field>
+      </div>
 
-        <FormField
-          control={form.control}
-          name="message"
-          rules={{
-            required: "Tell us a little about the project.",
-            minLength: {
-              value: 10,
-              message: "Tell us a little more — at least ten characters.",
-            },
-          }}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-eyebrow uppercase text-muted-foreground">
-                Project brief
-              </FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Site, capacity, voltage, timeline — anything we should know."
-                  rows={6}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      {/* Qualifiers */}
+      <FormSection title="Qualifiers" optional />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Field label="Budget Range (PHP)">
+          <select
+            className={FIELD}
+            value={form.budget}
+            onChange={(e) => set("budget", e.target.value)}
+          >
+            <option value="">Prefer not to say</option>
+            {INQ_BUDGET.map((o) => (
+              <option key={o}>{o}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="How did you hear about us?">
+          <select
+            className={FIELD}
+            value={form.heard}
+            onChange={(e) => set("heard", e.target.value)}
+          >
+            <option value="">Select…</option>
+            {INQ_HEARD.map((o) => (
+              <option key={o}>{o}</option>
+            ))}
+          </select>
+        </Field>
+      </div>
 
-        <Button
-          type="submit"
-          size="lg"
-          className="h-11 self-start px-5 text-sm"
-          disabled={isPending}
-        >
-          {isPending ? "Sending…" : "Send brief"}
-          <ArrowRightIcon
-            data-icon="inline-end"
-            className="size-3.5"
-            strokeWidth={1.5}
-          />
+      {/* Honeypot — visually hidden, off the tab order */}
+      <input
+        className="sr-only"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        value={form.website}
+        onChange={(e) => set("website", e.target.value)}
+      />
+
+      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-jce-line pt-5">
+        <p className="inline-flex items-center gap-2 text-ui-12 text-jce-ink-2">
+          <span className="grid size-5 place-items-center rounded bg-jce-green-50 text-jce-green-700">
+            <CheckIcon className="size-3.5" aria-hidden />
+          </span>
+          I&rsquo;m not a robot{" "}
+          <span className="text-jce-ink-2/70">(CAPTCHA / honeypot active)</span>
+        </p>
+        <Button type="submit" className="h-12 px-6">
+          Submit inquiry
         </Button>
-      </form>
-    </Form>
+      </div>
+      {Object.keys(errors).length > 0 ? (
+        <p className="text-ui-12 text-[var(--st-danger)]">
+          Please complete the required fields above.
+        </p>
+      ) : null}
+    </form>
+  );
+}
+
+function FormSection({
+  title,
+  optional,
+}: {
+  title: string;
+  optional?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2 text-ui-12 font-semibold tracking-wide text-jce-green-700 uppercase">
+      {title}
+      {optional ? (
+        <span className="font-normal text-jce-ink-2 normal-case">optional</span>
+      ) : null}
+    </div>
+  );
+}
+
+function Field({
+  label,
+  required,
+  error,
+  full,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  error?: string;
+  full?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={cn("flex flex-col gap-1.5", full && "sm:col-span-2")}>
+      <label className="text-ui-12 font-semibold text-jce-ink-2">
+        {label}
+        {required ? <span className="text-[var(--st-danger)]"> *</span> : null}
+      </label>
+      {children}
+      {error ? (
+        <span className="text-ui-12 text-[var(--st-danger)]">{error}</span>
+      ) : null}
+    </div>
   );
 }
