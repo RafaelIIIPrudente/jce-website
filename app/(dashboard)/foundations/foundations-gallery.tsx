@@ -501,7 +501,7 @@ export function FoundationsGallery() {
   return (
     <div className="mx-auto max-w-6xl pb-16">
       {/* Intro */}
-      <div className="glass rounded-[var(--r-glass)] p-6 md:p-8">
+      <div className="glass rounded-(--r-glass) p-6 md:p-8">
         <div className="font-mono text-[11px] font-semibold tracking-[0.14em] text-jce-ink-2 uppercase">
           JC Electrofields Power System, Inc. · Internal dashboard + public
           website
@@ -846,7 +846,7 @@ export function FoundationsGallery() {
               <FieldComputed>6.4 yrs</FieldComputed>
               <label className="mt-1.5 text-ui-12 font-semibold text-jce-ink-2">
                 Daily Rate (Basic)
-                <span className="ml-1 font-bold text-[var(--st-danger)]">
+                <span className="ml-1 font-bold text-(--st-danger)">
                   SENSITIVE
                 </span>
               </label>
@@ -1125,7 +1125,7 @@ export function FoundationsGallery() {
             <PrintPreview>
               <div className="flex items-start justify-between border-b-2 border-jce-ink pb-2">
                 <div>
-                  <div className="text-[13px] font-extrabold tracking-wide">
+                  <div className="text-ui-13 font-extrabold tracking-wide">
                     JC ELECTROFIELDS POWER SYSTEM, INC.
                   </div>
                   <div className="text-[9px] text-jce-ink-2">

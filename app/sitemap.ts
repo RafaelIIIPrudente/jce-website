@@ -5,12 +5,15 @@ const BASE_URL = "https://jcepower.com";
 const ROUTES = [
   "/",
   "/about-us",
-  "/product-services",
-  "/professional-services",
+  "/services",
+  "/products",
   "/projects",
   "/projects/solar-farm",
   "/projects/distribution-utility",
   "/projects/ngcp",
+  "/news",
+  "/careers",
+  "/faq",
   "/contact-us",
 ] as const;
 
