@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JCE System — App Shell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="jce-tokens.css">
+<link rel="stylesheet" href="hr.css">
+<link rel="stylesheet" href="acc.css">
+<link rel="stylesheet" href="pmg.css">
+<link rel="stylesheet" href="pur.css">
+<link rel="stylesheet" href="wh.css">
+<link rel="stylesheet" href="bdd.css">
+<link rel="stylesheet" href="phase2.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-ui); color: var(--jce-ink); background: var(--jce-bg); -webkit-font-smoothing: antialiased; }
+  button { font-family: inherit; }
+  input, select { font-family: inherit; }
+
+  /* ---- App frame ---- */
+  .jce-app { display: grid; grid-template-columns: auto 1fr; min-height: 100vh; }
+  .jce-app.jce-backdrop { position: relative; }
+
+  /* ---- Sidebar ---- */
+  .jce-side { margin: 12px 0 12px 12px; border-radius: var(--r-glass); width: 248px; display: flex; flex-direction: column; padding: 14px 12px; transition: width var(--dur-base) var(--ease); position: sticky; top: 12px; height: calc(100vh - 24px); }
+  .jce-side[data-collapsed="true"] { width: 72px; padding: 14px 10px; }
+  .side-top { display: flex; align-items: center; gap: 10px; padding: 4px 6px 14px; }
+  .side-logo { width: 36px; height: 36px; border-radius: 9px; object-fit: cover; box-shadow: var(--solid-shadow); flex: none; }
+  .side-name { font-weight: 700; font-size: 14px; letter-spacing: -0.01em; }
+  .side-sub { font-size: 11px; color: var(--jce-ink-2); }
+  .side-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+  .navitem { display: flex; align-items: center; gap: 11px; padding: 9px 11px; border: none; background: transparent; color: var(--jce-ink-2); border-radius: 10px; cursor: pointer; font-size: 13.5px; font-weight: 500; text-align: left; transition: all var(--dur-fast) var(--ease); width: 100%; position: relative; }
+  .navitem:hover { background: var(--jce-green-50); color: var(--jce-green-900); }
+  .navitem.on { background: var(--jce-green-700); color: #fff; box-shadow: 0 4px 12px rgba(0,120,23,0.28); }
+  .navic { display: inline-flex; flex: none; }
+  .navlabel { flex: 1; white-space: nowrap; }
+  .rotag { font-size: 9px; font-weight: 700; color: var(--jce-ink-2); background: rgba(15,27,20,0.07); border-radius: 4px; padding: 1px 5px; }
+  .navitem.on .rotag { background: rgba(255,255,255,0.25); color: #fff; }
+  .side-collapse { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border: none; background: transparent; color: var(--jce-ink-2); border-radius: 10px; cursor: pointer; font-size: 12px; font-weight: 500; margin-top: 6px; border-top: 1px solid var(--jce-line); padding-top: 14px; }
+  .side-collapse:hover { color: var(--jce-green-900); }
+
+  /* ---- Main column ---- */
+  .jce-main { display: flex; flex-direction: column; min-width: 0; padding: 12px; gap: 0; }
+  .jce-top { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-radius: var(--r-glass); position: sticky; top: 12px; z-index: 40; }
+  .crumbs { display: flex; align-items: center; font-size: 12px; color: var(--jce-ink-2); white-space: nowrap; }
+  .crumb-sep { margin: 0 7px; opacity: 0.5; }
+  .crumb-cur { color: var(--jce-ink); font-weight: 600; }
+  .top-search { display: flex; align-items: center; gap: 9px; background: rgba(255,255,255,0.7); border: 1px solid var(--jce-line); border-radius: 10px; padding: 7px 12px; color: var(--jce-ink-2); flex: 1; max-width: 420px; }
+  .top-search input { border: none; background: transparent; outline: none; font-size: 13px; color: var(--jce-ink); flex: 1; }
+  .top-search kbd { font-family: var(--font-mono); font-size: 10px; background: #EEF1EF; border: 1px solid var(--jce-line); border-radius: 4px; padding: 1px 5px; }
+
+  .rolesw { position: relative; margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .rolesw-lbl { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--jce-ink-2); }
+  .rolesw-btn { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 8px; border: 1px dashed var(--jce-orange-500); background: rgba(250,136,56,0.08); color: var(--jce-orange-600); cursor: pointer; }
+  .rolesw-menu { position: absolute; top: calc(100% + 8px); right: 0; width: 260px; max-height: 380px; overflow-y: auto; padding: 6px; z-index: 60; }
+  .rolesw-opt { display: flex; flex-direction: column; align-items: flex-start; width: 100%; text-align: left; padding: 8px 10px; border: none; background: transparent; border-radius: 8px; cursor: pointer; font-size: 13px; }
+  .rolesw-opt:hover { background: var(--jce-green-50); }
+  .rolesw-opt.on { background: var(--jce-green-700); color: #fff; }
+  .rolesw-note { font-size: 10px; color: var(--jce-ink-2); margin-top: 1px; }
+  .rolesw-opt.on .rolesw-note { color: rgba(255,255,255,0.8); }
+
+  .top-bell { position: relative; width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--jce-line); background: rgba(255,255,255,0.6); color: var(--jce-ink); display: grid; place-items: center; cursor: pointer; }
+  .top-bell:hover { background: var(--jce-green-50); }
+  .bell-badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--jce-orange-600); color: #fff; font-size: 10px; font-weight: 700; display: grid; place-items: center; }
+
+  .top-user { position: relative; }
+  .user-btn { display: flex; align-items: center; gap: 9px; border: none; background: transparent; cursor: pointer; padding: 3px; }
+  .user-av { width: 34px; height: 34px; border-radius: 50%; background: var(--jce-green-700); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; flex: none; }
+  .user-av.lg { width: 44px; height: 44px; font-size: 15px; }
+  .user-meta { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; }
+  .user-name { font-size: 13px; font-weight: 600; }
+  .user-menu { position: absolute; top: calc(100% + 8px); right: 0; width: 220px; padding: 6px; z-index: 60; }
+  .user-menu-head { padding: 10px; border-bottom: 1px solid var(--jce-line); margin-bottom: 4px; }
+  .user-note { font-size: 11px; color: var(--st-pending-ink); margin-top: 2px; }
+  .user-menu-item { display: block; width: 100%; text-align: left; padding: 8px 10px; border: none; background: transparent; border-radius: 8px; cursor: pointer; font-size: 13px; }
+  .user-menu-item:hover { background: var(--jce-green-50); }
+
+  /* ---- Content ---- */
+  .jce-content { padding: 20px 4px 40px; min-width: 0; }
+  .screen { max-width: 1180px; }
+  .kicker { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--jce-green-600); font-weight: 600; }
+
+  /* ---- Home ---- */
+  .home-greet h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+  .home-greet .g { color: var(--jce-green-700); }
+  .home-greet p { color: var(--jce-ink-2); margin-top: 4px; display: flex; align-items: center; gap: 8px; }
+  .scope-pill { font-size: 11px; font-weight: 600; color: var(--st-info-ink); background: var(--st-info-bg); padding: 2px 9px; border-radius: var(--r-pill); }
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px,1fr)); gap: 14px; margin: 22px 0; }
+  .kpi-tile { padding: 16px 18px; }
+  .kpi-k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--jce-ink-2); line-height: 1.4; min-height: 28px; }
+  .kpi-v { font-size: 30px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .kpi-d { font-size: 12px; font-weight: 600; margin-top: 2px; }
+  .home-cols { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; }
+  .home-panel { padding: 16px; }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .panel-head h3 { font-size: 15px; font-weight: 700; }
+  .approval-list, .notif-mini { padding: 4px; }
+  .approval-row { display: flex; align-items: center; gap: 12px; padding: 11px 10px; border-bottom: 1px solid var(--jce-line); }
+  .approval-row:last-child { border-bottom: none; }
+  .ap-main { flex: 1; min-width: 0; }
+  .ap-t { font-size: 13px; font-weight: 600; }
+  .ap-m { font-size: 11px; color: var(--jce-ink-2); margin-top: 1px; }
+  .ap-amt { font-weight: 700; font-size: 13px; }
+  .notif-mini { padding: 0; }
+  .nm-row { display: flex; gap: 10px; padding: 11px 12px; border-bottom: 1px solid var(--jce-line); align-items: flex-start; }
+  .nm-row:last-child { border-bottom: none; }
+  .nm-row.unread { background: var(--jce-green-50); }
+  .nm-dot { margin-top: 6px; flex: none; }
+  .nm-t { font-size: 12.5px; font-weight: 500; }
+  .nm-time { font-size: 11px; color: var(--jce-ink-2); margin-top: 1px; }
+
+  /* ---- Page head (registers) ---- */
+  .page-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; margin-bottom: 16px; gap: 16px; flex-wrap: wrap; }
+  .ph-title { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-top: 2px; }
+  .ph-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .toggle-lite { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--jce-ink-2); cursor: pointer; }
+
+  /* ---- Tables ---- */
+  .table-wrap { overflow: auto; padding: 0; }
+  .table-wrap .jtable { min-width: 600px; }
+  .row-sel td { background: var(--jce-green-50) !important; box-shadow: inset 3px 0 0 var(--jce-green-700); }
+  .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--jce-orange-600); display: inline-block; }
+
+  /* ---- Admin ---- */
+  .admin-split { display: grid; grid-template-columns: 1fr 300px; gap: 16px; align-items: start; }
+  .roles-ref { padding: 16px; }
+  .roles-ref-list { padding: 8px; max-height: 360px; overflow-y: auto; }
+  .rr-row { display: flex; align-items: center; gap: 8px; padding: 7px 8px; font-size: 12.5px; border-bottom: 1px solid var(--jce-line); }
+  .rr-row:last-child { border-bottom: none; }
+  .rr-note { font-size: 11px; color: var(--jce-ink-2); margin-top: 12px; line-height: 1.5; }
+  .ro-note { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--st-pending-ink); background: var(--st-pending-bg); padding: 6px 11px; border-radius: 8px; }
+
+  /* drawer */
+  .jce-scrim { position: fixed; inset: 0; background: rgba(15,27,20,0.28); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); z-index: 100; display: flex; align-items: center; justify-content: flex-end; }
+  .drawer { width: 440px; height: calc(100vh - 24px); margin: 12px; border-radius: var(--r-glass); display: flex; flex-direction: column; overflow: hidden; }
+  .drawer-head { display: flex; align-items: flex-start; justify-content: space-between; padding: 18px; }
+  .drawer-head > div { display: flex; gap: 12px; align-items: center; }
+  .drawer-name { font-size: 16px; font-weight: 700; }
+  .drawer-sub { font-size: 12px; color: var(--jce-ink-2); margin-top: 3px; display: flex; gap: 6px; align-items: center; }
+  .iconbtn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--jce-line); background: #fff; cursor: pointer; color: var(--jce-ink-2); }
+  .drawer-body { margin: 0 14px 14px; padding: 18px; flex: 1; overflow-y: auto; }
+  .drawer-acts { display: flex; gap: 8px; margin-top: 22px; flex-wrap: wrap; align-items: center; padding-top: 16px; border-top: 1px solid var(--jce-line); }
+
+  /* settings */
+  .settings-split { display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: start; }
+  .settings-nav { padding: 8px; display: flex; flex-direction: column; gap: 2px; position: sticky; top: 84px; }
+  .set-navitem { text-align: left; padding: 9px 12px; border: none; background: transparent; border-radius: 9px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--jce-ink-2); }
+  .set-navitem:hover { background: var(--jce-green-50); color: var(--jce-green-900); }
+  .set-navitem.on { background: var(--jce-green-700); color: #fff; }
+  .set-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; gap: 16px; }
+  .set-head h3 { font-size: 18px; font-weight: 700; }
+  .set-head p { font-size: 12.5px; color: var(--jce-ink-2); margin-top: 4px; max-width: 70ch; }
+  .set-foot { font-size: 11px; color: var(--jce-ink-2); margin-top: 12px; }
+  .rowedit { font-size: 12px; font-weight: 600; color: var(--jce-green-700); cursor: pointer; }
+  .oq { font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.04em; color: var(--st-pending-ink); background: var(--st-pending-bg); padding: 2px 7px; border-radius: 5px; vertical-align: middle; }
+
+  /* bell pop */
+  .bell-pop { position: absolute; top: calc(100% + 10px); right: 0; width: 380px; padding: 0; overflow: hidden; z-index: 60; border-radius: 14px; }
+  .bell-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; font-size: 14px; }
+  .linkbtn { border: none; background: transparent; color: var(--jce-green-700); font-weight: 600; font-size: 12px; cursor: pointer; }
+  .bell-list { margin: 0 10px; max-height: 340px; overflow-y: auto; }
+  .bell-row { display: flex; gap: 10px; padding: 11px 10px; border-bottom: 1px solid var(--jce-line); }
+  .bell-row:last-child { border-bottom: none; }
+  .bell-row.unread { background: var(--jce-green-50); }
+  .bell-msg { font-size: 12.5px; font-weight: 500; }
+  .bell-meta { font-size: 11px; color: var(--jce-ink-2); margin-top: 2px; }
+  .bell-foot { width: 100%; border: none; background: #fff; padding: 12px; font-size: 12px; font-weight: 600; color: var(--jce-green-700); cursor: pointer; border-top: 1px solid var(--jce-line); }
+
+  /* login */
+  .login-stage { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+  .login-card { width: 400px; max-width: 100%; padding: 28px; }
+  .login-brand { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+  .login-brand img { width: 52px; height: 52px; border-radius: 12px; object-fit: cover; box-shadow: var(--solid-shadow); }
+  .login-title { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .login-sub { font-size: 12px; color: var(--jce-ink-2); }
+  .login-form { padding: 22px; }
+  .login-err { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--st-danger); font-weight: 500; margin-top: 12px; }
+  .login-forgot { display: block; text-align: center; font-size: 12px; color: var(--jce-green-700); margin-top: 14px; text-decoration: none; font-weight: 500; }
+  .login-forgot:hover { text-decoration: underline; }
+  .login-lock { display: flex; gap: 12px; align-items: center; padding: 8px; }
+  .ll-t { font-weight: 700; font-size: 14px; }
+  .ll-d { font-size: 12px; color: var(--jce-ink-2); margin-top: 2px; }
+  .login-foot { font-size: 11px; color: var(--jce-ink-2); text-align: center; margin-top: 18px; line-height: 1.5; }
+
+  /* idle modal */
+  .idle-modal { width: 420px; max-width: 90vw; padding: 26px; text-align: left; }
+  .idle-modal h3 { font-size: 18px; font-weight: 700; }
+  .idle-modal p { font-size: 13px; color: var(--jce-ink-2); margin-top: 8px; line-height: 1.5; }
+  .idle-acts { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .idle-ic { width: 44px; height: 44px; border-radius: 12px; background: var(--st-pending-bg); display: grid; place-items: center; margin-bottom: 14px; }
+  .jce-scrim.center { align-items: center; justify-content: center; }
+
+  /* module placeholder */
+  .modph { max-width: 760px; }
+  .modph-card { padding: 36px; text-align: center; }
+  .modph-ic { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, var(--jce-green-50), var(--jce-orange-100)); display: grid; place-items: center; margin: 0 auto 18px; }
+  .modph h2 { font-size: 24px; font-weight: 700; }
+  .modph .stage-tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: var(--jce-green-700); background: var(--jce-green-100); padding: 4px 12px; border-radius: var(--r-pill); margin-bottom: 14px; }
+  .modph p { color: var(--jce-ink-2); font-size: 14px; max-width: 56ch; margin: 8px auto 0; }
+  .modph-screens { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 22px; }
+  .modph-chip { font-size: 12px; padding: 6px 12px; border-radius: 8px; background: #fff; border: 1px solid var(--jce-line); color: var(--jce-ink-2); }
+
+  @media (max-width: 980px) {
+    .home-cols, .admin-split, .settings-split { grid-template-columns: 1fr; }
+    .rolesw-lbl { display: none; }
+    .top-search { display: none; }
+  }
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="18" fill="#007817"/><g fill="#fff"><rect x="30" y="30" width="40" height="8" rx="2"/><rect x="30" y="46" width="40" height="6" rx="2" opacity="0.7"/><rect x="30" y="58" width="28" height="6" rx="2" opacity="0.7"/></g></svg>
+</template>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="shell.jsx"></script>
+<script type="text/babel" src="screens-core.jsx"></script>
+<script type="text/babel" src="screens-admin.jsx"></script>
+<script type="text/babel" src="hr-data.jsx"></script>
+<script type="text/babel" src="hr-employees.jsx"></script>
+<script type="text/babel" src="hr-time.jsx"></script>
+<script type="text/babel" src="hr-requests.jsx"></script>
+<script type="text/babel" src="hr-module.jsx"></script>
+<script type="text/babel" src="acc-data.jsx"></script>
+<script type="text/babel" src="acc-payroll.jsx"></script>
+<script type="text/babel" src="acc-sales.jsx"></script>
+<script type="text/babel" src="acc-vouchers.jsx"></script>
+<script type="text/babel" src="acc-reporting.jsx"></script>
+<script type="text/babel" src="acc-module.jsx"></script>
+<script type="text/babel" src="pmg-data.jsx"></script>
+<script type="text/babel" src="pmg-accomplishment.jsx"></script>
+<script type="text/babel" src="pmg-screens.jsx"></script>
+<script type="text/babel" src="pmg-phase2.jsx"></script>
+<script type="text/babel" src="pmg-module.jsx"></script>
+<script type="text/babel" src="pur-data.jsx"></script>
+<script type="text/babel" src="pur-core.jsx"></script>
+<script type="text/babel" src="pur-tracker.jsx"></script>
+<script type="text/babel" src="pur-approvals.jsx"></script>
+<script type="text/babel" src="pur-phase2a.jsx"></script>
+<script type="text/babel" src="pur-phase2b.jsx"></script>
+<script type="text/babel" src="pur-module.jsx"></script>
+<script type="text/babel" src="wh-data.jsx"></script>
+<script type="text/babel" src="wh-core.jsx"></script>
+<script type="text/babel" src="wh-docs.jsx"></script>
+<script type="text/babel" src="wh-phase2.jsx"></script>
+<script type="text/babel" src="wh-module.jsx"></script>
+<script type="text/babel" src="bdd-data.jsx"></script>
+<script type="text/babel" src="bdd-flagships.jsx"></script>
+<script type="text/babel" src="bdd-core.jsx"></script>
+<script type="text/babel" src="bdd-module.jsx"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const MODULE_LABELS = {
+  hr:"HR", acc:"Accounting", pmg:"Project Management", pur:"Purchasing",
+  wh:"Warehouse", bdd:"BDD", eng:"Engineering", self:"My HR", admin:"Admin",
+};
+const STAGE = {
+  hr:{n:3, screens:["H1 Employee list","H5 Timekeeping grid","H6 Verification batch","H2 Record","H7–H11 Requests"]},
+  acc:{n:4, screens:["A5 Payroll batch","A8/A9 Issue + print preview","A18 Reporting hub","A2 Chart of Accounts"]},
+  pmg:{n:5, screens:["P8 Accomplishment report","P3 Import wizard","P6 BOQ","P2 Portfolio"]},
+  pur:{n:6, screens:["U2 PO ledger","U7 15-stage tracker","U12 Approval queue","U10 Suppliers"]},
+  wh:{n:7, screens:["W2 Stock ledger","W4 MRR · 3-state lock","W5 Release","W6 Transfer"]},
+  bdd:{n:8, screens:["B4 Offer events","B6 Quotation comparison","B10 Inquiries inbox","B1 Sales Orders"]},
+};
+
+function ModulePlaceholder({ mod }) {
+  if (mod === "eng") {
+    return (
+      <div className="screen modph">
+        <div className="glass modph-card">
+          <div className="modph-ic"><Icon name="eng" size={28} color="var(--jce-green-700)"/></div>
+          <span className="stage-tag">E1 · PLACEHOLDER STUB</span>
+          <h2>Engineering</h2>
+          <p>The Engineering module's scope is pending a stakeholder interview (brief §8). Only the E1 placeholder is designed — no screens, fields, or flows are invented here.</p>
+          <p style={{marginTop:12}}><span className="oq">OPEN-Q #9</span> — entire scope pending.</p>
+        </div>
+      </div>
+    );
+  }
+  if (mod === "self") {
+    return (
+      <div className="screen modph">
+        <div className="glass modph-card">
+          <div className="modph-ic"><Icon name="self" size={28} color="var(--jce-green-700)"/></div>
+          <span className="stage-tag">STAGE 3 · H12 / H13</span>
+          <h2>My HR — self-service</h2>
+          <p>Own-records-only home: my payslips, leave history, timekeeping and request tracking. Built alongside the HR module in Stage 3.</p>
+          <div className="modph-screens">
+            {["My requests","My payslips","My timekeeping","Submit request"].map(s=><span key={s} className="modph-chip">{s}</span>)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  const st = STAGE[mod];
+  return (
+    <div className="screen modph">
+      <div className="glass modph-card">
+        <div className="modph-ic"><Icon name={MODULES.find(m=>m.id===mod).icon} size={28} color="var(--jce-green-700)"/></div>
+        <span className="stage-tag">DESIGNED IN STAGE {st.n}</span>
+        <h2>{MODULE_LABELS[mod]}</h2>
+        <p>The app shell, navigation and RBAC gating you're using now carry into this module. Its screens arrive in Stage {st.n}, built on the Stage 1 component library — flagship screens first.</p>
+        <div className="modph-screens">{st.screens.map(s=><span key={s} className="modph-chip">{s}</span>)}</div>
+      </div>
+    </div>
+  );
+}
+
+const CRUMBS = {
+  home:["Home"], hr:["HR","Employees"], acc:["Accounting","Payroll"], pmg:["Project Management","Dashboard"],
+  pur:["Purchasing","Dashboard"], wh:["Warehouse","Dashboard"], bdd:["BDD","Sales Orders"], eng:["Engineering"],
+  self:["My HR"], notifs:["Notifications"], adminusers:["Admin","Users & roles"], adminsettings:["Admin","System settings"],
+};
+
+function App() {
+  const [authed, setAuthed] = useState(false);
+  const [role, setRole] = useState("owner");
+  const [active, setActive] = useState("home");
+  const [collapsed, setCollapsed] = useState(false);
+  const [bell, setBell] = useState(false);
+  const [notifs, setNotifs] = useState(NOTIFS);
+  const [idle, setIdle] = useState(false);
+  const [adminTab, setAdminTab] = useState("users"); // users | settings
+
+  const unread = notifs.filter(n => n.unread).length;
+
+  // when role changes, jump to that role's home module if current is inaccessible
+  useEffect(() => {
+    const acc = ROLES[role].access;
+    if (!acc[active]) setActive(ROLES[role].home);
+  }, [role]);
+
+  const onNav = (m) => {
+    if (m === "admin") { setActive("admin"); setAdminTab("users"); }
+    else setActive(m);
+    setBell(false);
+  };
+
+  if (!authed) return <Login onAuth={() => setAuthed(true)} />;
+
+  const acc = ROLES[role].access;
+  let crumbs = CRUMBS[active] || ["Home"];
+  let content;
+  if (active === "home") content = <Home role={role} onOpenNotifs={() => setActive("notifs")} />;
+  else if (active === "notifs") content = <Notifications items={notifs} setItems={setNotifs} />;
+  else if (active === "admin") {
+    crumbs = adminTab === "users" ? CRUMBS.adminusers : CRUMBS.adminsettings;
+    const ro = acc.admin === "R";
+    content = (
+      <div className="screen">
+        <div className="seg glass-nav" style={{marginBottom:16}}>
+          <button className={adminTab==="users"?"on":""} onClick={()=>setAdminTab("users")}>Users &amp; roles</button>
+          <button className={adminTab==="settings"?"on":""} onClick={()=>setAdminTab("settings")}>System settings</button>
+        </div>
+        {adminTab==="users" ? <AdminUsers readOnly={ro}/> : <AdminSettings readOnly={ro}/>}
+      </div>
+    );
+  }
+  else if (active === "hr") content = <HRModule role={role} />;
+  else if (active === "acc") content = <AccModule role={role} />;
+  else if (active === "pmg") content = <PMGModule role={role} />;
+  else if (active === "pur") content = <PurModule role={role} />;
+  else if (active === "wh") content = <WHModule role={role} />;
+  else if (active === "bdd") content = <BDDModule role={role} />;
+  else if (active === "eng") content = <E1Stub />;
+  else if (active === "self") content = <SelfServiceModule role={role} />;
+  else content = <ModulePlaceholder mod={active} />;
+
+  return (
+    <div className="jce-app jce-backdrop">
+      <div className="jce-glow-3"></div>
+      <Sidebar role={role} active={active} onNav={onNav} collapsed={collapsed} onToggle={()=>setCollapsed(c=>!c)} />
+      <div className="jce-main">
+        <div style={{position:"relative"}}>
+          <TopBar role={role} setRole={setRole} crumbs={crumbs} unread={unread}
+            onBell={()=>setBell(b=>!b)} onSignout={()=>{ setAuthed(false); setBell(false); }} />
+          {bell && (
+            <div style={{position:"absolute", right:16, top:0, zIndex:60}}>
+              <BellDropdown items={notifs} onClose={()=>setBell(false)}
+                onFull={()=>{ setActive("notifs"); setBell(false); }}
+                onRead={()=>setNotifs(notifs.map(n=>({...n,unread:false})))} />
+            </div>
+          )}
+        </div>
+        <div className="jce-content">{content}</div>
+      </div>
+      {idle && <IdleModal onStay={()=>setIdle(false)} onOut={()=>{ setIdle(false); setAuthed(false); }} />}
+
+      {/* demo trigger for idle modal */}
+      <button onClick={()=>setIdle(true)} title="Preview idle-timeout modal"
+        style={{position:"fixed",bottom:14,left:14,zIndex:90,fontSize:11,fontWeight:600,padding:"7px 12px",
+          borderRadius:8,border:"1px dashed var(--jce-line)",background:"rgba(255,255,255,0.8)",
+          color:"var(--jce-ink-2)",cursor:"pointer"}}>⏱ Preview idle timeout</button>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

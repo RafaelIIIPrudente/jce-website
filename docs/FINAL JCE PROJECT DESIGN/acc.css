@@ -1,0 +1,610 @@
+/* ============================================================================
+   JCE SYSTEM — Accounting module styles (Stage 4)
+   ============================================================================ */
+.acc-subnav {
+  flex-wrap: wrap;
+}
+
+/* ---- A5 payroll workspace ---- */
+.pay-header {
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+.pay-head-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.pay-head-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pay-meta {
+  font-size: 12.5px;
+  color: var(--jce-ink-2);
+  margin-top: 6px;
+}
+.pay-stepper {
+  display: flex;
+  align-items: center;
+  margin-top: 18px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.pstep {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  white-space: nowrap;
+}
+.pstep .pdot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  background: #eef1ef;
+  color: var(--jce-ink-2);
+  flex: none;
+}
+.pstep .plabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--jce-ink-2);
+}
+.pstep.done .pdot {
+  background: var(--jce-green-700);
+  color: #fff;
+}
+.pstep.done .plabel {
+  color: var(--jce-green-900);
+}
+.pstep.curr .pdot {
+  background: #fff;
+  border: 2px solid var(--jce-green-600);
+  color: var(--jce-green-700);
+}
+.pstep.curr .plabel {
+  color: var(--jce-green-900);
+}
+.pline {
+  flex: 1;
+  height: 2px;
+  background: var(--jce-line);
+  margin: 0 8px;
+  min-width: 18px;
+}
+.pline.done {
+  background: var(--jce-green-600);
+}
+
+.paygrid {
+  font-size: 12px;
+}
+.paygrid th.frz,
+.paygrid td.frz {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 1;
+  width: 30px;
+  text-align: center;
+  color: var(--jce-ink-2);
+}
+.paygrid th.frz2,
+.paygrid td.frz2 {
+  position: sticky;
+  left: 30px;
+  background: #fff;
+  z-index: 1;
+  box-shadow: 1px 0 0 var(--jce-line);
+  white-space: nowrap;
+  min-width: 150px;
+}
+.paygrid thead th.frz,
+.paygrid thead th.frz2 {
+  background: var(--table-head);
+  z-index: 2;
+}
+.paygrid .grp-e {
+  background: rgba(0, 120, 23, 0.035);
+}
+.paygrid .grp-d {
+  background: rgba(222, 111, 17, 0.04);
+}
+.paygrid .grp-n {
+  background: var(--jce-green-50);
+}
+.paygrid thead .grp-e {
+  background: #e9f4ec;
+}
+.paygrid thead .grp-d {
+  background: #fbeee2;
+}
+.paygrid thead .grp-n {
+  background: var(--jce-green-100);
+}
+.skip-flag {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--st-pending-ink);
+  background: var(--st-pending-bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+.daily-detail-row td {
+  background: #fafcfb !important;
+  padding: 0 !important;
+}
+.daily-detail {
+  padding: 14px 16px;
+}
+.dd-title {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.dd-table {
+  font-size: 11px;
+}
+.dd-table th,
+.dd-table td {
+  padding: 6px 8px;
+}
+.skip-note {
+  font-size: 11px;
+  color: var(--st-pending-ink);
+  margin-top: 8px;
+}
+
+.pay-cols {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+.charge-card,
+.workflow-card {
+  padding: 16px;
+}
+.card-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.wf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.wf-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--jce-line);
+}
+.wf-row:last-child {
+  border-bottom: none;
+}
+.wf-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #eef1ef;
+  color: var(--jce-ink-2);
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  flex: none;
+}
+.wf-row.done .wf-dot {
+  background: var(--jce-green-700);
+  color: #fff;
+}
+.wf-label {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.wf-by {
+  font-size: 11px;
+  color: var(--jce-ink-2);
+}
+
+/* ---- A6 payslip ---- */
+.payslip {
+  max-width: 760px;
+}
+.ps-head {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 2px solid #1a1a1a;
+  padding-bottom: 8px;
+}
+.ps-co {
+  font-weight: 800;
+  font-size: 13px;
+}
+.ps-period {
+  font-size: 10px;
+}
+.ps-emp {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  font-size: 10px;
+  margin: 8px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #999;
+}
+.ps-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.ps-bt {
+  font-size: 10px;
+  font-weight: 800;
+  background: #eee;
+  padding: 3px 6px;
+}
+.ps-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  padding: 2px 6px;
+}
+.ps-row.tot {
+  font-weight: 700;
+  border-top: 1px solid #999;
+}
+.ps-row.netpay {
+  font-weight: 800;
+  font-size: 12px;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 4px 6px;
+  margin-top: 4px;
+}
+.ps-row .num {
+  font-variant-numeric: tabular-nums;
+}
+.ps-sig {
+  margin-top: 18px;
+  width: 220px;
+}
+
+/* ---- two-pane issue (A8/A9/A11/A12/A14) ---- */
+.twopane {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.preview-frame {
+  padding: 14px;
+  position: sticky;
+  top: 84px;
+}
+.preview-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.si-paper,
+.preview-frame .paper {
+  max-width: 100%;
+}
+.si-cust {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 16px;
+  font-size: 10px;
+  margin: 8px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #999;
+}
+.si-cust .sl {
+  color: #666;
+}
+.si-totals {
+  margin-top: 8px;
+  margin-left: auto;
+  width: 60%;
+}
+.si-totals > div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  padding: 2px 0;
+}
+.si-totals .num {
+  font-variant-numeric: tabular-nums;
+}
+.si-totals .gt {
+  font-weight: 800;
+  font-size: 12px;
+  border-top: 2px solid #1a1a1a;
+  padding-top: 4px;
+  margin-top: 4px;
+}
+.cell-input {
+  border: 1px solid transparent;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12.5px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  width: 70px;
+  color: var(--jce-ink);
+}
+.cell-input:hover {
+  border-color: var(--jce-line);
+}
+.cell-input:focus {
+  outline: none;
+  border-color: var(--jce-green-600);
+  background: #fff;
+}
+.cell-input.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.seq-hint {
+  font-size: 11px;
+  color: var(--jce-ink-2);
+  background: var(--jce-green-50);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 12px;
+}
+.wht-preview {
+  font-size: 12px;
+  color: var(--jce-ink-2);
+  background: #fbf4ec;
+  border: 1px solid var(--jce-orange-100);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 12px 0;
+}
+.bank-col {
+  color: var(--jce-green-900);
+  font-weight: 600;
+}
+
+/* ---- A2 CoA ---- */
+.band-row td {
+  background: var(--jce-green-50) !important;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--jce-green-900);
+}
+
+/* ---- A1 settings cards ---- */
+.settings-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.set-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+}
+.set-num {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--jce-green-700);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex: none;
+}
+.set-card-t {
+  font-size: 14px;
+  font-weight: 700;
+}
+.set-card-d {
+  font-size: 12px;
+  color: var(--jce-ink-2);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+.set-card .eff-tag,
+.eff-tag {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--st-info-ink);
+  background: var(--st-info-bg);
+  padding: 2px 7px;
+  border-radius: 5px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* ---- A15 reconciliation ---- */
+.recon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+.recon-bank {
+  padding: 16px;
+}
+.recon-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.recon-sub {
+  font-size: 11px;
+  color: var(--jce-ink-2);
+  margin-top: 6px;
+}
+
+/* ---- A17 cash advance ---- */
+.stale-row td {
+  background: var(--st-danger-bg) !important;
+}
+
+/* ---- A18 reporting ---- */
+.report-family {
+  margin-bottom: 24px;
+}
+.rep-fam-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.rep-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.rep-card {
+  text-align: left;
+  padding: 16px;
+  border: none;
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+.rep-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(15, 27, 20, 0.1);
+}
+.rep-card-t {
+  font-size: 14px;
+  font-weight: 700;
+}
+.rep-card-d {
+  font-size: 11.5px;
+  color: var(--jce-ink-2);
+  margin-top: 4px;
+  line-height: 1.4;
+  min-height: 32px;
+}
+.rep-card-tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--jce-green-700);
+  background: var(--jce-green-100);
+  padding: 2px 7px;
+  border-radius: 5px;
+  display: inline-block;
+  margin-top: 8px;
+}
+.report-split {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.gen-panel {
+  padding: 18px;
+  position: sticky;
+  top: 84px;
+}
+.quick-picks {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.qp {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--jce-green-50);
+  color: var(--jce-green-900);
+  cursor: pointer;
+}
+.checkrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  margin-top: 8px;
+  cursor: pointer;
+}
+.gen-meta {
+  font-size: 11px;
+  color: var(--jce-ink-2);
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.report-viewer {
+  padding: 0;
+  overflow: hidden;
+  min-height: 360px;
+}
+.rv-head {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--jce-line);
+}
+.rv-co {
+  font-weight: 800;
+  font-size: 14px;
+}
+.rv-title {
+  font-size: 12px;
+  color: var(--jce-ink-2);
+  margin-top: 2px;
+}
+.rv-table {
+  font-size: 12.5px;
+}
+.drill-hint {
+  font-size: 10px;
+  color: var(--jce-green-600);
+  opacity: 0;
+  margin-left: 8px;
+}
+.rv-table tr:hover .drill-hint {
+  opacity: 1;
+}
+.bs-band td {
+  background: var(--jce-green-50) !important;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--jce-green-900);
+  letter-spacing: 0.03em;
+}
+.bs-sub td {
+  font-weight: 700;
+  border-top: 1px solid var(--jce-ink-2);
+}
+
+@media (max-width: 1000px) {
+  .twopane,
+  .report-split,
+  .pay-cols,
+  .settings-cards {
+    grid-template-columns: 1fr;
+  }
+  .preview-frame,
+  .gen-panel {
+    position: static;
+  }
+}

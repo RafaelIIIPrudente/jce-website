@@ -1,0 +1,522 @@
+/* ============================================================================
+   JCE SYSTEM — DESIGN TOKENS
+   JC Electrofields Power System, Inc.
+   ----------------------------------------------------------------------------
+   PALETTE: green derived from the official JCE logo (sampled #007817).
+            Orange accent is NOT present in the logo — proposed, harmonized.
+            ► "derived from logo, pending official JCE brand guidelines"
+   RULE:    GLASS FOR CHROME, SOLID FOR CONTENT.
+   ============================================================================ */
+
+:root {
+  /* ---- GREEN (derived from logo · green-700 == logo-exact #007817) -------- */
+  --jce-green-900: #013907; /* darkest — headings on light, active nav text */
+  --jce-green-700: #007817; /* PRIMARY BRAND GREEN — logo-exact             */
+  --jce-green-600: #23982f; /* hover/active of primary, progress fills      */
+  --jce-green-500: #5ab75c; /* success, positive deltas, glow accents       */
+  --jce-green-100: #d4f1d3; /* tinted chips, row highlights                 */
+  --jce-green-50: #effbef; /* subtle tinted panels, focused row            */
+
+  /* ---- ORANGE (accent — proposal, harmonized; not in logo) --------------- */
+  --jce-orange-600: #de6f11; /* accent — secondary CTAs, KPI accents         */
+  --jce-orange-500: #fa8838; /* accent hover, highlights, glow accents       */
+  --jce-orange-100: #ffdec7; /* accent chips / tints                         */
+
+  /* ---- NEUTRALS ---------------------------------------------------------- */
+  --jce-white: #ffffff; /* solid content surfaces, text on green       */
+  --jce-bg: #f4f8f5; /* page backdrop base (soft greenish white)    */
+  --jce-ink: #0f1b14; /* primary text (warm near-black, green-tinted)*/
+  --jce-ink-2: #4a5b51; /* secondary text, labels                      */
+  --jce-line: #e2eae4; /* borders, table rules on solid surfaces      */
+
+  /* ---- SEMANTIC / STATUS ------------------------------------------------- */
+  --st-success: #16833b; /* approved, recorded, paid                       */
+  --st-pending: #c9760a; /* pending, awaiting, for-checking                */
+  --st-danger: #c8341f; /* void, rejected, error, overdue                 */
+  --st-info: #0e6fb8; /* in transit, posted, info                       */
+  --st-neutral: #5b6b61; /* draft, inactive                                */
+  --st-locked: #0f1b14; /* locked (ink-dark + lock glyph)                 */
+
+  --st-success-bg: #e2f3e7;
+  --st-success-ink: #0c5c29;
+  --st-pending-bg: #fbebd3;
+  --st-pending-ink: #8a5106;
+  --st-danger-bg: #fae2de;
+  --st-danger-ink: #8e2417;
+  --st-info-bg: #ddeef9;
+  --st-info-ink: #0a5790;
+  --st-neutral-bg: #e9edea;
+  --st-neutral-ink: #404c44;
+  --st-locked-bg: #1b2a21;
+  --st-locked-ink: #ffffff;
+
+  /* ---- GLASS RECIPE (CHROME ONLY) ---------------------------------------- */
+  --glass-surface: rgba(255, 255, 255, 0.62);
+  --glass-nav: rgba(255, 255, 255, 0.55);
+  --glass-modal: rgba(255, 255, 255, 0.74);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-blur: blur(20px) saturate(140%);
+  --glass-shadow: 0 8px 32px rgba(15, 27, 20, 0.1);
+  --glass-fallback: rgba(
+    255,
+    255,
+    255,
+    0.92
+  ); /* no backdrop-filter support   */
+
+  /* ---- SOLID RECIPE (CONTENT) -------------------------------------------- */
+  --solid-surface: #ffffff;
+  --solid-shadow: 0 1px 2px rgba(15, 27, 20, 0.05);
+  --table-head: #f1f5f2;
+  --table-zebra: #f8fbf9;
+  --table-focus: var(--jce-green-50);
+
+  /* ---- RADII ------------------------------------------------------------- */
+  --r-glass: 16px; /* glass chrome              */
+  --r-solid: 10px; /* solid content surfaces    */
+  --r-chip: 6px; /* chips                     */
+  --r-input: 8px; /* inputs                    */
+  --r-pill: 999px;
+
+  /* ---- TYPE -------------------------------------------------------------- */
+  --font-ui: "Inter", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Roboto Mono", ui-monospace, monospace;
+  --t-12: 12px;
+  --t-13: 13px;
+  --t-14: 14px;
+  --t-16: 16px;
+  --t-18: 18px;
+  --t-22: 22px;
+  --t-28: 28px;
+  --t-36: 36px;
+
+  /* ---- SPACING (4px base) ------------------------------------------------ */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+
+  /* ---- MOTION ------------------------------------------------------------ */
+  --dur-fast: 150ms;
+  --dur-base: 220ms;
+  --dur-slow: 320ms;
+  --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+
+  /* ---- FOCUS ------------------------------------------------------------- */
+  --focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px var(--jce-green-600);
+}
+
+/* ============================================================================
+   BACKDROP — soft luminous green/orange glow, slow drift
+   ============================================================================ */
+.jce-backdrop {
+  position: relative;
+  background: var(--jce-bg);
+  isolation: isolate;
+  overflow: hidden;
+}
+.jce-backdrop::before,
+.jce-backdrop::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+}
+.jce-backdrop::before {
+  width: 46vw;
+  height: 46vw;
+  max-width: 640px;
+  max-height: 640px;
+  top: -8vw;
+  left: -6vw;
+  background: radial-gradient(
+    circle,
+    rgba(90, 183, 92, 0.4),
+    rgba(90, 183, 92, 0) 70%
+  );
+  animation: jce-drift-a 90s ease-in-out infinite;
+}
+.jce-backdrop::after {
+  width: 40vw;
+  height: 40vw;
+  max-width: 560px;
+  max-height: 560px;
+  bottom: -10vw;
+  right: -6vw;
+  background: radial-gradient(
+    circle,
+    rgba(250, 136, 56, 0.3),
+    rgba(250, 136, 56, 0) 70%
+  );
+  animation: jce-drift-b 110s ease-in-out infinite;
+}
+/* optional third blob — keep total blurred layers ≤3 per viewport */
+.jce-backdrop > .jce-glow-3 {
+  position: absolute;
+  z-index: -1;
+  width: 34vw;
+  height: 34vw;
+  max-width: 460px;
+  max-height: 460px;
+  top: 30%;
+  left: 45%;
+  border-radius: 50%;
+  filter: blur(130px);
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    rgba(0, 120, 23, 0.12),
+    rgba(0, 120, 23, 0) 70%
+  );
+  animation: jce-drift-a 120s ease-in-out infinite reverse;
+}
+@keyframes jce-drift-a {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(28px, 36px);
+  }
+}
+@keyframes jce-drift-b {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-32px, -24px);
+  }
+}
+
+/* ============================================================================
+   GLASS CHROME  ·  use for nav, top bars, headers, cards, modals
+   ============================================================================ */
+.glass {
+  background: var(--glass-surface);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-glass);
+  box-shadow: var(--glass-shadow);
+}
+.glass-nav {
+  background: var(--glass-nav);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+}
+.glass-modal {
+  background: var(--glass-modal);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-glass);
+  box-shadow: 0 24px 60px rgba(15, 27, 20, 0.22);
+}
+
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .glass,
+  .glass-nav,
+  .glass-modal {
+    background: var(--glass-fallback);
+  }
+}
+
+/* ============================================================================
+   SOLID CONTENT  ·  use for tables, ledgers, forms, reports, payslips
+   ============================================================================ */
+.solid {
+  background: var(--solid-surface);
+  border: 1px solid var(--jce-line);
+  border-radius: var(--r-solid);
+  box-shadow: var(--solid-shadow);
+}
+
+/* ============================================================================
+   TYPOGRAPHY HELPERS
+   ============================================================================ */
+.mono {
+  font-family: var(--font-mono);
+}
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+.money {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  text-align: right;
+  white-space: nowrap;
+}
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--jce-ink-2);
+}
+
+/* ============================================================================
+   STATUS CHIP  ·  full lifecycle vocabulary
+   ============================================================================ */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  border-radius: var(--r-chip);
+  font-size: var(--t-12);
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.chip::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.chip-success {
+  background: var(--st-success-bg);
+  color: var(--st-success-ink);
+}
+.chip-pending {
+  background: var(--st-pending-bg);
+  color: var(--st-pending-ink);
+}
+.chip-danger {
+  background: var(--st-danger-bg);
+  color: var(--st-danger-ink);
+}
+.chip-info {
+  background: var(--st-info-bg);
+  color: var(--st-info-ink);
+}
+.chip-neutral {
+  background: var(--st-neutral-bg);
+  color: var(--st-neutral-ink);
+}
+.chip-locked {
+  background: var(--st-locked-bg);
+  color: var(--st-locked-ink);
+}
+.chip-locked::before {
+  content: "🔒";
+  width: auto;
+  height: auto;
+  background: none;
+  font-size: 10px;
+}
+
+/* document-number chip */
+.docchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--t-12);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 2px 8px;
+  border-radius: var(--r-chip);
+  background: #eef3ef;
+  color: var(--jce-green-900);
+  border: 1px solid var(--jce-line);
+  cursor: copy;
+}
+.docchip:hover {
+  background: var(--jce-green-50);
+  border-color: var(--jce-green-500);
+}
+
+/* ============================================================================
+   BUTTONS  ·  primary green / accent orange / ghost · distinct verb buttons
+   ============================================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-ui);
+  font-size: var(--t-14);
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: var(--r-input);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
+  white-space: nowrap;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.btn-primary {
+  background: var(--jce-green-700);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--jce-green-600);
+}
+.btn-accent {
+  background: var(--jce-orange-600);
+  color: #fff;
+}
+.btn-accent:hover {
+  background: var(--jce-orange-500);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--jce-green-900);
+  border-color: var(--jce-line);
+}
+.btn-ghost:hover {
+  background: var(--jce-green-50);
+  border-color: var(--jce-green-500);
+}
+.btn-sm {
+  padding: 6px 11px;
+  font-size: var(--t-13);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+/* distinct workflow verbs */
+.btn-approve {
+  background: var(--jce-green-700);
+  color: #fff;
+}
+.btn-post {
+  background: var(--st-info);
+  color: #fff;
+}
+.btn-lock {
+  background: var(--st-locked);
+  color: #fff;
+}
+
+/* ============================================================================
+   TABLE / LEDGER  ·  solid surfaces only
+   ============================================================================ */
+.jtable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-13);
+  background: var(--solid-surface);
+}
+.jtable thead th {
+  background: var(--table-head);
+  text-align: left;
+  font-weight: 600;
+  color: var(--jce-ink-2);
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--jce-line);
+  position: sticky;
+  top: 0;
+  white-space: nowrap;
+}
+.jtable tbody td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--jce-line);
+  color: var(--jce-ink);
+}
+.jtable tbody tr:nth-child(even) td {
+  background: var(--table-zebra);
+}
+.jtable tbody tr:hover td {
+  background: var(--table-focus);
+}
+.jtable .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ============================================================================
+   MASKED SENSITIVE FIELD  ·  compensation, payroll — restricted roles
+   ============================================================================ */
+.masked {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  letter-spacing: 2px;
+  color: var(--jce-ink-2);
+  background: #f1f3f2;
+  border: 1px dashed #c7d2cb;
+  border-radius: var(--r-chip);
+  padding: 1px 8px;
+  cursor: help;
+  user-select: none;
+}
+.masked::after {
+  content: "🔒";
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
+/* computed / derived read-only value */
+.computed {
+  background: repeating-linear-gradient(
+    135deg,
+    #f5f8f6 0 6px,
+    #f1f5f2 6px 12px
+  );
+  border: 1px solid var(--jce-line);
+  border-radius: var(--r-chip);
+  padding: 1px 8px;
+  color: var(--jce-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================================
+   FOCUS RING (inputs)
+   ============================================================================ */
+.field {
+  font-family: var(--font-ui);
+  font-size: var(--t-14);
+  color: var(--jce-ink);
+  background: #fff;
+  border: 1px solid var(--jce-line);
+  border-radius: var(--r-input);
+  padding: 8px 11px;
+  width: 100%;
+}
+.field:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-color: var(--jce-green-600);
+}
+
+/* ============================================================================
+   REDUCED MOTION
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .jce-backdrop::before,
+  .jce-backdrop::after,
+  .jce-glow-3 {
+    animation: none !important;
+  }
+  * {
+    transition-duration: 1ms !important;
+  }
+}
