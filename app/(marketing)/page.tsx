@@ -1,55 +1,41 @@
-import { WebHero } from "@/components/sections/web-hero";
-import { WebSection, SectionHead } from "@/components/sections/web-section";
-import { WebCapabilityGrid } from "@/components/sections/web-capability-grid";
-import { WebProjectGallery } from "@/components/sections/web-project-gallery";
-import { WebTrustBand } from "@/components/sections/web-trust-band";
-import { WebCta } from "@/components/sections/web-cta";
-import { STATS } from "@/lib/content/website";
+import type { Metadata } from "next";
 
-// S1 · Home (FLAGSHIP, web-pages-a.jsx:10-139). Inherits the default brand title
-// from the root layout template.
+import { HomeHero } from "@/components/sections/web-home-hero";
+import { HomeCapabilities } from "@/components/sections/web-home-capabilities";
+import { HomeProjects } from "@/components/sections/web-home-projects";
+import { HomeClients } from "@/components/sections/web-home-clients";
+import { HomeMotionBand } from "@/components/sections/web-home-motion-band";
+import { HomeCta } from "@/components/sections/web-home-cta";
+
+// S1 · Home (FLAGSHIP) — the premium "electrified" rebuild. Dark showpiece hero,
+// photo-backed capability band, featured projects with voltage tags, NGCP trust
+// bar, an engineering-in-motion dark band, and the Ω closing CTA. Inherits the
+// default brand title from the root layout; adds the home OG card.
+export const metadata: Metadata = {
+  description:
+    "JC Electrofields Power System, Inc. — electrical power-systems EPC in the Philippines since 1997. Substations and transmission to 230 kV, NGCP direct connection, switchgear, and utility-scale solar.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    images: [
+      {
+        url: "/og/home.webp",
+        width: 1200,
+        height: 630,
+        alt: "JC Electrofields Power System — power infrastructure engineered to energize",
+      },
+    ],
+  },
+};
+
 export default function HomePage() {
   return (
     <>
-      <WebHero
-        size="home"
-        eyebrow="JC Electrofields Power System, Inc."
-        title={
-          <>
-            Power infrastructure,
-            <br />
-            <span className="text-jce-green-700">engineered to energize.</span>
-          </>
-        }
-        sub="Substations, transmission lines and renewable energy — design-build EPC up to 230 KV, delivered across the Philippines."
-        primary={{ label: "Request a consultation", href: "/contact-us" }}
-        secondary={{ label: "View projects", href: "/projects" }}
-        stats={STATS}
-      />
-
-      <WebSection>
-        <SectionHead
-          eyebrow="What we do"
-          heading="Full-scope power engineering"
-          viewAll={{ href: "/services", label: "All services" }}
-        />
-        <WebCapabilityGrid />
-      </WebSection>
-
-      <WebSection alt>
-        <SectionHead
-          eyebrow="Selected work"
-          heading="Projects energized"
-          viewAll={{ href: "/projects", label: "All projects" }}
-        />
-        <WebProjectGallery limit={3} />
-      </WebSection>
-
-      <WebSection>
-        <WebTrustBand />
-      </WebSection>
-
-      <WebCta />
+      <HomeHero />
+      <HomeCapabilities />
+      <HomeProjects />
+      <HomeClients />
+      <HomeMotionBand />
+      <HomeCta />
     </>
   );
 }

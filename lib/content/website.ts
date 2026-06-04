@@ -20,11 +20,49 @@ import {
 // ---- S1 hero / S2 stat band ------------------------------------------------
 export type Stat = { v: string; k: string };
 
+// Real corporate figures (company profile 2026): since 1997 · 124+ engineers ·
+// capability to 230 kV · 45+ projects nationwide · ₱1B authorized capital.
 export const STATS: readonly Stat[] = [
-  { v: "25+", k: "Years in power engineering" },
-  { v: "230 KV", k: "Maximum voltage class" },
-  { v: "150+", k: "Projects energized" },
-  { v: "NGCP", k: "Direct-connection accredited" },
+  { v: "1997", k: "Power engineering since" },
+  { v: "124+", k: "Engineers & technicians" },
+  { v: "230 kV", k: "Capability class" },
+  { v: "45+", k: "Projects nationwide" },
+] as const;
+
+// Verbatim corporate tagline — use exactly, do not paraphrase.
+export const TAGLINE =
+  "Your need is our concern. Your priority is our priority. Your goal is our goal." as const;
+
+// Numeric stats for the animated home hero (EnergizedCounter count-up). The
+// generic Stat[] above still drives inner-page hero strips unchanged.
+export type HeroStat = {
+  value: number;
+  prefix?: string;
+  suffix?: string;
+  label: string;
+  /** false → no thousands separator (years). */
+  grouping?: boolean;
+};
+
+export const HERO_STATS: readonly HeroStat[] = [
+  { value: 1997, label: "Engineering since", grouping: false },
+  { value: 124, suffix: "+", label: "Engineers & technicians" },
+  { value: 230, suffix: " kV", label: "Capability class" },
+  { value: 45, suffix: "+", label: "Projects nationwide" },
+  { value: 1, prefix: "₱", suffix: "B", label: "Authorized capital" },
+] as const;
+
+// Marquee clients / credentials — NGCP leads (300 MVA / 230 kV substation work,
+// the Cebu–Negros–Panay 230 kV submarine-cable backbone). JCE is also the
+// exclusive Philippine distributor of Shenda Electric power transformers.
+export const MARQUEE_CLIENTS: readonly string[] = [
+  "NGCP",
+  "Pilipinas Shell",
+  "DMCI Power",
+  "Steel Asia",
+  "BATELEC",
+  "LUELCO",
+  "BOHECO",
 ] as const;
 
 // ---- S3 Services (6 EPC capabilities + Engineering Consultancy) ------------
@@ -171,6 +209,134 @@ export const WEB_PROJECTS: readonly WebProject[] = [
 export const PROJECT_TAGS: readonly string[] = [
   "All",
   ...Array.from(new Set(WEB_PROJECTS.flatMap((p) => p.tags))),
+] as const;
+
+// ---- S1 featured rail — real photographed projects (company profile 2026) ---
+// Facts/capacities transcribed from the source slide captions; photos extracted
+// + cropped to public/projects/. `cap` drives a VoltageTag; `img` is the full
+// webp path for next/image. Distinct from WEB_PROJECTS (kept for the S4 index).
+export type FeaturedProject = {
+  name: string;
+  /** null = client withheld → "Confidential client". */
+  client: string | null;
+  loc: string;
+  cap: string;
+  img: string;
+  tags: readonly string[];
+};
+
+export const FEATURED_PROJECTS: readonly FeaturedProject[] = [
+  {
+    name: "GigaSol Alaminos Solar Farm",
+    client: null,
+    loc: "Alaminos, Laguna",
+    cap: "120 MWp",
+    img: "/projects/solar-alaminos.webp",
+    tags: ["Solar", "Renewable"],
+  },
+  {
+    name: "Cebu–Negros–Panay 230 kV Backbone",
+    client: "NGCP",
+    loc: "Barotac Viejo, Iloilo",
+    cap: "230 kV",
+    img: "/projects/controlroom-cnp.webp",
+    tags: ["Substation", "SCADA"],
+  },
+  {
+    name: "San Jose Shunt Capacitor Bank",
+    client: "NGCP",
+    loc: "San Jose, Luzon",
+    cap: "4×100 MVAr",
+    img: "/projects/capacitors-mexico.webp",
+    tags: ["Testing & Commissioning"],
+  },
+  {
+    name: "Bauang Switchyard Upgrade",
+    client: "NGCP",
+    loc: "Bauang, La Union",
+    cap: "100 MVA · 230/69 kV",
+    img: "/projects/switchyard-bauang.webp",
+    tags: ["Substation"],
+  },
+  {
+    name: "Casisang Power Transformer",
+    client: "BUSECO",
+    loc: "Malaybalay, Bukidnon",
+    cap: "20/25 MVA",
+    img: "/projects/night-buseco.webp",
+    tags: ["Substation", "Transformer"],
+  },
+  {
+    name: "Balayan Substation Transformer",
+    client: "BATELEC I",
+    loc: "Balayan, Batangas",
+    cap: "10 MVA",
+    img: "/projects/transformer-balayan.webp",
+    tags: ["Transformer", "Shenda"],
+  },
+  {
+    name: "NuevaSol Solar PV Facility",
+    client: "NuevaSol Energy Corp.",
+    loc: "Gamu, Nueva Ecija",
+    cap: "55 MWp",
+    img: "/projects/solar-nuevasol.webp",
+    tags: ["Solar", "Renewable"],
+  },
+  {
+    name: "San Carlos Sun Power Substation",
+    client: null,
+    loc: "San Carlos, Negros Occ.",
+    cap: "58.98 MWp",
+    img: "/projects/switchyard-sancarlos.webp",
+    tags: ["Substation", "Solar"],
+  },
+] as const;
+
+// S1 capability band — six EPC capabilities backed by real cropped textures.
+export type CapabilityCard = {
+  name: string;
+  spec: string;
+  img: string;
+  href: string;
+};
+
+export const HOME_CAPABILITIES: readonly CapabilityCard[] = [
+  {
+    name: "Substations to 230 kV",
+    spec: "Design–build EPC",
+    img: "/projects/switchyard-sancarlos.webp",
+    href: "/services",
+  },
+  {
+    name: "Transmission Lines",
+    spec: "Switchyard & towers",
+    img: "/projects/switchyard-bauang.webp",
+    href: "/services",
+  },
+  {
+    name: "Solar PV / Renewables",
+    spec: "Utility & C&I scale",
+    img: "/projects/solar-alaminos.webp",
+    href: "/services",
+  },
+  {
+    name: "Testing & Commissioning",
+    spec: "Energization-ready",
+    img: "/projects/capacitors-mexico.webp",
+    href: "/services",
+  },
+  {
+    name: "Switchgear HVSG/MVSG/LVSG",
+    spec: "Supply & integration",
+    img: "/projects/transformer-balayan.webp",
+    href: "/products",
+  },
+  {
+    name: "NGCP Direct Connection",
+    spec: "Application → energization",
+    img: "/projects/controlroom-cnp.webp",
+    href: "/services",
+  },
 ] as const;
 
 // ---- S6 News ---------------------------------------------------------------
