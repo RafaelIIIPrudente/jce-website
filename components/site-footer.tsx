@@ -3,9 +3,14 @@ import Image from "next/image";
 import { ClockIcon, MailIcon, MapPinIcon, PhoneIcon } from "lucide-react";
 
 import { FOOTER_LINKS, NAV_LINKS, SITE } from "@/lib/content/site";
+import { OmegaMark } from "@/components/sections/web-omega-mark";
+import { ElectrifiedDivider } from "@/components/sections/web-electrified-divider";
 
-// Dark footer (#11150f via --footer-bg). Carries the canonical NAP from the
-// brief (brief:1124, already in SITE) + nav + social. Tag: chrome.
+// Electrified dark footer (--footer-bg). Mirrors the dark-section aesthetic: a
+// faint circuit-field grid + a large Ω brand watermark behind the content (both
+// decorative, clipped, behind content), an animated current-hairline divider,
+// and the electric-cyan hover/focus accent. Carries the canonical NAP + nav +
+// social. Tag: chrome.
 
 function FacebookGlyph({ className }: { className?: string }) {
   return (
@@ -37,14 +42,23 @@ export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-[var(--footer-bg)] text-white/70">
+    <footer className="relative isolate bg-(--footer-bg) text-jce-dark-ink-2">
+      {/* Decorative electrified layer — faint circuit grid + Ω watermark, clipped
+          and behind content; never intercepts pointer or focus. */}
+      <div
+        aria-hidden
+        className="circuit-field pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+      >
+        <OmegaMark className="absolute -right-12 bottom-2 size-[clamp(220px,28vw,360px)] text-jce-cyan/10" />
+      </div>
+
       <div className="mx-auto grid w-full max-w-6xl gap-10 px-6 py-16 md:grid-cols-12 md:gap-8 md:px-10 md:py-20">
         {/* Brand + tagline + social */}
         <div className="flex flex-col gap-4 md:col-span-4">
           <Link
             href="/"
             aria-label={SITE.brand}
-            className="flex items-center gap-2.5"
+            className="focus-ring-cyan flex w-fit items-center gap-2.5 rounded-md"
           >
             <Image
               src="/jce-logo.jpg"
@@ -53,11 +67,11 @@ export function SiteFooter() {
               alt=""
               className="rounded-md"
             />
-            <span className="text-ui-16 font-bold tracking-tight text-white">
+            <span className="text-ui-16 font-bold tracking-tight text-jce-dark-ink">
               JC Electrofields
             </span>
           </Link>
-          <p className="max-w-[30ch] text-ui-13 text-white/60">
+          <p className="max-w-[30ch] text-ui-13 text-jce-dark-ink-2">
             {SITE.tagline}
           </p>
           <div className="mt-1 flex items-center gap-2">
@@ -66,7 +80,7 @@ export function SiteFooter() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Facebook"
-              className="inline-flex size-10 items-center justify-center rounded-md border border-white/15 text-white/70 transition-colors hover:border-jce-green-500 hover:text-jce-green-500"
+              className="focus-ring-cyan inline-flex size-11 items-center justify-center rounded-md border border-jce-dark-line text-jce-dark-ink-2 transition-colors hover:border-jce-cyan hover:text-jce-cyan-bright"
             >
               <FacebookGlyph className="size-4" />
             </a>
@@ -75,7 +89,7 @@ export function SiteFooter() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="YouTube"
-              className="inline-flex size-10 items-center justify-center rounded-md border border-white/15 text-white/70 transition-colors hover:border-jce-green-500 hover:text-jce-green-500"
+              className="focus-ring-cyan inline-flex size-11 items-center justify-center rounded-md border border-jce-dark-line text-jce-dark-ink-2 transition-colors hover:border-jce-cyan hover:text-jce-cyan-bright"
             >
               <YoutubeGlyph className="size-4" />
             </a>
@@ -84,16 +98,16 @@ export function SiteFooter() {
 
         {/* Canonical NAP */}
         <div className="flex flex-col gap-3 md:col-span-4">
-          <p className="text-[11px] tracking-[0.18em] text-white/45 uppercase">
+          <p className="text-[11px] tracking-[0.18em] text-jce-dark-ink-2 uppercase">
             Office
           </p>
-          <ul className="flex flex-col gap-2.5 text-ui-13">
-            <li className="flex items-start gap-2.5">
+          <ul className="flex flex-col text-ui-13">
+            <li className="flex items-start gap-2.5 py-1.5">
               <MapPinIcon
-                className="mt-0.5 size-4 shrink-0 text-white/45"
+                className="mt-0.5 size-4 shrink-0 text-jce-cyan"
                 aria-hidden
               />
-              <span className="text-white/75">
+              <span className="text-jce-dark-ink">
                 {SITE.address.line1}
                 <br />
                 {SITE.address.line2}
@@ -103,31 +117,31 @@ export function SiteFooter() {
             </li>
             <li className="flex items-center gap-2.5">
               <PhoneIcon
-                className="size-4 shrink-0 text-white/45"
+                className="size-4 shrink-0 text-jce-cyan"
                 aria-hidden
               />
               <a
                 href={`tel:${SITE.phone.replace(/\s+/g, "")}`}
-                className="text-white/75 transition-colors hover:text-jce-green-500"
+                className="focus-ring-cyan inline-flex min-h-11 items-center rounded-md text-jce-dark-ink transition-colors hover:text-jce-cyan-bright"
               >
                 {SITE.phone}
               </a>
             </li>
             <li className="flex items-center gap-2.5">
-              <MailIcon className="size-4 shrink-0 text-white/45" aria-hidden />
+              <MailIcon className="size-4 shrink-0 text-jce-cyan" aria-hidden />
               <a
                 href={`mailto:${SITE.email}`}
-                className="text-white/75 transition-colors hover:text-jce-green-500"
+                className="focus-ring-cyan inline-flex min-h-11 items-center rounded-md text-jce-dark-ink transition-colors hover:text-jce-cyan-bright"
               >
                 {SITE.email}
               </a>
             </li>
-            <li className="flex items-center gap-2.5">
+            <li className="flex items-center gap-2.5 py-1.5">
               <ClockIcon
-                className="size-4 shrink-0 text-white/45"
+                className="size-4 shrink-0 text-jce-cyan"
                 aria-hidden
               />
-              <span className="text-white/75">
+              <span className="text-jce-dark-ink">
                 {SITE.hours.days} · {SITE.hours.open}
               </span>
             </li>
@@ -136,14 +150,14 @@ export function SiteFooter() {
 
         {/* Nav */}
         <nav aria-label="Footer" className="flex flex-col gap-3 md:col-span-4">
-          <p className="text-[11px] tracking-[0.18em] text-white/45 uppercase">
+          <p className="text-[11px] tracking-[0.18em] text-jce-dark-ink-2 uppercase">
             Site
           </p>
-          <ul className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-ui-13">
+          <ul className="grid grid-cols-2 gap-x-6 text-ui-13">
             <li>
               <Link
                 href="/"
-                className="text-white/75 transition-colors hover:text-jce-green-500"
+                className="focus-ring-cyan inline-flex min-h-11 items-center rounded-md text-jce-dark-ink transition-colors hover:text-jce-cyan-bright"
               >
                 Home
               </Link>
@@ -152,7 +166,7 @@ export function SiteFooter() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="text-white/75 transition-colors hover:text-jce-green-500"
+                  className="focus-ring-cyan inline-flex min-h-11 items-center rounded-md text-jce-dark-ink transition-colors hover:text-jce-cyan-bright"
                 >
                   {link.label}
                 </Link>
@@ -162,13 +176,13 @@ export function SiteFooter() {
         </nav>
       </div>
 
-      <div className="border-t border-white/10">
-        <div className="mx-auto flex w-full max-w-6xl flex-col-reverse items-start justify-between gap-3 px-6 py-6 text-[11px] tracking-[0.14em] text-white/45 uppercase md:flex-row md:items-center md:px-10">
-          <p>
-            © {year} {SITE.brand} · All rights reserved
-          </p>
-          <p>EPC — Philippines · since {SITE.founded}</p>
-        </div>
+      {/* Animated current hairline (frozen under prefers-reduced-motion) */}
+      <ElectrifiedDivider tone="dark" />
+      <div className="mx-auto flex w-full max-w-6xl flex-col-reverse items-start justify-between gap-3 px-6 py-6 text-[11px] tracking-[0.14em] text-jce-dark-ink-2 uppercase md:flex-row md:items-center md:px-10">
+        <p>
+          © {year} {SITE.brand} · All rights reserved
+        </p>
+        <p>EPC — Philippines · since {SITE.founded}</p>
       </div>
     </footer>
   );

@@ -870,6 +870,14 @@
     outline: none;
     box-shadow: var(--focus-ring);
   }
+  /* Cyan focus ring for dark surfaces (footer) — a near-black gap + a clearly
+     visible electric-cyan ring. */
+  .focus-ring-cyan:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--footer-bg),
+      0 0 0 4px var(--jce-cyan);
+  }
 }
 
 /* ============================================================================

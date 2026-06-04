@@ -33,7 +33,13 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40">
       <div className="mx-auto mt-3 w-full max-w-6xl px-4 sm:px-6">
-        <div className="glass-nav flex items-center gap-3 rounded-[var(--r-glass)] px-3 py-2.5 shadow-[var(--glass-shadow)]">
+        <div className="glass-nav relative isolate flex items-center gap-3 rounded-(--r-glass) px-3 py-2.5 shadow-(--glass-shadow)">
+          {/* Faint circuit texture inside the glass — decorative, clipped to its
+              own rounded layer so it never clips the items' focus rings. */}
+          <span
+            aria-hidden
+            className="circuit-field pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-(--r-glass)"
+          />
           {/* Logo lockup */}
           <Link
             href="/"
@@ -45,7 +51,7 @@ export function SiteHeader() {
               width={36}
               height={36}
               alt=""
-              className="shrink-0 rounded-md shadow-[var(--solid-shadow)]"
+              className="shrink-0 rounded-md shadow-(--solid-shadow)"
             />
             <span className="leading-tight">
               <span className="block text-ui-14 font-bold tracking-tight text-jce-ink">
@@ -69,12 +75,16 @@ export function SiteHeader() {
                     <button
                       type="button"
                       data-active={isActive(pathname, link.href)}
-                      className="focus-ring-jce group inline-flex items-center gap-1 rounded-md px-3 py-2 text-ui-14 font-medium text-jce-ink-2 transition-colors hover:bg-jce-green-50 hover:text-jce-green-900 data-[active=true]:text-jce-green-900"
+                      className="group focus-ring-jce relative inline-flex items-center gap-1 rounded-md px-3 py-2 text-ui-14 font-medium text-jce-ink-2 transition-colors hover:bg-jce-green-50 hover:text-jce-green-900 data-[active=true]:text-jce-green-900"
                     >
                       {link.label}
                       <ChevronDownIcon
                         className="size-3.5 transition-transform duration-200 group-data-[state=open]:rotate-180"
                         aria-hidden
+                      />
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute inset-x-3 bottom-1 h-0.5 rounded-(--r-pill) bg-jce-cyan opacity-0 transition-opacity duration-200 group-hover:opacity-40 group-data-[active=true]:opacity-100"
                       />
                     </button>
                   </DropdownMenuTrigger>
@@ -106,9 +116,13 @@ export function SiteHeader() {
                   key={link.href}
                   href={link.href}
                   data-active={isActive(pathname, link.href)}
-                  className="focus-ring-jce rounded-md px-3 py-2 text-ui-14 font-medium text-jce-ink-2 transition-colors hover:bg-jce-green-50 hover:text-jce-green-900 data-[active=true]:text-jce-green-900"
+                  className="group focus-ring-jce relative rounded-md px-3 py-2 text-ui-14 font-medium text-jce-ink-2 transition-colors hover:bg-jce-green-50 hover:text-jce-green-900 data-[active=true]:text-jce-green-900"
                 >
                   {link.label}
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-3 bottom-1 h-0.5 rounded-(--r-pill) bg-jce-cyan opacity-0 transition-opacity duration-200 group-hover:opacity-40 group-data-[active=true]:opacity-100"
+                  />
                 </Link>
               ),
             )}
@@ -152,15 +166,20 @@ export function SiteHeader() {
           >
             <nav
               aria-label="Mobile"
-              className="glass flex flex-col rounded-[var(--r-glass)] p-2"
+              className="glass flex flex-col rounded-(--r-glass) p-2"
             >
               {[...NAV_LINKS, ...FOOTER_LINKS].map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className="focus-ring-jce flex min-h-11 items-center rounded-md px-3 text-ui-16 font-medium text-jce-ink transition-colors hover:bg-jce-green-50 hover:text-jce-green-900"
+                  data-active={isActive(pathname, link.href)}
+                  className="group focus-ring-jce relative flex min-h-11 items-center rounded-md px-3 text-ui-16 font-medium text-jce-ink transition-colors hover:bg-jce-green-50 hover:text-jce-green-900 data-[active=true]:text-jce-green-900"
                 >
+                  <span
+                    aria-hidden
+                    className="absolute top-1/2 left-0 h-5 w-0.5 -translate-y-1/2 rounded-(--r-pill) bg-jce-cyan opacity-0 transition-opacity group-data-[active=true]:opacity-100"
+                  />
                   {link.label}
                 </Link>
               ))}
