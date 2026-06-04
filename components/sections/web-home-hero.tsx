@@ -30,7 +30,7 @@ export function HomeHero() {
       />
       <div
         aria-hidden
-        className="absolute inset-0 -z-10 bg-linear-to-t from-jce-dark via-jce-dark/65 to-jce-dark/85"
+        className="absolute inset-0 -z-10 bg-linear-to-t from-jce-dark via-jce-dark/80 to-jce-dark/85"
       />
 
       {/* Rising current-trace — decorative, draws on view */}

@@ -119,7 +119,11 @@ export function CurrentTrace({
           cy="0"
           r="4.5"
           className="fill-jce-cyan"
-          style={{ opacity: 0, filter: "drop-shadow(0 0 6px var(--jce-cyan))" }}
+          style={{
+            opacity: 0,
+            filter: "drop-shadow(0 0 6px var(--jce-cyan))",
+            willChange: "transform, opacity",
+          }}
         />
       ) : null}
     </svg>

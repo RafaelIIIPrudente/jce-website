@@ -696,7 +696,9 @@
       #000 0%,
       transparent 78%
     );
-    animation: jce-grid-drift 60s linear infinite;
+    /* Static blueprint texture — no per-frame repaint; the CurrentTrace is the
+       only motion in this field. Contained by the section's overflow:hidden. */
+    contain: paint;
   }
 
   .current-glow {
@@ -841,18 +843,6 @@
   }
   100% {
     background-position: -200% 0;
-  }
-}
-@keyframes jce-grid-drift {
-  from {
-    background-position:
-      0 0,
-      0 0;
-  }
-  to {
-    background-position:
-      46px 46px,
-      46px 46px;
   }
 }
 @keyframes jce-trace-travel {

@@ -85,7 +85,7 @@ export function PhotoCard({
         <>
           <div
             aria-hidden
-            className="absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-jce-dark/75 via-jce-dark/15 to-transparent"
+            className="absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-jce-dark/90 via-jce-dark/40 to-transparent"
           />
           <div className="absolute inset-0 flex flex-col justify-end p-4">
             {children}
