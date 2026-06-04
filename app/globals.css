@@ -187,13 +187,16 @@
   --footer-bg: #11150f; /* website dark footer */
 
   /* ---- ELECTRIFIED KIT (Home flagship) ------------------------------------
-     ONE energized accent (electric cyan) read as live voltage/current, used
-     sparingly on near-black dark sections. Distills the legacy green→orange
-     PowerPoint rainbow into deep green + a single cyan signal. The 3 cyan hexes
-     + the dark surfaces are the only new literals; everything else derives. -- */
-  --jce-cyan: #19c9de;
-  --jce-cyan-bright: #6fe9f6;
-  --jce-cyan-deep: #0a6b78; /* legible on light surfaces (AA on white) */
+     ONE energized accent — ORANGE, following the system orange (brand
+     direction; the accent is NOT cyan). The --jce-cyan* token NAMES are retained
+     so the kit/recipes/components resolve through a single source without a
+     wide rename; they point at the jce-orange palette. Everything that derived
+     from the accent (traces, grid, glow, voltage tags, focus ring) follows. -- */
+  --jce-cyan: var(--jce-orange-600); /* #de6f11 — base accent (icons, lines) */
+  --jce-cyan-bright: var(
+    --jce-orange-500
+  ); /* #fa8838 — bright accent on dark */
+  --jce-cyan-deep: #9a4d06; /* deep amber — AA accent text on light surfaces */
   --jce-dark: #0a140e; /* near-black, green-tinted (kin to --footer-bg) */
   --jce-dark-2: #112218; /* lifted panel on dark */
   --jce-dark-ink: #eaf5ee; /* near-white text on dark */

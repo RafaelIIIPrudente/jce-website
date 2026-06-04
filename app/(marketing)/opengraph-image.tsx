@@ -23,17 +23,17 @@ export const contentType = "image/png";
 // eslint-disable is required; the mapping comment is the contract.)
 //   jce-dark #0a140e · jce-dark-2 #112218 · jce-dark-ink #eaf5ee
 //   jce-dark-ink-2 #9fbcab · jce-dark-line rgba(255,255,255,.1)
-//   jce-cyan #19c9de · jce-cyan-bright #6fe9f6 · jce-green-700 #007817
+//   accent (ORANGE): jce-cyan→jce-orange-600 #de6f11 · jce-cyan-bright→jce-orange-500 #fa8838
 // ──────────────────────────────────────────────────────────────────────────
 const C = {
   dark: "#0a140e",
   ink: "#eaf5ee",
   ink2: "#9fbcab",
   line: "rgba(255,255,255,0.10)",
-  cyan: "#19c9de",
-  cyanBright: "#6fe9f6",
+  cyan: "#de6f11",
+  cyanBright: "#fa8838",
   gridLine: "rgba(255,255,255,0.045)",
-  glow: "rgba(25,201,222,0.16)",
+  glow: "rgba(222,111,17,0.18)",
 } as const;
 
 export default async function OpengraphImage() {
