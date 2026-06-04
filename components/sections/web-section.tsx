@@ -60,7 +60,7 @@ export function SectionHead({
       {viewAll ? (
         <Link
           href={viewAll.href}
-          className="focus-ring-jce group inline-flex items-center gap-1.5 rounded-md text-ui-14 font-semibold text-jce-green-700 transition-colors hover:text-jce-green-600"
+          className="focus-ring-jce group inline-flex min-h-11 -my-2 items-center gap-1.5 rounded-md px-1 text-ui-14 font-semibold text-jce-green-700 transition-colors hover:text-jce-green-600"
         >
           {viewAll.label}
           <ArrowRightIcon

@@ -5,6 +5,8 @@ import { ClockIcon, MailIcon, MapPinIcon, PhoneIcon } from "lucide-react";
 import { FOOTER_LINKS, NAV_LINKS, SITE } from "@/lib/content/site";
 import { OmegaMark } from "@/components/sections/web-omega-mark";
 import { ElectrifiedDivider } from "@/components/sections/web-electrified-divider";
+import { VoltageTag } from "@/components/sections/web-voltage-tag";
+import { CREDENTIAL_STRIP } from "@/lib/content/accreditations";
 
 // Electrified dark footer (--footer-bg). Mirrors the dark-section aesthetic: a
 // faint circuit-field grid + a large Ω brand watermark behind the content (both
@@ -174,6 +176,21 @@ export function SiteFooter() {
             ))}
           </ul>
         </nav>
+      </div>
+
+      {/* Credential strip — static §9-SAFE chips, full-width above the hairline.
+          Static text (no links → no 44px rule); dark-surface VoltageTags carry
+          the amber accent marker. Wraps cleanly at 360/390. */}
+      <div className="mx-auto w-full max-w-6xl px-6 md:px-10">
+        <ul className="flex flex-wrap items-center gap-2 border-t border-jce-dark-line pt-6 md:gap-3">
+          {CREDENTIAL_STRIP.map((c) => (
+            <li key={c.acronym}>
+              <VoltageTag tone="dark">
+                {c.acronym} {c.label}
+              </VoltageTag>
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/* Animated current hairline (frozen under prefers-reduced-motion) */}

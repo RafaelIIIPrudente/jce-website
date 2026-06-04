@@ -1,7 +1,9 @@
 import { WebSection } from "@/components/sections/web-section";
 import { Reveal } from "@/components/sections/web-reveal";
 import { ElectrifiedDivider } from "@/components/sections/web-electrified-divider";
+import { VoltageTag } from "@/components/sections/web-voltage-tag";
 import { MARQUEE_CLIENTS } from "@/lib/content/website";
+import { CREDENTIAL_STRIP } from "@/lib/content/accreditations";
 
 // S1 trust bar — leads with the flagship NGCP 300 MVA / 230 kV credential, then
 // the marquee client row and the exclusive Shenda Electric distributor note.
@@ -35,11 +37,28 @@ export function HomeClients() {
 
           <ElectrifiedDivider className="my-5" />
 
-          <p className="text-ui-13 text-jce-ink-2">
-            Exclusive Philippine distributor of{" "}
-            <span className="font-semibold text-jce-ink">Shenda Electric</span>{" "}
-            power transformers.
-          </p>
+          {/* Shenda distributorship + a compact §9-SAFE credential strip
+              (PCAB Category A · PhilGEPS Platinum · NGCP Accredited · SEC
+              Registered). Wraps cleanly at 360/390; light-surface VoltageTags
+              carry the amber accent. */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-ui-13 text-jce-ink-2">
+              Exclusive Philippine distributor of{" "}
+              <span className="font-semibold text-jce-ink">
+                Shenda Electric
+              </span>{" "}
+              power transformers.
+            </p>
+            <ul className="flex flex-wrap gap-2">
+              {CREDENTIAL_STRIP.map((c) => (
+                <li key={c.acronym}>
+                  <VoltageTag>
+                    {c.acronym} {c.label}
+                  </VoltageTag>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </Reveal>
     </WebSection>

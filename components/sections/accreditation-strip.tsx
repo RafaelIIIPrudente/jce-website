@@ -1,11 +1,11 @@
-import type { Accreditation } from "@/lib/content/accreditations";
+import type { License } from "@/lib/content/accreditations";
 
 export function AccreditationStrip({
   eyebrow = "Accredited & registered",
   items,
 }: {
   eyebrow?: string;
-  items: readonly Accreditation[];
+  items: readonly License[];
 }) {
   return (
     <section className="border-b border-border bg-background">
@@ -19,14 +19,18 @@ export function AccreditationStrip({
             <li
               key={item.acronym}
               className="flex flex-col items-center justify-center gap-1 rounded-lg border border-border bg-card px-4 py-6 text-center"
-              aria-label={`${item.name} — ${item.description}`}
+              aria-label={
+                item.detail ? `${item.issuer} — ${item.detail}` : item.issuer
+              }
             >
               <p className="font-display text-h4 leading-none text-foreground">
                 {item.acronym}
               </p>
-              <p className="text-caption text-muted-foreground">
-                {item.description}
-              </p>
+              {item.detail ? (
+                <p className="text-caption text-muted-foreground">
+                  {item.detail}
+                </p>
+              ) : null}
             </li>
           ))}
         </ul>

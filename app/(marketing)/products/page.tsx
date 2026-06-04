@@ -8,6 +8,7 @@ import { MagneticButton } from "@/components/sections/web-magnetic-button";
 import { OmegaMark } from "@/components/sections/web-omega-mark";
 import { ProductsHero } from "@/components/sections/web-products-hero";
 import { WebProductsGrid } from "@/components/sections/web-products-grid";
+import { ProductsEquipment } from "@/components/sections/web-products-equipment";
 
 export const metadata: Metadata = {
   title: "Products",
@@ -26,6 +27,9 @@ export default function ProductsPage() {
       <WebSection>
         <WebProductsGrid />
       </WebSection>
+
+      {/* Real-equipment band — authentic JCE photography (dark section) */}
+      <ProductsEquipment />
 
       {/* Closing CTA — Ω brand motif pulsing behind the luminous backdrop, a green
           primary "Request a quote" on a MagneticButton. Mobile: the button is

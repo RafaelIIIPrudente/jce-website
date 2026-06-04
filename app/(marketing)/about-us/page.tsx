@@ -15,6 +15,7 @@ import { AboutHero } from "@/components/sections/web-about-hero";
 import { AboutStatBand } from "@/components/sections/web-about-stat-band";
 import { AboutVideos } from "@/components/sections/web-about-videos";
 import { ABOUT } from "@/lib/content/website";
+import { LICENSES } from "@/lib/content/accreditations";
 
 export const metadata: Metadata = {
   title: "About Us",
@@ -126,26 +127,58 @@ export default function AboutPage() {
       {/* Watch — curated videos + a live, de-duped "latest from our channel" strip */}
       <AboutVideos />
 
-      {/* Accreditations — voltage-tag + circuit-card grid */}
+      {/* Licenses & Accreditations — the full §9-SAFE list: issuer · acronym ·
+          license number where verifiable · validity dates. Optional fields
+          (DOE/ERC carry no number or dates; PhilGEPS/NGCP no number) render with
+          no dangling separators. Stacked on mobile → 2-col from md; each row is a
+          circuit-card with a VoltageTag for the acronym/number and the amber
+          (cyan-deep) accent on the light surface. */}
       <WebSection alt>
         <CircuitReveal className="mb-8 max-w-[44ch] md:mb-10">
           <p className="kicker text-jce-cyan-deep">Credentials</p>
           <h2 className="mt-2 text-[clamp(24px,3.6vw,38px)] leading-[1.1] font-bold tracking-[-0.02em] text-balance text-jce-ink">
-            Accreditations &amp; memberships
+            Licenses &amp; accreditations
           </h2>
         </CircuitReveal>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
-          {ABOUT.accreditations.map((a, i) => (
-            <Reveal key={a.code} delay={Math.min(i * 0.05, 0.2)}>
-              <div className="circuit-card solid flex h-full flex-col gap-2.5 rounded-(--r-glass) p-5">
-                <VoltageTag className="self-start">{a.code}</VoltageTag>
-                <div className="text-ui-12 text-pretty text-jce-ink-2">
-                  {a.note}
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
+          {LICENSES.map((lic, i) => {
+            const validity = [
+              lic.since && `Since ${lic.since}`,
+              lic.validUntil && `Valid through ${lic.validUntil}`,
+            ].filter(Boolean);
+            return (
+              <Reveal key={lic.acronym} delay={Math.min(i * 0.05, 0.2)}>
+                <div className="circuit-card solid flex h-full flex-col gap-3 rounded-(--r-glass) p-5 sm:p-6">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <VoltageTag>{lic.acronym}</VoltageTag>
+                    {lic.licenseNo ? (
+                      <VoltageTag>No. {lic.licenseNo}</VoltageTag>
+                    ) : null}
+                  </div>
+                  <div className="text-ui-16 font-semibold text-pretty text-jce-ink">
+                    {lic.issuer}
+                  </div>
+                  {lic.detail ? (
+                    <div className="text-ui-13 text-pretty text-jce-ink-2">
+                      {lic.detail}
+                    </div>
+                  ) : null}
+                  {validity.length ? (
+                    <div className="mt-auto pt-1 text-ui-12 font-medium text-jce-cyan-deep">
+                      {validity.join(" · ")}
+                    </div>
+                  ) : null}
                 </div>
-              </div>
-            </Reveal>
-          ))}
+              </Reveal>
+            );
+          })}
         </div>
+        <Reveal>
+          <p className="mt-6 max-w-[60ch] text-ui-13 text-pretty text-jce-ink-2">
+            Complete documentation available upon request for bidding and
+            accreditation purposes.
+          </p>
+        </Reveal>
       </WebSection>
 
       {/* Canonical facts (FR-WEB-16 — plain, extractable sentences for GEO) */}
