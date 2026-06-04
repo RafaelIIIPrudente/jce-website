@@ -4,7 +4,11 @@ Guidance for Claude Code agents (CLI, IDE extension, SDK) working in this repo. 
 
 ## Project
 
-JC Electrofields Power System corporate marketing site. See [README.md](./README.md) for stack, setup, and folder layout.
+JC Electrofields Power System corporate marketing site, plus the internal JCE System ERP dashboard. See [README.md](./README.md) for stack, setup, and folder layout.
+
+## Source of truth — SRS
+
+[`docs/JCE_System_SRS_v1.0_Draft.md`](./docs/JCE_System_SRS_v1.0_Draft.md) (v1.72 Draft) is the **canonical requirements document** for the JCE System — the total SRS. When requirements conflict, the SRS wins over the design-handoff prototypes (`docs/FINAL JCE PROJECT DESIGN/`) and over `docs/JCE-IMPLEMENTATION-PLAN.md`. Its sections map onto the build: §3 RBAC (roles, role×module matrix, cross-module read grants) · §4 HR · §5 Accounting (§5.2 Payroll … §5.9 Reporting) · §6 PMG (§6.6 Accomplishment, §6.10 MR workflow) · §7 Purchasing (§7.8 15-stage Imported-PO tracker) · §8 Engineering (placeholder) · §9 BDD · §10 Warehouse · §11 Public Website · §12 NFRs. It is 5,800+ lines — spot-read the relevant `§N.M` section by anchor; do not read it in full. Cross-reference the matching SRS section alongside the design prototype when planning or building any module.
 
 ## What this file adds on top of AGENTS.md
 
