@@ -15,16 +15,9 @@ export const metadata: Metadata = {
   description:
     "JC Electrofields Power System, Inc. — electrical power-systems EPC in the Philippines since 1997. Substations and transmission to 230 kV, NGCP direct connection, switchgear, and utility-scale solar.",
   alternates: { canonical: "/" },
-  openGraph: {
-    images: [
-      {
-        url: "/og/home.webp",
-        width: 1200,
-        height: 630,
-        alt: "JC Electrofields Power System — power infrastructure engineered to energize",
-      },
-    ],
-  },
+  // og:image (and Twitter's large-image card) is provided by the dynamic
+  // opengraph-image.tsx route convention in this segment; no static file.
+  twitter: { card: "summary_large_image" },
 };
 
 export default function HomePage() {

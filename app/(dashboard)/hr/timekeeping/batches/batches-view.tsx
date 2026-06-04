@@ -75,7 +75,7 @@ export function BatchesView() {
     const verified = sel.status === "Verified";
     const tr = getTimeRows();
     return (
-      <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-5">
+      <div className="mx-auto flex w-full max-w-275 flex-col gap-5">
         <button
           type="button"
           onClick={() => setSelId(null)}
