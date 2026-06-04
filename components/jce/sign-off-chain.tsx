@@ -12,10 +12,10 @@ export type SignoffStatus = "approved" | "current" | "pending" | "rejected";
 export type Signoff = { role: string; name?: string; status: SignoffStatus };
 
 const NODE: Record<SignoffStatus, string> = {
-  approved: "bg-[var(--st-success-bg)] text-[var(--st-success-ink)]",
-  current: "bg-[var(--st-pending-bg)] text-[var(--st-pending-ink)]",
-  pending: "bg-[var(--st-neutral-bg)] text-[var(--st-neutral-ink)]",
-  rejected: "bg-[var(--st-danger-bg)] text-[var(--st-danger-ink)]",
+  approved: "bg-(--st-success-bg) text-(--st-success-ink)",
+  current: "bg-(--st-pending-bg) text-(--st-pending-ink)",
+  pending: "bg-(--st-neutral-bg) text-(--st-neutral-ink)",
+  rejected: "bg-(--st-danger-bg) text-(--st-danger-ink)",
 };
 
 export function SignOffChain({
