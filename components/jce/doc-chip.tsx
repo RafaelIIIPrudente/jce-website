@@ -19,7 +19,8 @@ export function DocChip({
       data-slot="doc-chip"
       title="Click to copy"
       className={cn("docchip focus-ring-jce", className)}
-      onClick={() => {
+      onClick={(e) => {
+        e.stopPropagation();
         void navigator.clipboard?.writeText(code);
         toast.success(`Copied ${code}`);
       }}
