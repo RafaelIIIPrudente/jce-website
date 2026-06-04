@@ -1,16 +1,7 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { ModulePlaceholder } from "@/components/jce/module-placeholder";
-
-export const metadata: Metadata = { title: "Purchasing" };
-
-export default function PurchasingPage() {
-  return (
-    <ModulePlaceholder
-      kicker="Module · Purchasing"
-      title="Purchasing"
-      part="Part 7"
-      icon="pur"
-    />
-  );
+// The Purchasing module (sidebar) points at /purchasing; land on the Dashboard
+// (U1) — mirrors app/(dashboard)/pmg/page.tsx.
+export default function PurchasingIndexPage() {
+  redirect("/purchasing/dashboard");
 }
