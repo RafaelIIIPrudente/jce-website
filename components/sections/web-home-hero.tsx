@@ -16,7 +16,7 @@ import { HERO_STATS, TAGLINE } from "@/lib/content/website";
 
 export function HomeHero() {
   return (
-    <section className="dark-section circuit-field relative isolate flex min-h-[calc(100svh_-_4rem)] items-center overflow-hidden">
+    <section className="dark-section circuit-field relative isolate flex min-h-[calc(100svh-4rem)] items-center overflow-hidden">
       {/* Darkened poster — priority LCP image; container reserves height (no CLS).
           Dedicated hero file (distinct from the card reuses of solar-alaminos)
           so the LCP src never collides with a lazy instance in next/image. */}
