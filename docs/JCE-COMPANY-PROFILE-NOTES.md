@@ -33,6 +33,22 @@
 
 **What they do (one paragraph):** JCE is a Philippine electrical-engineering and power-systems **EPC contractor and equipment supplier**. Founded 1997 by an electrical engineer who began serving the **steel-manufacturing sector** (helping plants secure direct NGCP connections via their own substations), it expanded across power generation, distribution utilities, manufacturing, and industrial/commercial clients. It delivers consultancy, engineering & design, and turnkey construction of **power substations (up to 230 kV), transmission lines, PV solar plants, distribution systems, industrial electrical systems and automation** — plus supply, testing & commissioning of transformers and switchgear.
 
+**Company history — verbatim (profile, "HISTORY"):**
+
+> JC ELECTROFIELDS POWER SYSTEM, INC., founded in 1997, through the vision of a young Electrical Engineer with a humble beginning but had an excellent educational credential being a top graduate in one of the best University in the South. With his excellent educational training to start with, he worked in the industry gaining technical mastery especially in the Steel Manufacturing Sector who would prefer having their direct connection with the NGCP through its own Power Substation. JCE further expands to different Electrical Industries from Power Generating Plant to Electrical Distribution Utilities to Manufacturing Plant and also from Industrial and Commercial Industries. To this date, the company has over one hundred twenty four (124) manpower compliments, composed of dedicated and experienced Registered Civil and Electrical Engineers and technicians whose main goal is to give its growing clientele the highest level of customer satisfaction. It endeavors to address and meet clients' expectation at the lowest possible cost but never compromise quality and efficiency. To add to its growth, JCE had an exclusive distributorship from one of the best manufacturer of Power Transformer in China, Shenda Electric, whose tract record was already noticed in the Power Industries in the country today. From repair and fabrication of different electrical equipment, JCE is now becoming a major contractor/supplier to all Energy sector. The company's commitment is unquestionable as it started strengthening its organizational structure, in order to deliver world class standards of electrical and power solutions to its growing clientele. Indeed, from 1997 to this date, JCE has become a serious and potential big player in the highly competitive Power Industry.
+
+_For the public site, paraphrase into clean, present-tense prose (the source is a single ESL paragraph). Keep the load-bearing facts: 1997 founding by a top-graduate EE, steel-manufacturing origin via NGCP direct-connection substations, expansion across generation / distribution utilities / manufacturing / industrial-commercial, 124+ registered engineers & technicians, exclusive Shenda Electric transformer distributorship, repair-and-fabrication → major energy-sector contractor/supplier._
+
+**Mission & Commitment — verbatim (profile, Slide 5):**
+
+> - To identify and to serve the needs of every customer in the most responsible manner with safety as the main consideration. Strive for customers' satisfaction through excellence in reliable services and superior quality of materials.
+> - Enhance customer's awareness of our commitment to serve their needs and the benefits that they'll gain out of our quality products and services.
+> - Strengthen our commitment to responsibly attend to our customer's needs by constantly updating our personnel skills and expertise to modern technology through exposure to training and development programs.
+> - A company with dedication and firm commitment to highest standard of providing Consultancy, Engineering and Design, Construction of Power Substation, Engineering consultant for the construction of PV Solar Plant, Distribution and Transmission Systems, Industrial Electrical Systems, Industrial Automation and Energy Efficient Electrical Systems to Large Industrial Companies and Electric Cooperatives in the country.
+> - JCE is committed to a continuing focus on its specialized field, aiming to make its services and product lines WORLD CLASS, and to prepare for the economic integration in Asia — to become a player not only in the country but in the Asian Region as well.
+
+_The first three bullets are the usable "Mission" copy (safety-first, customer awareness, continuous upskilling). "WORLD CLASS" / "Asian Region" are aspirational — present as commitment/ambition, not as a current fact._
+
 **Differentiators:**
 
 - Substation & transmission **design / construction / testing & commissioning up to 230 kV**.
@@ -40,7 +56,7 @@
 - **Exclusive Philippine distributorship of Shenda Electric / EACHER** power transformers (China) — branded units appear across dozens of project photos.
 - Full lifecycle: "From repair and fabrication… JCE is now becoming a major contractor/supplier to all Energy sector."
 
-**Certifications / accreditations** (scanned certs, pp.79–84):
+**Certifications / accreditations** (scanned certs, pp.79–84) — _see §9 for the publish-vs-withhold split and current validity dates:_
 
 - **PCAB / DTI-CIAP Regular Contractor's License** No. 37783 — **General Engineering & General Building, Category A**, Specialty: **Electrical Work**.
 - **PhilGEPS Platinum Membership** (gov't procurement).
@@ -196,6 +212,33 @@ Solar 138 KV Main Substation (NPSI) · 30/37.5 MVA 69/13.8 KV Mobile Substation 
 8. **"Engineering in motion" band** — crew/crane-lift photos (pp.49, 61–64); circuit-trace reveal as copy energizes line by line.
 9. **Renewables / FIT consultancy spotlight** — high-margin advisory (System Impact Study, FIT, ERC point-to-point); feasibility → energization; back with solar aerials + the 75 MWp / 49.5 MWac pipeline.
 10. **Refined palette + ambient grid motion** — deep electric green + ONE accent (amber-gold or electric cyan) on near-black; faint animated grid/circuit field, traveling current highlights on dividers, hover glow. Keep the omega + current-ribbon idea; drop the saturation.
+
+---
+
+## 9. Legal & Accreditations — publish vs. withhold
+
+Authoritative split for a public "Licenses & Accreditations" surface (client-reviewed, 2026-06-04). The license / registration numbers below are **public record** and build credibility — procurement officers verify them, so showing them helps.
+
+**Safe to publish:**
+
+- **SEC-registered corporation since July 24, 2007** — Reg. No. **CS200711697** (SEC reg numbers are public record).
+- **Authorized capital stock ₱1,000,000,000.00** (increased 2021) — signals financial capacity. _(§1 of this doc records "increased 2020"; treat **2021** as the corrected year, or show the figure with no year.)_
+- **PCAB Regular Contractor's License No. 37783** — General Engineering Category A, General Building, Specialty Electrical Work; licensed since 2014, **valid through April 2027**.
+- **PhilGEPS Platinum Membership** — registered since 2012, **valid until Jan 2027**.
+- **NGCP-accredited Local Contractor — Substation Erection** (since 2016).
+- **BIR-registered and tax-compliant** — holds a current Tax Clearance Certificate (state it; do **not** post the document).
+- **Valenzuela City business permit** — current, renewed annually.
+- **Registered office address:** 2129 La Mesa St., Ugong, Valenzuela City. _(This is the SEC/BIR-registered address = the warehouse/fabrication site in §7; the head office in §7 is 3074 F. Bautista St. Keep `lib/content/site.ts` as-is until the client confirms which address the public site should lead with.)_
+
+**Keep OFF the site:**
+
+- **TINs** (e.g. 006-805-865) — invites identity fraud.
+- **Document scans** bearing signatures, dry seals, QR codes, stamp serials — these get lifted and forged.
+- Mayor's-permit **fee breakdowns and account numbers**.
+- **Personal email** (jimwelcapillo@yahoo.com) — use a company address instead.
+- **Officers' names tied to tax documents** (e.g. the taxpayer name on a BIR form). Naming the President in an "About" section is fine; in a tax context it is not.
+
+**Suggested public format:** a badge / list-style "Licenses & Accreditations" section showing **issuer · license number where verifiable (SEC, PCAB, PhilGEPS) · validity dates**, plus a closing line — _"Complete documentation available upon request for bidding and accreditation purposes."_ That gives procurement officers what they need while keeping the raw scans private.
 
 ---
 
