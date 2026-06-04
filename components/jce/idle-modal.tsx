@@ -24,8 +24,8 @@ export function IdleWarningCard({
   onSignOut: () => void;
 }) {
   return (
-    <div className="glass-modal w-full max-w-sm rounded-[var(--r-glass)] p-6 text-center">
-      <div className="mx-auto grid size-11 place-items-center rounded-full bg-[var(--st-pending-bg)] text-[var(--st-pending-ink)]">
+    <div className="glass-modal w-full max-w-sm rounded-(--r-glass) p-6 text-center">
+      <div className="mx-auto grid size-11 place-items-center rounded-full bg-(--st-pending-bg) text-(--st-pending-ink)">
         <LockIcon className="size-5" aria-hidden />
       </div>
       <h3 className="mt-3 text-ui-18 font-bold text-jce-ink">Still there?</h3>

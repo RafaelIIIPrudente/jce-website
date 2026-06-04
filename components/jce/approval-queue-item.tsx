@@ -26,7 +26,7 @@ export function ApprovalQueueItem({
     <div
       data-slot="approval-queue-item"
       className={cn(
-        "glass flex flex-wrap items-center gap-3 rounded-[var(--r-glass)] px-4 py-3",
+        "glass flex flex-wrap items-center gap-3 rounded-(--r-glass) px-4 py-3",
         className,
       )}
     >

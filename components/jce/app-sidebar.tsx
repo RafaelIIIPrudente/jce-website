@@ -29,7 +29,7 @@ export function AppSidebar({
     <aside
       data-collapsed={collapsed}
       className={cn(
-        "glass-nav z-10 flex h-full shrink-0 flex-col gap-1 p-2 transition-[width] duration-300 ease-[var(--ease-jce)]",
+        "glass-nav z-10 flex h-full shrink-0 flex-col gap-1 p-2 transition-[width] duration-300 ease-(--ease-jce)",
         collapsed ? "w-[72px]" : "w-64",
       )}
     >
@@ -39,7 +39,7 @@ export function AppSidebar({
           width={34}
           height={34}
           alt="JCE"
-          className="shrink-0 rounded-md shadow-[var(--solid-shadow)]"
+          className="shrink-0 rounded-md shadow-(--solid-shadow)"
         />
         {!collapsed ? (
           <div className="min-w-0">

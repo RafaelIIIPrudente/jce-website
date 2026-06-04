@@ -57,7 +57,7 @@ export function FileUploader({
           "focus-ring-jce w-full rounded-[10px] border-2 border-dashed px-5 py-6 text-center transition-colors",
           drag
             ? "border-jce-green-500 bg-jce-green-50"
-            : "border-[var(--masked-border)] bg-[var(--table-zebra)] hover:border-jce-green-500",
+            : "border-(--masked-border) bg-(--table-zebra) hover:border-jce-green-500",
         )}
       >
         <UploadIcon
@@ -71,7 +71,7 @@ export function FileUploader({
         <div className="mt-1 text-ui-12 text-jce-ink-2">
           {hint}
           {required ? (
-            <span className="ml-1 font-bold text-[var(--st-danger)]">
+            <span className="ml-1 font-bold text-(--st-danger)">
               REQUIRED to reach Approved
             </span>
           ) : null}
@@ -101,7 +101,7 @@ export function FileUploader({
                 type="button"
                 onClick={() => setFiles((fs) => fs.filter((_, j) => j !== i))}
                 aria-label={`Remove ${f.name}`}
-                className="focus-ring-jce rounded text-jce-ink-2 hover:text-[var(--st-danger)]"
+                className="focus-ring-jce rounded text-jce-ink-2 hover:text-(--st-danger)"
               >
                 <TrashIcon className="size-3.5" aria-hidden />
               </button>

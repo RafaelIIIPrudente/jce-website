@@ -26,7 +26,7 @@ export function PrintPreview({
   return (
     <div
       data-slot="print-preview"
-      className={cn("glass rounded-[var(--r-glass)] p-4", className)}
+      className={cn("glass rounded-(--r-glass) p-4", className)}
     >
       <div className="jce-print-hide mb-3 flex items-center gap-2.5">
         <span className="kicker">{title}</span>
@@ -41,7 +41,7 @@ export function PrintPreview({
           Print
         </Button>
       </div>
-      <div className="mx-auto max-w-[640px] rounded-md border border-jce-line bg-[var(--solid-surface)] p-5 text-[11px] leading-relaxed text-jce-ink shadow-[var(--solid-shadow)]">
+      <div className="mx-auto max-w-[640px] rounded-md border border-jce-line bg-(--solid-surface) p-5 text-[11px] leading-relaxed text-jce-ink shadow-(--solid-shadow)">
         {children}
       </div>
       {note ? (
