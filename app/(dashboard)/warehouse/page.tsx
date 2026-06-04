@@ -1,16 +1,7 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { ModulePlaceholder } from "@/components/jce/module-placeholder";
-
-export const metadata: Metadata = { title: "Warehouse" };
-
-export default function WarehousePage() {
-  return (
-    <ModulePlaceholder
-      kicker="Module · Warehouse"
-      title="Warehouse"
-      part="Part 8"
-      icon="wh"
-    />
-  );
+// The Warehouse module (sidebar) points at /warehouse; land on the Dashboard
+// (W1) — mirrors app/(dashboard)/pmg/page.tsx.
+export default function WarehouseIndexPage() {
+  redirect("/warehouse/dashboard");
 }
