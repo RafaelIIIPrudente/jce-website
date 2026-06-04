@@ -41,7 +41,7 @@ export function PrintPreview({
           Print
         </Button>
       </div>
-      <div className="mx-auto max-w-[640px] rounded-md border border-jce-line bg-(--solid-surface) p-5 text-[11px] leading-relaxed text-jce-ink shadow-(--solid-shadow)">
+      <div className="mx-auto max-w-160 rounded-md border border-jce-line bg-(--solid-surface) p-5 text-[11px] leading-relaxed text-jce-ink shadow-(--solid-shadow)">
         {children}
       </div>
       {note ? (
