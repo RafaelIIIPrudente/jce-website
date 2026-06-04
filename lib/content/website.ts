@@ -8,9 +8,14 @@
 
 import type { LucideIcon } from "lucide-react";
 import {
+  ActivityIcon,
   CableIcon,
   ClipboardListIcon,
+  CpuIcon,
+  FactoryIcon,
   GaugeIcon,
+  LineChartIcon,
+  Settings2Icon,
   SunIcon,
   TowerControlIcon,
   WrenchIcon,
@@ -65,10 +70,15 @@ export const MARQUEE_CLIENTS: readonly string[] = [
   "BOHECO",
 ] as const;
 
-// ---- S3 Services (6 EPC capabilities + Engineering Consultancy) ------------
-// Engineering Consultancy is folded in from the former /professional-services
-// page (no handoff S-screen; maps to the INQ_TYPE "Engineering Consultancy").
-// PROPOSED — needs confirmation.
+// ---- S3 Services (flat capability list — reconciled to the company profile) -
+// ONE flat list (no grouped sections). EPC capabilities + specialist services
+// (automation, control wiring/motor controls, power management, electrical
+// consulting) + maintenance (substation + plant electrical). The renewable-energy
+// FIT / NGCP-study / ERC consultancy AND the engineering-design consultancy (PV
+// plant, substation/transmission-line design, industrial-plant electrical) are
+// consolidated into the single Engineering Consultancy row — folded from the
+// former /professional-services page (maps to the INQ_TYPE "Engineering
+// Consultancy"). New rows' specs/descs are derived only from the source titles.
 export type Service = {
   slug: string;
   icon: LucideIcon;
@@ -104,7 +114,7 @@ export const SERVICES: readonly Service[] = [
     icon: GaugeIcon,
     name: "Switchgear Supply",
     spec: "HVSG · MVSG · LVSG",
-    desc: "High-, medium- and low-voltage switchgear — specification, supply, and integration with protection schemes.",
+    desc: "High-, medium- and low-voltage switchgear — in-house design, fabrication and assembly, with integration into protection schemes.",
   },
   {
     slug: "direct-connection-application",
@@ -114,40 +124,135 @@ export const SERVICES: readonly Service[] = [
     desc: "End-to-end facilitation of NGCP direct-connection projects, from application through energization.",
   },
   {
+    slug: "automation-controls",
+    icon: CpuIcon,
+    name: "Automation & Controls",
+    spec: "SCADA · PLC",
+    desc: "SCADA, PLC, and protection-and-control panel engineering for substations and industrial plants.",
+  },
+  {
+    slug: "control-wiring-motor-controls",
+    icon: Settings2Icon,
+    name: "Control Wiring & Motor Controls",
+    spec: "Industrial process",
+    desc: "Control wiring and motor-control systems for industrial process electrical works.",
+  },
+  {
+    slug: "power-management-system",
+    icon: ActivityIcon,
+    name: "Power Management Systems",
+    spec: "Monitoring & control",
+    desc: "Power management systems for the monitoring, control and load management of facility electrical networks.",
+  },
+  {
+    slug: "electrical-consulting-optimization",
+    icon: LineChartIcon,
+    name: "Electrical Consulting & Optimization",
+    spec: "Billing · upgrading",
+    desc: "Electrical consulting covering billing analysis, system upgrading and optimization for plant electrical systems.",
+  },
+  {
     slug: "maintenance-servicing",
     icon: WrenchIcon,
-    name: "Maintenance & Servicing",
+    name: "Substation Maintenance & Servicing",
     spec: "Preventive · corrective",
     desc: "Scheduled maintenance, testing, and emergency servicing for substations, lines and power equipment.",
+  },
+  {
+    slug: "plant-electrical-maintenance",
+    icon: FactoryIcon,
+    name: "Plant Electrical Maintenance",
+    spec: "Industrial sites",
+    desc: "Preventive and corrective electrical maintenance and servicing for industrial plant sites.",
   },
   {
     slug: "engineering-consultancy",
     icon: ClipboardListIcon,
     name: "Engineering Consultancy",
     spec: "Studies · FIT · ERC",
-    desc: "Independent electrical review and pre-development consultancy — DOE Feed-in-Tariff, NGCP Systems Impact & Facility studies, and ERC point-to-point approval.",
+    desc: "Pre-development and engineering consultancy — DOE Feed-in-Tariff, NGCP Systems Impact & Facility studies, and ERC point-to-point approval, plus engineering design for PV-solar plants, substations, transmission lines and industrial-plant electrical systems.",
   },
 ] as const;
 
-// ---- S5 Products (kept distinct from services) -----------------------------
+// ---- S5 Products (16 canonical items, company profile — distinct from services) ---
+// Order matches the company-profile list. `spec` is a brief factual descriptor of
+// what each item is (reusing the honest descriptors from the prior PRODUCT_LINES
+// where they map); no invented ratings, capacities, or claims. `tag` is a short
+// category for the grid filters.
 export type Product = { name: string; spec: string; tag: string };
 
 export const PRODUCTS: readonly Product[] = [
+  { name: "Power Transformer", spec: "230 KV – 15 KV", tag: "Transformers" },
   {
-    name: "Power Transformers",
-    spec: "15 KV – 230 KV · Distribution / Power / CT / PT",
-    tag: "Transformers",
-  },
-  { name: "Switchgear", spec: "HVSG · MVSG · LVSG", tag: "Switchgear" },
-  {
-    name: "Distribution Transformers",
-    spec: "Single & three-phase, pole & pad mount",
+    name: "Distribution Transformer (DT)",
+    spec: "Single- & three-phase, pole & pad mount",
     tag: "Transformers",
   },
   {
-    name: "Protection & Control",
-    spec: "Relays, RTUs, metering",
+    name: "Current Transformer (CT)",
+    spec: "Metering & protection",
+    tag: "Instrument Transformers",
+  },
+  {
+    name: "Potential Transformer (PT)",
+    spec: "Metering & relay circuits",
+    tag: "Instrument Transformers",
+  },
+  {
+    name: "Disconnect Switch (DS)",
+    spec: "Substation isolation",
+    tag: "Switchgear",
+  },
+  {
+    name: "SF-6 Power Breaker",
+    spec: "Gas-insulated, transmission class",
+    tag: "Breakers",
+  },
+  {
+    name: "Capacitor Bank",
+    spec: "Reactive-power compensation",
+    tag: "Power Quality",
+  },
+  {
+    name: "Recloser",
+    spec: "Automatic feeder protection",
+    tag: "Distribution",
+  },
+  { name: "Power Cables", spec: "MV & HV feeders", tag: "Cables" },
+  {
+    name: "Panel Boards",
+    spec: "Plant electrical distribution",
+    tag: "Distribution",
+  },
+  {
+    name: "HVSG, MVSG and LVSG",
+    spec: "Design, fabrication & assembly",
+    tag: "Switchgear",
+  },
+  {
+    name: "Lightning Arrester",
+    spec: "Surge protection",
     tag: "Protection",
+  },
+  {
+    name: "Pole Line Hardware",
+    spec: "Insulators, cross-arms & fittings",
+    tag: "Distribution",
+  },
+  {
+    name: "Air Circuit Breaker (ACB)",
+    spec: "LV main distribution",
+    tag: "Breakers",
+  },
+  {
+    name: "Power Circuit Breaker (PCB)",
+    spec: "MV & HV substation feeders",
+    tag: "Breakers",
+  },
+  {
+    name: "Steel & Concrete Poles",
+    spec: "Transmission & distribution structures",
+    tag: "Structures",
   },
 ] as const;
 
