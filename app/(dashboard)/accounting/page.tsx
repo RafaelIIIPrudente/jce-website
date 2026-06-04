@@ -1,16 +1,7 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { ModulePlaceholder } from "@/components/jce/module-placeholder";
-
-export const metadata: Metadata = { title: "Accounting" };
-
-export default function AccountingPage() {
-  return (
-    <ModulePlaceholder
-      kicker="Module · Accounting"
-      title="Accounting"
-      part="Part 5"
-      icon="acc"
-    />
-  );
+// The Accounting module (sidebar) points at /accounting; land on Payroll
+// Summary (A4, OQ#7 — landing dashboards unspecified, routes to primary register).
+export default function AccountingIndexPage() {
+  redirect("/accounting/payroll");
 }
