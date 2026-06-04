@@ -482,6 +482,25 @@ export const ABOUT = {
   ],
 } as const;
 
+// ---- S2 About — YouTube channel + curated video showcase -------------------
+// Channel resolved from the @JCEPOWER handle (stable UC id). ABOUT_VIDEOS is the
+// hand-picked featured set (always shown); the live "Latest from our channel"
+// strip pulls the channel RSS feed at request time and de-dupes against these.
+export const YOUTUBE_CHANNEL = {
+  handle: "@JCEPOWER",
+  url: "https://www.youtube.com/@JCEPOWER",
+  channelId: "UCXamieRB1XJ4um7Rr_qo9zw",
+} as const;
+
+export type AboutVideo = { id: string; title: string };
+
+// Verbatim from the channel (title typo/casing lightly normalized for display).
+export const ABOUT_VIDEOS: readonly AboutVideo[] = [
+  { id: "7K6cMIvBnmo", title: "69 kV transmission line and substation" },
+  { id: "SerRpr5E_AA", title: "JCE Projects" },
+  { id: "-WTmKPsrxjE", title: "JCE Christmas Party 2025" },
+] as const;
+
 // ============================================================================
 // S8 inquiry-form option sets (verbatim from the brief / web-content.jsx)
 // ============================================================================
