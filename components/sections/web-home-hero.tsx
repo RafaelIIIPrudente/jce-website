@@ -17,9 +17,11 @@ import { HERO_STATS, TAGLINE } from "@/lib/content/website";
 export function HomeHero() {
   return (
     <section className="dark-section circuit-field relative isolate flex min-h-[calc(100svh_-_4rem)] items-center overflow-hidden">
-      {/* Darkened poster — priority LCP image; container reserves height (no CLS) */}
+      {/* Darkened poster — priority LCP image; container reserves height (no CLS).
+          Dedicated hero file (distinct from the card reuses of solar-alaminos)
+          so the LCP src never collides with a lazy instance in next/image. */}
       <Image
-        src="/projects/solar-alaminos.webp"
+        src="/projects/solar-alaminos-hero.webp"
         alt="Aerial view of the 120 MWp GigaSol Alaminos solar farm built by JC Electrofields"
         fill
         priority

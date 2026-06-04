@@ -50,7 +50,7 @@ function JvDetail({ jv, onBack }: { jv: Jv; onBack: () => void }) {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-275 flex-col gap-5">
       <button
         type="button"
         onClick={onBack}

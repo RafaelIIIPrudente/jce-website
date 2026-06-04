@@ -120,7 +120,7 @@ export function Accomplishment({ project }: { project: PmgProject }) {
 
         <div className="solid rounded-(--r-solid) p-6 font-mono text-[11px] text-jce-ink">
           <div className="text-center">
-            <div className="text-[13px] font-bold">
+            <div className="text-ui-13 font-bold">
               JC ELECTROFIELDS POWER SYSTEM, INC.
             </div>
             <div className="font-bold tracking-wide">ACCOMPLISHMENT REPORT</div>
@@ -479,7 +479,7 @@ function CategoryBlock({
                     value={fmtTp(r.tp)}
                     onChange={(e) => setTP(r.key, e.target.value)}
                     inputMode="decimal"
-                    className="w-14 rounded-[4px] bg-transparent px-1 py-0.5 text-right font-mono outline-none focus:bg-jce-green-50 focus-visible:shadow-(--focus-ring)"
+                    className="w-14 rounded-lg bg-transparent px-1 py-0.5 text-right font-mono outline-none focus:bg-jce-green-50 focus-visible:shadow-(--focus-ring)"
                   />
                 ) : (
                   <span className="font-mono">{pmoney(r.tp)}</span>

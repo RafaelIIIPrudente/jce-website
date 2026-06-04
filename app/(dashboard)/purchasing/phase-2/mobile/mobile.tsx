@@ -24,7 +24,7 @@ export function MobileApprovals() {
         description="U12 at phone width · the two biggest stall points."
       />
       <div className="grid items-start gap-6 lg:grid-cols-[300px_1fr]">
-        <div className="mx-auto w-[300px] overflow-hidden rounded-[36px] border-8 border-jce-ink bg-(--solid-surface) shadow-(--glass-shadow)">
+        <div className="mx-auto w-75 overflow-hidden rounded-[36px] border-8 border-jce-ink bg-(--solid-surface) shadow-(--glass-shadow)">
           <div className="flex items-center justify-between gap-2 bg-(--glass-nav) px-4 py-3">
             <span className="text-ui-13 font-bold text-jce-ink">Approvals</span>
             <span className="grid size-6 place-items-center rounded-full bg-jce-green-700 text-[11px] font-bold text-primary-foreground">
