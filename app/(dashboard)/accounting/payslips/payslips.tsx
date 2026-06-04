@@ -74,7 +74,7 @@ export function Payslips() {
       <PrintPreview title="Payslip preview" paperSize="Half-letter">
         <div className="flex flex-col gap-3 font-mono text-[11px]">
           <div className="text-center">
-            <div className="text-[12px] font-bold tracking-wide">
+            <div className="text-ui-12 font-bold tracking-wide">
               JC ELECTROFIELDS POWER SYSTEMS INC.
             </div>
             <div className="text-jce-ink-2">Payroll Period: {batch.period}</div>
@@ -124,7 +124,7 @@ export function Payslips() {
                   bold
                 />
               </Block>
-              <div className="flex justify-between gap-4 rounded-(--r-input) bg-jce-green-100 px-2 py-1 text-[12px] font-bold text-jce-green-900">
+              <div className="flex justify-between gap-4 rounded-(--r-input) bg-jce-green-100 px-2 py-1 text-ui-12 font-bold text-jce-green-900">
                 <span>NET PAY</span>
                 <span className="font-mono tabular-nums">{peso(l.net)}</span>
               </div>

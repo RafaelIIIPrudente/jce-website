@@ -135,7 +135,7 @@ export function Reporting() {
   const drCr = TB_ROWS.reduce((a, r) => a + r.cr, 0);
 
   return (
-    <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-310 flex-col gap-5">
       <button
         type="button"
         onClick={() => {

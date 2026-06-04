@@ -121,7 +121,7 @@ export function TimekeepingGrid() {
   if (!emp) return null;
 
   return (
-    <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-275 flex-col gap-5">
       {/* context bar */}
       <div className="glass flex flex-wrap items-end justify-between gap-4 rounded-(--r-glass) px-5 py-4">
         <div>
@@ -315,7 +315,7 @@ export function TimekeepingGrid() {
                           setCell(i, { in: e.target.value || "—" })
                         }
                         onKeyDown={(e) => onTimeKey(e, i, 0)}
-                        className="w-16 rounded-[4px] bg-transparent px-1 py-0.5 text-right font-mono text-ui-13 outline-none focus:bg-jce-green-50 focus-visible:shadow-(--focus-ring)"
+                        className="w-16 rounded-lg bg-transparent px-1 py-0.5 text-right font-mono text-ui-13 outline-none focus:bg-jce-green-50 focus-visible:shadow-(--focus-ring)"
                       />
                     ) : r.in === "—" ? (
                       <span className="text-jce-ink-2">—</span>
@@ -335,7 +335,7 @@ export function TimekeepingGrid() {
                           setCell(i, { out: e.target.value || "—" })
                         }
                         onKeyDown={(e) => onTimeKey(e, i, 1)}
-                        className="w-16 rounded-[4px] bg-transparent px-1 py-0.5 text-right font-mono text-ui-13 outline-none focus:bg-jce-green-50 focus-visible:shadow-(--focus-ring)"
+                        className="w-16 rounded-lg bg-transparent px-1 py-0.5 text-right font-mono text-ui-13 outline-none focus:bg-jce-green-50 focus-visible:shadow-(--focus-ring)"
                       />
                     ) : r.out === "—" ? (
                       <span className="text-jce-ink-2">—</span>

@@ -4,70 +4,17 @@ export type ProductLine = {
   spec: string;
 };
 
-export const PRODUCT_LINES: readonly ProductLine[] = [
-  {
-    name: "Power Transformer",
-    voltageRange: "230 kV – 15 kV",
-    spec: "High-voltage substation transformer for transmission and distribution applications.",
-  },
-  {
-    name: "Distribution Transformer",
-    voltageRange: "Up to 35 kV",
-    spec: "Pole-mount and pad-mount distribution transformers for utility and industrial use.",
-  },
-  {
-    name: "Current Transformer",
-    spec: "Measurement and protection CTs for metering, relays, and SCADA systems.",
-  },
-  {
-    name: "Potential Transformer",
-    spec: "Voltage transformers for protective relay and metering circuits.",
-  },
-  {
-    name: "Disconnect Switch",
-    spec: "Air-break and load-break switches for substation isolation.",
-  },
-  {
-    name: "SF-6 Power Breaker",
-    spec: "Gas-insulated circuit breakers for transmission-class substations.",
-  },
-  {
-    name: "Capacitor Bank",
-    spec: "Shunt capacitor banks for reactive-power compensation and voltage support.",
-  },
-  {
-    name: "Recloser",
-    spec: "Automatic feeder recloser for distribution fault isolation.",
-  },
-  {
-    name: "Power Cables",
-    spec: "Medium- and high-voltage cables for substation and distribution feeders.",
-  },
-  {
-    name: "Panel Boards",
-    spec: "Industrial panel boards for plant electrical distribution.",
-  },
-  {
-    name: "HVSG / MVSG / LVSG",
-    spec: "In-house design, fabrication, and assembly of high-, medium-, and low-voltage switchgear.",
-  },
-  {
-    name: "Lightning Arrester",
-    spec: "Surge protection for substation and line equipment.",
-  },
-  {
-    name: "Pole Line Hardware",
-    spec: "Insulators, cross-arms, hardware for overhead distribution.",
-  },
-  {
-    name: "Air Circuit Breaker (ACB)",
-    spec: "Low-voltage circuit breakers for industrial main distribution panels.",
-  },
-  {
-    name: "Power Circuit Breaker (PCB)",
-    spec: "Medium- and high-voltage circuit breakers for substation feeders.",
-  },
-] as const;
+// PRODUCT_LINES (the prior 15-item product source) was REMOVED 2026-06-04 during
+// the content reconciliation: the authoritative product list now lives in PRODUCTS
+// (lib/content/website.ts) as the 16 canonical company-profile items, and that is
+// what the Products page renders (web-products-grid). PRODUCT_LINES was confirmed
+// unused (no importer). The `ProductLine` type above is RETAINED — it is still
+// imported as a prop type by the (currently unrendered) ProductLineGrid component.
+//
+// FLAGGED, NOT DELETED: SCOPE_OF_WORK / CONSULTING_SCOPE / PROCESS_STEPS below are
+// likewise not yet rendered (their components ScopeOfWorkList / ConsultingScope /
+// ProcessTimeline exist but aren't mounted on any page). They are kept as
+// possibly-wanted content for a future consultancy/process page — a later decision.
 
 export type ScopeItem = {
   number: string;

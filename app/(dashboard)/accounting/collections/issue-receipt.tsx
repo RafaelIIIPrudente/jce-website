@@ -80,7 +80,7 @@ export function IssueReceipt({ type }: { type: "CR" | "AR" }) {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-310 flex-col gap-5">
       <Link
         href="/accounting/collections"
         className="focus-ring-jce inline-flex w-fit items-center gap-1 rounded text-ui-13 text-jce-ink-2 transition-colors hover:text-jce-green-900"
@@ -226,7 +226,7 @@ export function IssueReceipt({ type }: { type: "CR" | "AR" }) {
           paperSize={isCR ? "BIR booklet" : "2 copies / page"}
         >
           <div className="flex items-start justify-between gap-4">
-            <div className="text-[12px] font-extrabold">
+            <div className="text-ui-12 font-extrabold">
               JC ELECTROFIELDS POWER SYSTEM, INC.
             </div>
             <div className="text-right">

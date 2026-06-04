@@ -8,29 +8,89 @@
 
 import type { LucideIcon } from "lucide-react";
 import {
+  ActivityIcon,
+  BatteryChargingIcon,
   CableIcon,
+  CircuitBoardIcon,
   ClipboardListIcon,
+  CpuIcon,
+  FactoryIcon,
   GaugeIcon,
+  LayoutGridIcon,
+  LineChartIcon,
+  Link2Icon,
+  PlugZapIcon,
+  PowerIcon,
+  RefreshCwIcon,
+  ServerIcon,
+  Settings2Icon,
+  ShieldIcon,
   SunIcon,
+  ToggleRightIcon,
   TowerControlIcon,
+  UtilityPoleIcon,
   WrenchIcon,
   ZapIcon,
+  ZapOffIcon,
 } from "lucide-react";
 
 // ---- S1 hero / S2 stat band ------------------------------------------------
 export type Stat = { v: string; k: string };
 
+// Real corporate figures (company profile 2026): since 1997 · 124+ engineers ·
+// capability to 230 kV · 45+ projects nationwide · ₱1B authorized capital.
 export const STATS: readonly Stat[] = [
-  { v: "25+", k: "Years in power engineering" },
-  { v: "230 KV", k: "Maximum voltage class" },
-  { v: "150+", k: "Projects energized" },
-  { v: "NGCP", k: "Direct-connection accredited" },
+  { v: "1997", k: "Power engineering since" },
+  { v: "124+", k: "Engineers & technicians" },
+  { v: "230 kV", k: "Capability class" },
+  { v: "45+", k: "Projects nationwide" },
 ] as const;
 
-// ---- S3 Services (6 EPC capabilities + Engineering Consultancy) ------------
-// Engineering Consultancy is folded in from the former /professional-services
-// page (no handoff S-screen; maps to the INQ_TYPE "Engineering Consultancy").
-// PROPOSED — needs confirmation.
+// Verbatim corporate tagline — use exactly, do not paraphrase.
+export const TAGLINE =
+  "Your need is our concern. Your priority is our priority. Your goal is our goal." as const;
+
+// Numeric stats for the animated home hero (EnergizedCounter count-up). The
+// generic Stat[] above still drives inner-page hero strips unchanged.
+export type HeroStat = {
+  value: number;
+  prefix?: string;
+  suffix?: string;
+  label: string;
+  /** false → no thousands separator (years). */
+  grouping?: boolean;
+};
+
+export const HERO_STATS: readonly HeroStat[] = [
+  { value: 1997, label: "Engineering since", grouping: false },
+  { value: 124, suffix: "+", label: "Engineers & technicians" },
+  { value: 230, suffix: " kV", label: "Capability class" },
+  { value: 45, suffix: "+", label: "Projects nationwide" },
+  { value: 1, prefix: "₱", suffix: "B", label: "Authorized capital" },
+] as const;
+
+// Marquee clients / credentials — NGCP leads (300 MVA / 230 kV substation work,
+// the Cebu–Negros–Panay 230 kV submarine-cable backbone). JCE is also the
+// exclusive Philippine distributor of Shenda Electric power transformers.
+export const MARQUEE_CLIENTS: readonly string[] = [
+  "NGCP",
+  "Pilipinas Shell",
+  "DMCI Power",
+  "Steel Asia",
+  "BATELEC",
+  "LUELCO",
+  "BOHECO",
+] as const;
+
+// ---- S3 Services (flat capability list — reconciled to the company profile) -
+// ONE flat list (no grouped sections). EPC capabilities + specialist services
+// (automation, control wiring/motor controls, power management, electrical
+// consulting) + maintenance (substation + plant electrical). The renewable-energy
+// FIT / NGCP-study / ERC consultancy AND the engineering-design consultancy (PV
+// plant, substation/transmission-line design, industrial-plant electrical) are
+// consolidated into the single Engineering Consultancy row — folded from the
+// former /professional-services page (maps to the INQ_TYPE "Engineering
+// Consultancy"). New rows' specs/descs are derived only from the source titles.
 export type Service = {
   slug: string;
   icon: LucideIcon;
@@ -66,7 +126,7 @@ export const SERVICES: readonly Service[] = [
     icon: GaugeIcon,
     name: "Switchgear Supply",
     spec: "HVSG · MVSG · LVSG",
-    desc: "High-, medium- and low-voltage switchgear — specification, supply, and integration with protection schemes.",
+    desc: "High-, medium- and low-voltage switchgear — in-house design, fabrication and assembly, with integration into protection schemes.",
   },
   {
     slug: "direct-connection-application",
@@ -76,40 +136,198 @@ export const SERVICES: readonly Service[] = [
     desc: "End-to-end facilitation of NGCP direct-connection projects, from application through energization.",
   },
   {
+    slug: "automation-controls",
+    icon: CpuIcon,
+    name: "Automation & Controls",
+    spec: "SCADA · PLC",
+    desc: "SCADA, PLC, and protection-and-control panel engineering for substations and industrial plants.",
+  },
+  {
+    slug: "control-wiring-motor-controls",
+    icon: Settings2Icon,
+    name: "Control Wiring & Motor Controls",
+    spec: "Industrial process",
+    desc: "Control wiring and motor-control systems for industrial process electrical works.",
+  },
+  {
+    slug: "power-management-system",
+    icon: ActivityIcon,
+    name: "Power Management Systems",
+    spec: "Monitoring & control",
+    desc: "Power management systems for the monitoring, control and load management of facility electrical networks.",
+  },
+  {
+    slug: "electrical-consulting-optimization",
+    icon: LineChartIcon,
+    name: "Electrical Consulting & Optimization",
+    spec: "Billing · upgrading",
+    desc: "Electrical consulting covering billing analysis, system upgrading and optimization for plant electrical systems.",
+  },
+  {
     slug: "maintenance-servicing",
     icon: WrenchIcon,
-    name: "Maintenance & Servicing",
+    name: "Substation Maintenance & Servicing",
     spec: "Preventive · corrective",
     desc: "Scheduled maintenance, testing, and emergency servicing for substations, lines and power equipment.",
+  },
+  {
+    slug: "plant-electrical-maintenance",
+    icon: FactoryIcon,
+    name: "Plant Electrical Maintenance",
+    spec: "Industrial sites",
+    desc: "Preventive and corrective electrical maintenance and servicing for industrial plant sites.",
   },
   {
     slug: "engineering-consultancy",
     icon: ClipboardListIcon,
     name: "Engineering Consultancy",
     spec: "Studies · FIT · ERC",
-    desc: "Independent electrical review and pre-development consultancy — DOE Feed-in-Tariff, NGCP Systems Impact & Facility studies, and ERC point-to-point approval.",
+    desc: "Pre-development and engineering consultancy — DOE Feed-in-Tariff, NGCP Systems Impact & Facility studies, and ERC point-to-point approval, plus engineering design for PV-solar plants, substations, transmission lines and industrial-plant electrical systems.",
   },
 ] as const;
 
-// ---- S5 Products (kept distinct from services) -----------------------------
-export type Product = { name: string; spec: string; tag: string };
+// ---- S5 Products (16 canonical items, company profile — distinct from services) ---
+// Order matches the company-profile list. `spec` is a brief factual descriptor of
+// what each item is (reusing the honest descriptors from the prior PRODUCT_LINES
+// where they map); no invented ratings, capacities, or claims. `tag` is a short
+// category for the grid filters. `icon` is a distinct lucide glyph per item so the
+// (photo-less) spec cards read differently from one another — symbolic, not literal
+// (lucide has no equipment-specific glyphs); real equipment photography lives in
+// the PRODUCT_EQUIPMENT band below.
+export type Product = {
+  name: string;
+  spec: string;
+  tag: string;
+  icon: LucideIcon;
+};
 
 export const PRODUCTS: readonly Product[] = [
   {
-    name: "Power Transformers",
-    spec: "15 KV – 230 KV · Distribution / Power / CT / PT",
+    name: "Power Transformer",
+    spec: "230 KV – 15 KV",
     tag: "Transformers",
-  },
-  { name: "Switchgear", spec: "HVSG · MVSG · LVSG", tag: "Switchgear" },
-  {
-    name: "Distribution Transformers",
-    spec: "Single & three-phase, pole & pad mount",
-    tag: "Transformers",
+    icon: ZapIcon,
   },
   {
-    name: "Protection & Control",
-    spec: "Relays, RTUs, metering",
+    name: "Distribution Transformer (DT)",
+    spec: "Single- & three-phase, pole & pad mount",
+    tag: "Transformers",
+    icon: PlugZapIcon,
+  },
+  {
+    name: "Current Transformer (CT)",
+    spec: "Metering & protection",
+    tag: "Instrument Transformers",
+    icon: ActivityIcon,
+  },
+  {
+    name: "Potential Transformer (PT)",
+    spec: "Metering & relay circuits",
+    tag: "Instrument Transformers",
+    icon: GaugeIcon,
+  },
+  {
+    name: "Disconnect Switch (DS)",
+    spec: "Substation isolation",
+    tag: "Switchgear",
+    icon: ToggleRightIcon,
+  },
+  {
+    name: "SF-6 Power Breaker",
+    spec: "Gas-insulated, transmission class",
+    tag: "Breakers",
+    icon: ZapOffIcon,
+  },
+  {
+    name: "Capacitor Bank",
+    spec: "Reactive-power compensation",
+    tag: "Power Quality",
+    icon: BatteryChargingIcon,
+  },
+  {
+    name: "Recloser",
+    spec: "Automatic feeder protection",
+    tag: "Distribution",
+    icon: RefreshCwIcon,
+  },
+  {
+    name: "Power Cables",
+    spec: "MV & HV feeders",
+    tag: "Cables",
+    icon: CableIcon,
+  },
+  {
+    name: "Panel Boards",
+    spec: "Plant electrical distribution",
+    tag: "Distribution",
+    icon: LayoutGridIcon,
+  },
+  {
+    name: "HVSG, MVSG and LVSG",
+    spec: "Design, fabrication & assembly",
+    tag: "Switchgear",
+    icon: ServerIcon,
+  },
+  {
+    name: "Lightning Arrester",
+    spec: "Surge protection",
     tag: "Protection",
+    icon: ShieldIcon,
+  },
+  {
+    name: "Pole Line Hardware",
+    spec: "Insulators, cross-arms & fittings",
+    tag: "Distribution",
+    icon: Link2Icon,
+  },
+  {
+    name: "Air Circuit Breaker (ACB)",
+    spec: "LV main distribution",
+    tag: "Breakers",
+    icon: PowerIcon,
+  },
+  {
+    name: "Power Circuit Breaker (PCB)",
+    spec: "MV & HV substation feeders",
+    tag: "Breakers",
+    icon: CircuitBoardIcon,
+  },
+  {
+    name: "Steel & Concrete Poles",
+    spec: "Transmission & distribution structures",
+    tag: "Structures",
+    icon: UtilityPoleIcon,
+  },
+] as const;
+
+// ---- S5 Products — real-equipment photo band ------------------------------
+// Authentic JCE equipment photography extracted & cleaned from the company
+// profile (transformer p.59 Dumanjug · switchgear p.51 QUEZELCO I · capacitor
+// bank p.67 San Jose 230 kV · NGCP protection panels p.72 CNP). Deployed as a
+// section band (NOT one-per-card) so the page shows real photos where they're
+// genuinely strong. Captions are factual; `tag` reuses real product/spec terms.
+export type EquipmentShot = { img: string; name: string; tag: string };
+
+export const PRODUCT_EQUIPMENT: readonly EquipmentShot[] = [
+  {
+    img: "/products/transformer-shenda.webp",
+    name: "Shenda Electric power transformer",
+    tag: "Exclusive distributor",
+  },
+  {
+    img: "/products/switchgear-panels.webp",
+    name: "MV switchgear line-up",
+    tag: "HVSG · MVSG · LVSG",
+  },
+  {
+    img: "/products/capacitor-bank.webp",
+    name: "230 kV shunt capacitor bank",
+    tag: "230 kV",
+  },
+  {
+    img: "/projects/controlroom-cnp.webp",
+    name: "Protection & control panels",
+    tag: "SCADA",
   },
 ] as const;
 
@@ -171,6 +389,134 @@ export const WEB_PROJECTS: readonly WebProject[] = [
 export const PROJECT_TAGS: readonly string[] = [
   "All",
   ...Array.from(new Set(WEB_PROJECTS.flatMap((p) => p.tags))),
+] as const;
+
+// ---- S1 featured rail — real photographed projects (company profile 2026) ---
+// Facts/capacities transcribed from the source slide captions; photos extracted
+// + cropped to public/projects/. `cap` drives a VoltageTag; `img` is the full
+// webp path for next/image. Distinct from WEB_PROJECTS (kept for the S4 index).
+export type FeaturedProject = {
+  name: string;
+  /** null = client withheld → "Confidential client". */
+  client: string | null;
+  loc: string;
+  cap: string;
+  img: string;
+  tags: readonly string[];
+};
+
+export const FEATURED_PROJECTS: readonly FeaturedProject[] = [
+  {
+    name: "GigaSol Alaminos Solar Farm",
+    client: null,
+    loc: "Alaminos, Laguna",
+    cap: "120 MWp",
+    img: "/projects/solar-alaminos.webp",
+    tags: ["Solar", "Renewable"],
+  },
+  {
+    name: "Cebu–Negros–Panay 230 kV Backbone",
+    client: "NGCP",
+    loc: "Barotac Viejo, Iloilo",
+    cap: "230 kV",
+    img: "/projects/controlroom-cnp.webp",
+    tags: ["Substation", "SCADA"],
+  },
+  {
+    name: "San Jose Shunt Capacitor Bank",
+    client: "NGCP",
+    loc: "San Jose, Luzon",
+    cap: "4×100 MVAr",
+    img: "/projects/capacitors-mexico.webp",
+    tags: ["Testing & Commissioning"],
+  },
+  {
+    name: "Bauang Switchyard Upgrade",
+    client: "NGCP",
+    loc: "Bauang, La Union",
+    cap: "100 MVA · 230/69 kV",
+    img: "/projects/switchyard-bauang.webp",
+    tags: ["Substation"],
+  },
+  {
+    name: "Casisang Power Transformer",
+    client: "BUSECO",
+    loc: "Malaybalay, Bukidnon",
+    cap: "20/25 MVA",
+    img: "/projects/night-buseco.webp",
+    tags: ["Substation", "Transformer"],
+  },
+  {
+    name: "Balayan Substation Transformer",
+    client: "BATELEC I",
+    loc: "Balayan, Batangas",
+    cap: "10 MVA",
+    img: "/projects/transformer-balayan.webp",
+    tags: ["Transformer", "Shenda"],
+  },
+  {
+    name: "NuevaSol Solar PV Facility",
+    client: "NuevaSol Energy Corp.",
+    loc: "Gamu, Nueva Ecija",
+    cap: "55 MWp",
+    img: "/projects/solar-nuevasol.webp",
+    tags: ["Solar", "Renewable"],
+  },
+  {
+    name: "San Carlos Sun Power Substation",
+    client: null,
+    loc: "San Carlos, Negros Occ.",
+    cap: "58.98 MWp",
+    img: "/projects/switchyard-sancarlos.webp",
+    tags: ["Substation", "Solar"],
+  },
+] as const;
+
+// S1 capability band — six EPC capabilities backed by real cropped textures.
+export type CapabilityCard = {
+  name: string;
+  spec: string;
+  img: string;
+  href: string;
+};
+
+export const HOME_CAPABILITIES: readonly CapabilityCard[] = [
+  {
+    name: "Substations to 230 kV",
+    spec: "Design–build EPC",
+    img: "/projects/switchyard-sancarlos.webp",
+    href: "/services",
+  },
+  {
+    name: "Transmission Lines",
+    spec: "Switchyard & towers",
+    img: "/projects/switchyard-bauang.webp",
+    href: "/services",
+  },
+  {
+    name: "Solar PV / Renewables",
+    spec: "Utility & C&I scale",
+    img: "/projects/solar-alaminos.webp",
+    href: "/services",
+  },
+  {
+    name: "Testing & Commissioning",
+    spec: "Energization-ready",
+    img: "/projects/capacitors-mexico.webp",
+    href: "/services",
+  },
+  {
+    name: "Switchgear HVSG/MVSG/LVSG",
+    spec: "Supply & integration",
+    img: "/projects/transformer-balayan.webp",
+    href: "/products",
+  },
+  {
+    name: "NGCP Direct Connection",
+    spec: "Application → energization",
+    img: "/projects/controlroom-cnp.webp",
+    href: "/services",
+  },
 ] as const;
 
 // ---- S6 News ---------------------------------------------------------------
@@ -278,33 +624,41 @@ export const FAQS: readonly Faq[] = [
 export const ABOUT = {
   mission:
     "To energize Philippine progress with safe, reliable, world-class power infrastructure.",
-  vision: "The most trusted EPC partner for power up to 230 KV in the region.",
+  // Aspirational framing of the §5 "WORLD CLASS" / "Asian Region" ambition —
+  // stated as a goal, not a present-day claim.
+  vision:
+    "To deliver world-class standards of electrical and power solutions — and to grow from a trusted Philippine EPC partner into a player across the Asian region.",
+  // The three commitments paraphrase the first three §5 mission bullets:
+  // responsible/safety-first service with superior materials; making customers
+  // aware of the value of the work; continuously upskilling our people.
   values: [
     {
       title: "Safety first",
-      body: "Every site, every crew, every day — zero-harm is the baseline, not the goal.",
+      body: "We serve every customer in the most responsible way — safety first — backed by reliable service and superior-quality materials.",
     },
     {
-      title: "Engineering integrity",
-      body: "Designs that hold up under load, audit and time — no shortcuts to energization.",
+      title: "Clear on the value",
+      body: "We keep customers aware of our commitment to their needs, and the real benefits they gain from our products and services.",
     },
     {
-      title: "Delivered on schedule",
-      body: "Single-vendor accountability from study to handover, on the dates we commit to.",
+      title: "Always upskilling",
+      body: "We keep advancing our people's skills and expertise toward modern technology, through ongoing training and development.",
     },
   ],
+  // Present-tense paraphrase of the §2 verbatim history (the source is one ESL
+  // paragraph — paraphrased, not pasted). Load-bearing facts preserved: 1997
+  // founding by a top-graduate EE, steel-manufacturing origin via NGCP
+  // direct-connection substations, repair-and-fabrication → major energy-sector
+  // contractor/supplier.
   history:
-    "Founded in 1997 and headquartered in Valenzuela City, JC Electrofields Power System, Inc. has spent more than two decades building the power infrastructure that energizes Philippine industry — from distribution substations to 230 KV transmission-class projects, nationwide.",
+    "Founded in 1997 by a top-graduate electrical engineer, JC Electrofields Power System, Inc. began by serving the steel-manufacturing sector — helping plants secure their own power substations for direct connection to the national grid. From early work in repair and fabrication, JCE has grown into a major contractor and supplier to the entire energy sector.",
   leadership: { role: "President", name: "Engr. Jimwel C. Capillo" },
+  // Expansion + scale + distributorship + nationwide reach (also from §2).
   coverage:
-    "Headquartered in Valenzuela City, Metro Manila — executing projects nationwide across Luzon, Visayas and Mindanao.",
-  accreditations: [
-    { code: "NGCP", note: "Direct-connection accredited (69 KV)" },
-    { code: "DOE", note: "Feed-in-Tariff service contracts" },
-    { code: "ERC", note: "Point-to-point approval" },
-    { code: "PCAB", note: "Licensed general engineering contractor" },
-  ],
-  // Plain, extractable sentences for GEO / AI answer engines (FR-WEB-16).
+    "Today JCE works across power generation, distribution utilities, manufacturing, and industrial and commercial clients — with over 124 registered civil and electrical engineers and technicians, and the exclusive Philippine distributorship of Shenda Electric power transformers. Headquartered in Valenzuela City, it executes projects nationwide across Luzon, Visayas and Mindanao.",
+  // Plain, extractable sentences for GEO / AI answer engines (FR-WEB-16). The
+  // authorized-capital and BIR/tax-compliance lines are §9-SAFE financial-capacity
+  // facts (NOT numbered licenses — those live in lib/content/accreditations.ts).
   canonicalFacts: [
     "JC Electrofields Power System, Inc. (JCE) was founded in 1997 and is headquartered in Valenzuela City, Metro Manila, Philippines.",
     "JCE designs and constructs power substations and transmission lines up to 230 KV nationwide.",
@@ -312,9 +666,30 @@ export const ABOUT = {
     "JCE builds utility-scale and commercial/industrial solar PV plants on an EPC basis.",
     "JCE facilitates NGCP direct-connection projects via 69 KV, from application through to energization.",
     "JCE employs approximately 124 engineers and technicians.",
+    "JCE has an authorized capital stock of ₱1,000,000,000, reflecting its financial capacity for large-scale power projects.",
+    "JCE is BIR-registered and tax-compliant, holding a current Tax Clearance Certificate.",
     "JCE is led by its President, Engr. Jimwel C. Capillo.",
   ],
 } as const;
+
+// ---- S2 About — YouTube channel + curated video showcase -------------------
+// Channel resolved from the @JCEPOWER handle (stable UC id). ABOUT_VIDEOS is the
+// hand-picked featured set (always shown); the live "Latest from our channel"
+// strip pulls the channel RSS feed at request time and de-dupes against these.
+export const YOUTUBE_CHANNEL = {
+  handle: "@JCEPOWER",
+  url: "https://www.youtube.com/@JCEPOWER",
+  channelId: "UCXamieRB1XJ4um7Rr_qo9zw",
+} as const;
+
+export type AboutVideo = { id: string; title: string };
+
+// Verbatim from the channel (title typo/casing lightly normalized for display).
+export const ABOUT_VIDEOS: readonly AboutVideo[] = [
+  { id: "7K6cMIvBnmo", title: "69 kV transmission line and substation" },
+  { id: "SerRpr5E_AA", title: "JCE Projects" },
+  { id: "-WTmKPsrxjE", title: "JCE Christmas Party 2025" },
+] as const;
 
 // ============================================================================
 // S8 inquiry-form option sets (verbatim from the brief / web-content.jsx)

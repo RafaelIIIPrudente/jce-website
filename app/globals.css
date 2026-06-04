@@ -52,6 +52,18 @@
   --color-jce-ink-2: var(--jce-ink-2);
   --color-jce-line: var(--jce-line);
 
+  /* Electrified kit (Home flagship) — one energized accent (ORANGE; the
+     jce-cyan* names are repointed to jce-orange in :root) + near-black
+     dark-section surfaces. Exposed as text-jce-cyan, bg-jce-dark, … */
+  --color-jce-cyan: var(--jce-cyan);
+  --color-jce-cyan-bright: var(--jce-cyan-bright);
+  --color-jce-cyan-deep: var(--jce-cyan-deep);
+  --color-jce-dark: var(--jce-dark);
+  --color-jce-dark-2: var(--jce-dark-2);
+  --color-jce-dark-ink: var(--jce-dark-ink);
+  --color-jce-dark-ink-2: var(--jce-dark-ink-2);
+  --color-jce-dark-line: var(--jce-dark-line);
+
   /* Font families — Inter UI + JetBrains Mono numerals (handoff source of truth,
      OPEN-Q #1). Fraunces retained only as an optional website display flourish. */
   --font-sans: var(--font-inter);
@@ -174,6 +186,27 @@
   --jce-ink-2: #4a5b51;
   --jce-line: #e2eae4;
   --footer-bg: #11150f; /* website dark footer */
+
+  /* ---- ELECTRIFIED KIT (Home flagship) ------------------------------------
+     ONE energized accent — ORANGE, following the system orange (brand
+     direction; the accent is NOT cyan). The --jce-cyan* token NAMES are retained
+     so the kit/recipes/components resolve through a single source without a
+     wide rename; they point at the jce-orange palette. Everything that derived
+     from the accent (traces, grid, glow, voltage tags, focus ring) follows. -- */
+  --jce-cyan: var(--jce-orange-600); /* #de6f11 — base accent (icons, lines) */
+  --jce-cyan-bright: var(
+    --jce-orange-500
+  ); /* #fa8838 — bright accent on dark */
+  --jce-cyan-deep: #9a4d06; /* deep amber — AA accent text on light surfaces */
+  --jce-dark: #0a140e; /* near-black, green-tinted (kin to --footer-bg) */
+  --jce-dark-2: #112218; /* lifted panel on dark */
+  --jce-dark-ink: #eaf5ee; /* near-white text on dark */
+  --jce-dark-ink-2: #9fbcab; /* muted text on dark */
+  --jce-dark-line: rgba(255, 255, 255, 0.1); /* hairline on dark */
+  --current-trace-from: var(--jce-cyan);
+  --current-trace-to: var(--jce-green-500);
+  --current-glow: 0 0 24px color-mix(in srgb, var(--jce-cyan) 45%, transparent);
+  --circuit-line: color-mix(in srgb, var(--jce-cyan) 16%, transparent);
 
   /* ---- SEMANTIC / STATUS ---------------------------------------------------- */
   --st-success: #16833b;
@@ -627,6 +660,167 @@
     box-shadow: var(--focus-ring);
     border-color: var(--jce-green-600);
   }
+
+  /* ==========================================================================
+     ELECTRIFIED KIT recipes — dark sections, ambient circuit field, voltage
+     tags, circuit-trace card. All ambient loops freeze under reduced-motion
+     (the universal block at the foot of this file neutralises animations). =-= */
+  .dark-section {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: var(--jce-dark);
+    color: var(--jce-dark-ink);
+  }
+  .dark-section ::selection {
+    background: var(--jce-cyan);
+    color: var(--jce-dark);
+  }
+
+  /* Ambient circuit/grid field — faint blueprint lines, vignette-masked, slow
+     drift. Apply alongside a positioned ancestor; sits behind content. */
+  .circuit-field::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.55;
+    background-image:
+      linear-gradient(var(--circuit-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--circuit-line) 1px, transparent 1px);
+    background-size: 46px 46px;
+    -webkit-mask-image: radial-gradient(
+      ellipse 80% 70% at 50% 38%,
+      #000 0%,
+      transparent 78%
+    );
+    mask-image: radial-gradient(
+      ellipse 80% 70% at 50% 38%,
+      #000 0%,
+      transparent 78%
+    );
+    /* Static blueprint texture — no per-frame repaint; the CurrentTrace is the
+       only motion in this field. Contained by the section's overflow:hidden. */
+    contain: paint;
+  }
+
+  .current-glow {
+    box-shadow: var(--current-glow);
+  }
+
+  /* Voltage / spec tag — glowing badge ("230 kV", "120 MWp"). Light-surface by
+     default; .voltage-tag-dark for near-black sections. */
+  .voltage-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-size: var(--text-ui-12);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+    padding: 3px 9px;
+    border-radius: var(--r-chip);
+    color: var(--jce-cyan-deep);
+    background: color-mix(in srgb, var(--jce-cyan) 12%, var(--solid-surface));
+    border: 1px solid color-mix(in srgb, var(--jce-cyan) 35%, transparent);
+    white-space: nowrap;
+  }
+  .voltage-tag::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--jce-cyan);
+    box-shadow: 0 0 8px var(--jce-cyan);
+  }
+  .voltage-tag-dark {
+    color: var(--jce-cyan-bright);
+    background: color-mix(in srgb, var(--jce-cyan) 14%, transparent);
+    border-color: color-mix(in srgb, var(--jce-cyan) 45%, transparent);
+    text-shadow: 0 0 12px color-mix(in srgb, var(--jce-cyan) 55%, transparent);
+  }
+
+  /* Circuit-trace card border — hairline + glowing corner ticks (top-left /
+     bottom-right). .circuit-card-dark swaps the hairline for the dark-line. */
+  .circuit-card {
+    position: relative;
+    border: 1px solid var(--jce-line);
+    border-radius: var(--r-glass);
+  }
+  .circuit-card::before,
+  .circuit-card::after {
+    content: "";
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    pointer-events: none;
+    border-color: var(--jce-cyan);
+    border-style: solid;
+    opacity: 0.7;
+  }
+  .circuit-card::before {
+    top: -1px;
+    left: -1px;
+    border-width: 1.5px 0 0 1.5px;
+    border-top-left-radius: var(--r-glass);
+  }
+  .circuit-card::after {
+    right: -1px;
+    bottom: -1px;
+    border-width: 0 1.5px 1.5px 0;
+    border-bottom-right-radius: var(--r-glass);
+  }
+  .circuit-card-dark {
+    border-color: var(--jce-dark-line);
+  }
+
+  /* Photo poster (blur-up substitute for public/ string srcs) + hover glow. */
+  .photo-poster {
+    background: linear-gradient(
+      135deg,
+      var(--jce-green-100),
+      var(--jce-green-50)
+    );
+  }
+  .photo-poster-dark {
+    background: linear-gradient(135deg, var(--jce-dark-2), var(--jce-dark));
+  }
+  .photo-card {
+    transition: box-shadow var(--dur-base) var(--ease);
+  }
+  .photo-card:hover {
+    box-shadow: var(--current-glow);
+  }
+
+  /* Section divider with a faint cyan current highlight travelling along it. */
+  .current-divider {
+    height: 1px;
+    width: 100%;
+    border: 0;
+    background:
+      linear-gradient(90deg, transparent, var(--jce-cyan), transparent)
+        no-repeat,
+      var(--jce-line);
+    background-size:
+      38% 100%,
+      100% 100%;
+    background-position:
+      -38% 0,
+      0 0;
+    animation: jce-trace-travel 5.5s linear infinite;
+  }
+  .current-divider-dark {
+    background:
+      linear-gradient(90deg, transparent, var(--jce-cyan), transparent)
+        no-repeat,
+      var(--jce-dark-line);
+    background-size:
+      38% 100%,
+      100% 100%;
+  }
 }
 
 @keyframes jce-drift-a {
@@ -655,6 +849,18 @@
     background-position: -200% 0;
   }
 }
+@keyframes jce-trace-travel {
+  from {
+    background-position:
+      -38% 0,
+      0 0;
+  }
+  to {
+    background-position:
+      138% 0,
+      0 0;
+  }
+}
 
 @layer utilities {
   .text-balance {
@@ -668,6 +874,14 @@
     outline: none;
     box-shadow: var(--focus-ring);
   }
+  /* Cyan focus ring for dark surfaces (footer) — a near-black gap + a clearly
+     visible electric-cyan ring. */
+  .focus-ring-cyan:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--footer-bg),
+      0 0 0 4px var(--jce-cyan);
+  }
 }
 
 /* ============================================================================
@@ -676,7 +890,9 @@
 @media (prefers-reduced-motion: reduce) {
   .jce-backdrop::before,
   .jce-backdrop::after,
-  .jce-glow-3 {
+  .jce-glow-3,
+  .circuit-field::before,
+  .current-divider {
     animation: none !important;
   }
   *,
