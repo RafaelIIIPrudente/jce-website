@@ -13,6 +13,7 @@ import { OmegaMark } from "@/components/sections/web-omega-mark";
 import { MagneticButton } from "@/components/sections/web-magnetic-button";
 import { AboutHero } from "@/components/sections/web-about-hero";
 import { AboutStatBand } from "@/components/sections/web-about-stat-band";
+import { AboutVideos } from "@/components/sections/web-about-videos";
 import { ABOUT } from "@/lib/content/website";
 
 export const metadata: Metadata = {
@@ -121,6 +122,9 @@ export default function AboutPage() {
           </Reveal>
         </div>
       </WebSection>
+
+      {/* Watch — curated videos + a live, de-duped "latest from our channel" strip */}
+      <AboutVideos />
 
       {/* Accreditations — voltage-tag + circuit-card grid */}
       <WebSection alt>
