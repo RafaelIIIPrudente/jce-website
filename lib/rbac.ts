@@ -156,6 +156,11 @@ export const ROLES: Record<RoleId, Role> = {
     access: { home: "F", wh: "F", pmg: "R", pur: "R", self: "F" },
     note: "Lock/Unlock authority",
   },
+  // Site Engineer holds wh:"E" (create/submit MRRs, Releases & off-BOQ rows for
+  // assigned sites) — NOT the SRS §3.5 matrix's literal "R", which understated the
+  // role. §10.14.1 grants create/submit; Lock/Unlock/Adjustment/Confirm/Promote
+  // are withheld via canVerb (F-only) per the §3.4 edit-vs-verb split. Ratified in
+  // SRS v1.74 (§3.5 cell aligned to E).
   siteeng: {
     name: "Site Engineer",
     short: "Site Eng",
