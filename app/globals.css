@@ -52,8 +52,9 @@
   --color-jce-ink-2: var(--jce-ink-2);
   --color-jce-line: var(--jce-line);
 
-  /* Electrified kit (Home flagship) — one energized accent (electric cyan) +
-     near-black dark-section surfaces. Exposed as text-jce-cyan, bg-jce-dark, … */
+  /* Electrified kit (Home flagship) — one energized accent (ORANGE; the
+     jce-cyan* names are repointed to jce-orange in :root) + near-black
+     dark-section surfaces. Exposed as text-jce-cyan, bg-jce-dark, … */
   --color-jce-cyan: var(--jce-cyan);
   --color-jce-cyan-bright: var(--jce-cyan-bright);
   --color-jce-cyan-deep: var(--jce-cyan-deep);
