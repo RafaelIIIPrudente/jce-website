@@ -70,6 +70,9 @@ importers:
       ai:
         specifier: ^6.0.191
         version: 6.0.191(zod@4.4.3)
+      animejs:
+        specifier: ^4.4.1
+        version: 4.4.1
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -6251,6 +6254,12 @@ packages:
     resolution:
       {
         integrity: sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA==,
+      }
+
+  animejs@4.4.1:
+    resolution:
+      {
+        integrity: sha512-XimhJw4vPb6tAd6Zaoa6BaspJ8UteQMKvL7Pvrt6MW/6u2UvJs0TB/LLqR1sigaiYvpVPC3Tokr9emcCMhWFhw==,
       }
 
   ansi-colors@4.1.3:
@@ -16684,6 +16693,8 @@ snapshots:
       fast-uri: 3.1.2
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
+
+  animejs@4.4.1: {}
 
   ansi-colors@4.1.3: {}
 
