@@ -1,16 +1,6 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { ModulePlaceholder } from "@/components/jce/module-placeholder";
-
-export const metadata: Metadata = { title: "HR" };
-
-export default function HrPage() {
-  return (
-    <ModulePlaceholder
-      kicker="Module · HR"
-      title="HR"
-      part="Part 4"
-      icon="hr"
-    />
-  );
+// The HR module (sidebar) points at /hr; land on Employees (H1, OQ#7).
+export default function HrIndexPage() {
+  redirect("/hr/employees");
 }

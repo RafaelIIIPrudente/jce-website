@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FileIcon, TrashIcon, UploadIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -16,18 +16,28 @@ export function FileUploader({
   label = "Drop signed scan or browse",
   hint = "PDF / JPG / PNG · ≤10 MB each · multiple files",
   required = false,
+  requiredLabel = "REQUIRED to reach Approved",
   accept,
+  onFilesChange,
   className,
 }: {
   label?: string;
   hint?: string;
   required?: boolean;
+  /** copy for the required gate (e.g. "REQUIRED to reach Recorded") */
+  requiredLabel?: string;
   accept?: string;
+  /** notified with the current attachment count (mock gate signal) */
+  onFilesChange?: (count: number) => void;
   className?: string;
 }) {
   const [files, setFiles] = useState<MockFile[]>([]);
   const [drag, setDrag] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    onFilesChange?.(files.length);
+  }, [files.length, onFilesChange]);
 
   const add = (list: FileList | null) => {
     if (!list) return;
@@ -72,7 +82,7 @@ export function FileUploader({
           {hint}
           {required ? (
             <span className="ml-1 font-bold text-(--st-danger)">
-              REQUIRED to reach Approved
+              {requiredLabel}
             </span>
           ) : null}
         </div>

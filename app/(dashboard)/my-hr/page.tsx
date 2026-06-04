@@ -1,16 +1,10 @@
 import type { Metadata } from "next";
 
-import { ModulePlaceholder } from "@/components/jce/module-placeholder";
+import { MyHrHome } from "./my-hr-home";
 
 export const metadata: Metadata = { title: "My HR" };
 
+// H12 · Self-service home — own records only (Employee role lands here).
 export default function MyHrPage() {
-  return (
-    <ModulePlaceholder
-      kicker="Self-service · H12"
-      title="My HR"
-      part="Part 4"
-      icon="self"
-    />
-  );
+  return <MyHrHome />;
 }
