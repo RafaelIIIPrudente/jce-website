@@ -27,7 +27,7 @@ export default function ContactPage() {
       <section className="px-5 py-16 sm:py-20 md:py-24">
         <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-6 min-[900px]:grid-cols-12">
           <Reveal className="min-[900px]:col-span-5">
-            <aside className="glass flex h-full flex-col gap-6 rounded-[var(--r-glass)] p-6">
+            <aside className="glass flex h-full flex-col gap-6 rounded-(--r-glass) p-6">
               <InfoBlock icon={MapPinIcon} label="Office">
                 {SITE.address.line1}
                 <br />
@@ -54,7 +54,7 @@ export default function ContactPage() {
               <InfoBlock icon={ClockIcon} label="Hours">
                 {SITE.hours.days} · {SITE.hours.open}
               </InfoBlock>
-              <div className="mt-auto rounded-[var(--r-solid)] border border-jce-line bg-card p-4 text-ui-12 text-jce-ink-2">
+              <div className="mt-auto rounded-(--r-solid) border border-jce-line bg-card p-4 text-ui-12 text-jce-ink-2">
                 We respond inside one business day during {SITE.hours.days}.
               </div>
             </aside>
