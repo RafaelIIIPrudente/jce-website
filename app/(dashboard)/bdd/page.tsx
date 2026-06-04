@@ -1,16 +1,6 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { ModulePlaceholder } from "@/components/jce/module-placeholder";
-
-export const metadata: Metadata = { title: "BDD" };
-
-export default function BddPage() {
-  return (
-    <ModulePlaceholder
-      kicker="Module · BDD"
-      title="Business Development"
-      part="Part 3"
-      icon="bdd"
-    />
-  );
+// The BDD module (sidebar) points at /bdd; land on Sales Orders (B1, OQ#7).
+export default function BddIndexPage() {
+  redirect("/bdd/sales-orders");
 }
