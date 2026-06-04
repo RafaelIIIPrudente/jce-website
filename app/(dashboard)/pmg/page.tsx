@@ -1,16 +1,6 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { ModulePlaceholder } from "@/components/jce/module-placeholder";
-
-export const metadata: Metadata = { title: "Project Management" };
-
-export default function PmgPage() {
-  return (
-    <ModulePlaceholder
-      kicker="Module · PMG"
-      title="Project Management"
-      part="Part 6"
-      icon="pmg"
-    />
-  );
+// The PMG module (sidebar) points at /pmg; land on the Dashboard (P1, OQ#7).
+export default function PmgIndexPage() {
+  redirect("/pmg/dashboard");
 }
