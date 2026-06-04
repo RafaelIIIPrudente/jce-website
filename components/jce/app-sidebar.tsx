@@ -34,8 +34,8 @@ export function AppSidebar({
     <aside
       data-collapsed={collapsed}
       className={cn(
-        "glass-nav z-10 flex h-full shrink-0 flex-col p-3 transition-[width] duration-300 ease-(--ease-jce)",
-        collapsed ? "w-[72px]" : "w-64",
+        "glass-nav z-10 flex h-full shrink-0 flex-col p-3 transition-[width] duration-300 ease-jce",
+        collapsed ? "w-18" : "w-64",
       )}
     >
       {/* Brand — logo framed as an intentional app mark, not a floating JPG */}
@@ -91,13 +91,13 @@ export function AppSidebar({
               {active ? (
                 <span
                   aria-hidden
-                  className="absolute top-1/2 left-0 h-5 w-[3px] -translate-y-1/2 rounded-(--r-pill) bg-jce-green-700"
+                  className="absolute top-1/2 left-0 h-5 w-0.75 -translate-y-1/2 rounded-(--r-pill) bg-jce-green-700"
                 />
               ) : null}
               <ModuleIcon
                 icon={m.icon}
                 className={cn(
-                  "size-[18px] shrink-0 transition-colors",
+                  "size-4.5 shrink-0 transition-colors",
                   active
                     ? "text-jce-green-700"
                     : "text-jce-ink-2 group-hover:text-jce-green-700",
