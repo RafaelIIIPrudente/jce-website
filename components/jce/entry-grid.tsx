@@ -110,7 +110,7 @@ export function EntryGrid<T extends Record<string, string>>({
                         onChange={(e) => setCell(r, c.id, e.target.value)}
                         onKeyDown={(e) => onKeyDown(e, r, ci)}
                         className={cn(
-                          "w-full rounded-[4px] bg-transparent px-1 py-0.5 text-ui-13 text-jce-ink outline-none focus:bg-jce-green-50 focus-visible:shadow-[var(--focus-ring)]",
+                          "w-full rounded-[4px] bg-transparent px-1 py-0.5 text-ui-13 text-jce-ink outline-none focus:bg-jce-green-50 focus-visible:shadow-(--focus-ring)",
                           c.align === "right" &&
                             "text-right font-mono tabular-nums",
                         )}

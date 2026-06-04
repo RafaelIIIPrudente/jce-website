@@ -24,7 +24,7 @@ export function ChartSurface({
   return (
     <div
       data-slot="chart-surface"
-      className={cn("glass rounded-[var(--r-glass)] p-4", className)}
+      className={cn("glass rounded-(--r-glass) p-4", className)}
     >
       {title ? <div className="kicker">{title}</div> : null}
       <div className="solid mt-2.5 px-3 pt-4 pb-2">

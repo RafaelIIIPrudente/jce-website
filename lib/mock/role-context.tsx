@@ -3,8 +3,8 @@
 // ============================================================================
 // JCE SYSTEM — mock auth/role context (prototype only).
 // Holds the active role + the prototype role switcher (shell.jsx:142-158) and a
-// small in-session notifications slice for the bell-feed. No persistence, no
-// real auth — proxy.ts stays short-circuited and /dashboard is NOT gated.
+// small in-session notifications slice for the bell-feed / X4. No persistence,
+// no real auth — proxy.ts stays short-circuited and /dashboard is NOT gated.
 // ============================================================================
 
 import {
@@ -27,6 +27,8 @@ type JceContextValue = {
   unread: number;
   markAllRead: () => void;
   markRead: (id: number) => void;
+  /** prepend a notification (e.g. a sensitive-change alert from BDD B2/B6) */
+  addNotification: (n: Omit<Notification, "id">) => void;
 };
 
 const JceContext = createContext<JceContextValue | null>(null);
@@ -54,12 +56,28 @@ export function JceProvider({
       ),
     [],
   );
+  const addNotification = useCallback(
+    (n: Omit<Notification, "id">) =>
+      setNotifications((ns) => [
+        { ...n, id: ns.reduce((m, x) => Math.max(m, x.id), 0) + 1 },
+        ...ns,
+      ]),
+    [],
+  );
 
   const unread = notifications.reduce((c, n) => c + (n.unread ? 1 : 0), 0);
 
   const value = useMemo<JceContextValue>(
-    () => ({ role, setRole, notifications, unread, markAllRead, markRead }),
-    [role, notifications, unread, markAllRead, markRead],
+    () => ({
+      role,
+      setRole,
+      notifications,
+      unread,
+      markAllRead,
+      markRead,
+      addNotification,
+    }),
+    [role, notifications, unread, markAllRead, markRead, addNotification],
   );
 
   return <JceContext.Provider value={value}>{children}</JceContext.Provider>;

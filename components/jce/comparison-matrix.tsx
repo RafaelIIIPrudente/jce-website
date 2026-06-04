@@ -38,7 +38,7 @@ export function ComparisonMatrix({
       <table className="w-full border-collapse text-ui-12">
         <thead>
           <tr>
-            <th className="border border-jce-line bg-[var(--table-head)] px-2.5 py-2 text-left font-semibold text-jce-ink-2">
+            <th className="border border-jce-line bg-(--table-head) px-2.5 py-2 text-left font-semibold text-jce-ink-2">
               {rowHeader}
             </th>
             {columns.map((c) => (
@@ -48,7 +48,7 @@ export function ComparisonMatrix({
                   "border border-jce-line px-2.5 py-2 text-left font-semibold",
                   c.winner
                     ? "bg-jce-green-50 text-jce-green-900"
-                    : "bg-[var(--table-head)] text-jce-ink-2",
+                    : "bg-(--table-head) text-jce-ink-2",
                 )}
               >
                 {c.label}

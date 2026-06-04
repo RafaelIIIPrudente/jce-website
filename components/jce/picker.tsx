@@ -68,7 +68,7 @@ export function Picker({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-[var(--radix-popover-trigger-width)] min-w-64 p-0"
+        className="w-(--radix-popover-trigger-width) min-w-64 p-0"
       >
         <div className="flex items-center gap-2 border-b border-jce-line px-2.5 py-2">
           <SearchIcon className="size-3.5 text-jce-ink-2" aria-hidden />

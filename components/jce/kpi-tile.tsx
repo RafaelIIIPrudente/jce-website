@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils";
 export type KpiTone = "pending" | "success" | "danger" | "info" | "neutral";
 
 const TONE_TEXT: Record<KpiTone, string> = {
-  pending: "text-[var(--st-pending-ink)]",
-  success: "text-[var(--st-success)]",
-  danger: "text-[var(--st-danger)]",
-  info: "text-[var(--st-info)]",
+  pending: "text-(--st-pending-ink)",
+  success: "text-(--st-success)",
+  danger: "text-(--st-danger)",
+  info: "text-(--st-info)",
   neutral: "text-jce-ink-2",
 };
 
@@ -30,7 +30,7 @@ export function KpiTile({
   return (
     <div
       data-slot="kpi-tile"
-      className={cn("glass rounded-[var(--r-glass)] p-4", className)}
+      className={cn("glass rounded-(--r-glass) p-4", className)}
     >
       <div className="kicker">{label}</div>
       <div className="mt-1.5 text-ui-28 leading-none font-bold tracking-tight tabular-nums text-jce-ink">

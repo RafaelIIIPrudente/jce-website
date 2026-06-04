@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FileIcon, TrashIcon, UploadIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -16,18 +16,28 @@ export function FileUploader({
   label = "Drop signed scan or browse",
   hint = "PDF / JPG / PNG · ≤10 MB each · multiple files",
   required = false,
+  requiredLabel = "REQUIRED to reach Approved",
   accept,
+  onFilesChange,
   className,
 }: {
   label?: string;
   hint?: string;
   required?: boolean;
+  /** copy for the required gate (e.g. "REQUIRED to reach Recorded") */
+  requiredLabel?: string;
   accept?: string;
+  /** notified with the current attachment count (mock gate signal) */
+  onFilesChange?: (count: number) => void;
   className?: string;
 }) {
   const [files, setFiles] = useState<MockFile[]>([]);
   const [drag, setDrag] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    onFilesChange?.(files.length);
+  }, [files.length, onFilesChange]);
 
   const add = (list: FileList | null) => {
     if (!list) return;
@@ -57,7 +67,7 @@ export function FileUploader({
           "focus-ring-jce w-full rounded-[10px] border-2 border-dashed px-5 py-6 text-center transition-colors",
           drag
             ? "border-jce-green-500 bg-jce-green-50"
-            : "border-[var(--masked-border)] bg-[var(--table-zebra)] hover:border-jce-green-500",
+            : "border-(--masked-border) bg-(--table-zebra) hover:border-jce-green-500",
         )}
       >
         <UploadIcon
@@ -71,8 +81,8 @@ export function FileUploader({
         <div className="mt-1 text-ui-12 text-jce-ink-2">
           {hint}
           {required ? (
-            <span className="ml-1 font-bold text-[var(--st-danger)]">
-              REQUIRED to reach Approved
+            <span className="ml-1 font-bold text-(--st-danger)">
+              {requiredLabel}
             </span>
           ) : null}
         </div>
@@ -101,7 +111,7 @@ export function FileUploader({
                 type="button"
                 onClick={() => setFiles((fs) => fs.filter((_, j) => j !== i))}
                 aria-label={`Remove ${f.name}`}
-                className="focus-ring-jce rounded text-jce-ink-2 hover:text-[var(--st-danger)]"
+                className="focus-ring-jce rounded text-jce-ink-2 hover:text-(--st-danger)"
               >
                 <TrashIcon className="size-3.5" aria-hidden />
               </button>

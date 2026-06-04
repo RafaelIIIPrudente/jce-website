@@ -20,7 +20,7 @@ export function PageHeader({
     <div
       data-slot="page-header"
       className={cn(
-        "glass flex flex-wrap items-end justify-between gap-4 rounded-[var(--r-glass)] px-5 py-4",
+        "glass flex flex-wrap items-end justify-between gap-4 rounded-(--r-glass) px-5 py-4",
         className,
       )}
     >

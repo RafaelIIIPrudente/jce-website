@@ -8,11 +8,11 @@ import { type Notification, type NotifTone } from "@/lib/mock/shell";
 // badge live in the top bar. Tag: Glass popover / solid list.
 
 const TONE_DOT: Record<NotifTone, string> = {
-  pending: "bg-[var(--st-pending)]",
-  info: "bg-[var(--st-info)]",
-  danger: "bg-[var(--st-danger)]",
+  pending: "bg-(--st-pending)",
+  info: "bg-(--st-info)",
+  danger: "bg-(--st-danger)",
   neutral: "bg-jce-ink-2",
-  success: "bg-[var(--st-success)]",
+  success: "bg-(--st-success)",
 };
 
 export function BellFeed({

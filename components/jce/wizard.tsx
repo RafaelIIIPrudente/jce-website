@@ -56,7 +56,7 @@ export function Wizard({
       <div className="solid flex flex-col p-4">
         {committed ? (
           <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
-            <span className="grid size-12 place-items-center rounded-full bg-[var(--st-success-bg)] text-[var(--st-success-ink)]">
+            <span className="grid size-12 place-items-center rounded-full bg-(--st-success-bg) text-(--st-success-ink)">
               <CheckIcon className="size-6" strokeWidth={2.5} aria-hidden />
             </span>
             <div className="mt-3 text-ui-16 font-semibold text-jce-ink">
