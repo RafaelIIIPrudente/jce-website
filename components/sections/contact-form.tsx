@@ -115,7 +115,7 @@ export function ContactForm() {
 
   if (sent) {
     return (
-      <div className="glass flex flex-col items-center rounded-[var(--r-glass)] p-8 text-center">
+      <div className="glass flex flex-col items-center rounded-(--r-glass) p-8 text-center">
         <span className="grid size-14 place-items-center rounded-full bg-jce-green-50 text-jce-green-700">
           <CheckIcon className="size-7" strokeWidth={2.25} aria-hidden />
         </span>
@@ -153,7 +153,7 @@ export function ContactForm() {
     <form
       onSubmit={onSubmit}
       noValidate
-      className="solid flex flex-col gap-5 rounded-[var(--r-solid)] p-5 sm:p-6"
+      className="solid flex flex-col gap-5 rounded-(--r-solid) p-5 sm:p-6"
     >
       {/* Contact */}
       <FormSection title="Contact" />
@@ -328,7 +328,7 @@ export function ContactForm() {
         </Button>
       </div>
       {Object.keys(errors).length > 0 ? (
-        <p className="text-ui-12 text-[var(--st-danger)]">
+        <p className="text-ui-12 text-(--st-danger)">
           Please complete the required fields above.
         </p>
       ) : null}
@@ -370,11 +370,11 @@ function Field({
     <div className={cn("flex flex-col gap-1.5", full && "sm:col-span-2")}>
       <label className="text-ui-12 font-semibold text-jce-ink-2">
         {label}
-        {required ? <span className="text-[var(--st-danger)]"> *</span> : null}
+        {required ? <span className="text-(--st-danger)"> *</span> : null}
       </label>
       {children}
       {error ? (
-        <span className="text-ui-12 text-[var(--st-danger)]">{error}</span>
+        <span className="text-ui-12 text-(--st-danger)">{error}</span>
       ) : null}
     </div>
   );
