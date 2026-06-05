@@ -937,7 +937,19 @@ export type TimeRow = {
   autoLeave?: boolean;
   /** true for a multi-project working day (distribution splits evenly) */
   multi?: boolean;
+  /** owning employee (H5b site board); legacy/seed rows omit it → LEGACY_EMP_NO */
+  empNo?: string;
+  /** site SNAPSHOT at log time (Employee.assign) — resolves board membership so a
+   *  mid-period reassignment doesn't make a posted day's rows vanish */
+  site?: string;
+  /** the row's day type was set independently of the site default — a site
+   *  re-stamp skips it (persisted so protection survives reloads) */
+  dayTypeOverridden?: boolean;
 };
+
+/** Legacy seed rows (and any row without empNo) are attributed to this employee
+ *  (Noel V. Bautista) — the original single-employee timekeeping week. */
+export const LEGACY_EMP_NO = "JCE 00077";
 
 // One employee × one week (Noel Bautista, lineman) — incl. a multi-project split
 // day and an auto-created leave row. The Manhours Distribution is DERIVED from
@@ -1040,23 +1052,41 @@ const timeRowStore: TimeRow[] = [
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+/** TZ-SAFE weekday short-name for a "YYYY-MM-DD" — parses the parts as LOCAL
+ *  midnight; never `new Date(str)`, which treats the string as UTC and can roll
+ *  back a day in negative-offset zones. */
+export function weekdayOf(date: string): string {
+  const [y, m, d] = date.split("-").map(Number);
+  if (!y || !m || !d) return "Mon";
+  return WEEKDAYS[new Date(y, m - 1, d).getDay()] ?? "Mon";
+}
+
+/** TZ-SAFE Sunday check (Rest-day inference) — same local-parse rationale. */
+export function isSunday(date: string): boolean {
+  const [y, m, d] = date.split("-").map(Number);
+  if (!y || !m || !d) return false;
+  return new Date(y, m - 1, d).getDay() === 0;
+}
+
 /** Current timekeeping rows (incl. any auto-created leave rows this session). */
 export function getTimeRows(): readonly TimeRow[] {
   return [...timeRowStore];
 }
 
-/** Auto-create a read-only leave row (an approved RFL/LOA, recording-only). */
+/** Auto-create a read-only leave row (an approved RFL/LOA, recording-only).
+ *  empNo defaults to the legacy employee for back-compat with existing callers. */
 export function addLeaveRow(input: {
   date: string;
   leave: string;
   leaveRef: string;
   remarks?: string;
+  empNo?: string;
 }): void {
-  const d = new Date(input.date);
   timeRowStore.push({
     id: Math.max(0, ...timeRowStore.map((r) => r.id)) + 1,
+    empNo: input.empNo ?? LEGACY_EMP_NO,
     date: input.date,
-    day: WEEKDAYS[d.getDay()] ?? "Mon",
+    day: weekdayOf(input.date),
     dayType: "Regular Day",
     proj: "—",
     in: "—",
@@ -1166,6 +1196,7 @@ export function rowDistribution(
     rows.filter(
       (r) =>
         r.date === row.date &&
+        (r.empNo ?? LEGACY_EMP_NO) === (row.empNo ?? LEGACY_EMP_NO) &&
         r.in !== "—" &&
         r.out !== "—" &&
         !r.autoLeave &&
@@ -1191,6 +1222,238 @@ export function weekTotals(rows: readonly TimeRow[]): Distribution {
       abs: round1(acc.abs + d.abs),
     };
   }, ZERO_DIST);
+}
+
+// ============================================================================
+// H5b · Site Day Sheet — site-grouped recording over the SAME per-employee rows.
+// A timekeeper picks a SITE + DATE; everyone is implicitly Present at the site's
+// standard hours under one site Day Type, and only exceptions are touched. Logging
+// stays PER EMPLOYEE (one TimeRow each, own in/out, own derived numbers). Purely
+// additive — the derived computation, multi-project split, ND, six Day Types,
+// SO-sourced Working Project, and per-employee verify→lock batches are preserved.
+// ============================================================================
+
+/** Map an Employee.assign (the site) to the TimeRow.proj code: project sites are
+ *  "<SO#> · <name>" → the SO# token; Workshop/Motorpool → their codes; Main
+ *  Office has no project ("—"). PROJECTS/projLabel/projName are untouched. */
+export function projCodeForAssign(assign: string): string {
+  if (assign === "Workshop") return "WORKSHOP";
+  if (assign === "Motorpool") return "MOTORPOOL";
+  if (assign === "Main Office") return "—";
+  const code = assign.split(" · ")[0]?.trim();
+  return code && code.length > 0 ? code : "—";
+}
+
+/** Header DocChip token for a site — never "—" (internal sites read e.g.
+ *  "MAIN OFFICE"). */
+export function siteToken(assign: string): string {
+  const code = projCodeForAssign(assign);
+  return code !== "—" ? code : assign.toUpperCase();
+}
+
+export const DEFAULT_SITE_HOURS = { in: "07:00", out: "16:00" } as const;
+
+/** Per-site standard hours (pre-fill DATA only — never a hard constraint). Project
+ *  sites default to 07:00–16:00; Main Office is 08:00–17:00. */
+export const SITE_STANDARD_HOURS: Record<string, { in: string; out: string }> =
+  {
+    "Main Office": { in: "08:00", out: "17:00" },
+  };
+
+export function standardHoursForSite(assign: string): {
+  in: string;
+  out: string;
+} {
+  return SITE_STANDARD_HOURS[assign] ?? DEFAULT_SITE_HOURS;
+}
+
+// Per-(site,date) site Day Type — in-session, keyed `${site}|${date}`.
+const siteDayTypeStore: Record<string, string> = {};
+function siteDayKey(site: string, date: string): string {
+  return `${site}|${date}`;
+}
+/** The site Day Type for a (site,date): an explicit override, else Rest Day on a
+ *  Sunday (TZ-safe), else Regular Day. */
+export function getSiteDayType(site: string, date: string): string {
+  return (
+    siteDayTypeStore[siteDayKey(site, date)] ??
+    (isSunday(date) ? "Rest Day (Sun)" : "Regular Day")
+  );
+}
+export function setSiteDayType(
+  site: string,
+  date: string,
+  dayType: string,
+): void {
+  siteDayTypeStore[siteDayKey(site, date)] = dayType;
+}
+
+// ---- Derived row STATUS (never from abs>0) ---------------------------------
+export type RowStatus =
+  | "Present"
+  | "Absent"
+  | "Leave"
+  | "OT"
+  | "Custom"
+  | "Rest";
+
+export const ROW_STATUS_TONE: Record<RowStatus, Tone> = {
+  Present: "success",
+  Absent: "danger",
+  Leave: "info",
+  OT: "pending",
+  Custom: "neutral",
+  Rest: "neutral",
+};
+
+/** A valid clock value: "—" or HH:MM in range. */
+export function isTimeValue(s: string): boolean {
+  return s === "—" || /^([01]?\d|2[0-3]):[0-5]\d$/.test(s.trim());
+}
+
+/** Attendance status derived FROM the row's fields (so a Rest-day no-show still
+ *  reads Absent, not off abs>0). */
+export function rowStatus(
+  row: Pick<TimeRow, "in" | "out" | "leave" | "dayType">,
+  std: { in: string; out: string } = DEFAULT_SITE_HOURS,
+): RowStatus {
+  if (row.leave) return "Leave";
+  if (row.dayType.startsWith("Rest")) return "Rest";
+  if (row.in === "—" || row.out === "—") return "Absent";
+  const d = computeManhours(row.in, row.out, row.dayType);
+  if (d.ot > 0) return "OT";
+  if (row.in === std.in && row.out === std.out) return "Present";
+  return "Custom";
+}
+
+/** Add n hours to an HH:MM value, wrapping at 24h. null if invalid / "—". */
+export function addHoursToTime(t: string, n: number): string | null {
+  const m = /^([01]?\d|2[0-3]):([0-5]\d)$/.exec(t.trim());
+  if (!m) return null;
+  const v =
+    (((Number(m[1]) * 60 + Number(m[2]) + n * 60) % 1440) + 1440) % 1440;
+  return `${String(Math.floor(v / 60)).padStart(2, "0")}:${String(v % 60).padStart(2, "0")}`;
+}
+
+// ---- Site-day row materialization ------------------------------------------
+/** Build (not persist) the standard rows for a site+date: one per assigned
+ *  employee at the site's standard hours under the resolved day type. On Leave →
+ *  a Leave row; Suspended → Absent. */
+export function buildSiteDayRows(input: {
+  site: string;
+  date: string;
+  dayType?: string;
+}): TimeRow[] {
+  const { site, date } = input;
+  const dayType = input.dayType ?? getSiteDayType(site, date);
+  const proj = projCodeForAssign(site);
+  const std = standardHoursForSite(site);
+  const day = weekdayOf(date);
+  const assigned = EMPLOYEES.filter((e) => e.assign === site);
+  let nextId = timeRowStore.reduce((m, r) => Math.max(m, r.id), 0) + 1;
+  return assigned.map((e) => {
+    const onLeave = e.status === "On Leave";
+    const suspended = e.status === "Suspended";
+    return {
+      id: nextId++,
+      empNo: e.no,
+      site,
+      date,
+      day,
+      dayType,
+      proj: onLeave ? "—" : proj,
+      in: onLeave || suspended ? "—" : std.in,
+      out: onLeave || suspended ? "—" : std.out,
+      leave: onLeave ? "On Leave" : null,
+      remarks: suspended ? "Suspended" : "",
+    };
+  });
+}
+
+/** Idempotent upsert of a site's day rows into the store (keyed empNo,date,proj);
+ *  never clobbers an existing/edited/locked row. Returns added/kept counts. */
+export function addSiteDayRows(input: {
+  site: string;
+  date: string;
+  dayType?: string;
+}): { added: number; kept: number } {
+  const candidates = buildSiteDayRows(input);
+  let added = 0;
+  let kept = 0;
+  for (const c of candidates) {
+    const exists = timeRowStore.some(
+      (r) =>
+        (r.empNo ?? LEGACY_EMP_NO) === c.empNo &&
+        r.date === c.date &&
+        r.proj === c.proj,
+    );
+    if (exists) {
+      kept += 1;
+      continue;
+    }
+    timeRowStore.push(c);
+    added += 1;
+  }
+  return { added, kept };
+}
+
+/** Insert a single time row (e.g. a second project on a multi-project day);
+ *  assigns the next id. Returns the created row. In-session. */
+export function addTimeRow(row: Omit<TimeRow, "id">): TimeRow {
+  const created: TimeRow = {
+    ...row,
+    id: timeRowStore.reduce((m, r) => Math.max(m, r.id), 0) + 1,
+  };
+  timeRowStore.push(created);
+  return created;
+}
+
+/** Per-employee exception edit. Derived manhours stay COMPUTED — never written. */
+export function updateTimeRow(
+  id: number,
+  patch: Partial<
+    Pick<
+      TimeRow,
+      | "in"
+      | "out"
+      | "dayType"
+      | "leave"
+      | "leaveRef"
+      | "remarks"
+      | "proj"
+      | "multi"
+      | "dayTypeOverridden"
+    >
+  >,
+): void {
+  const i = timeRowStore.findIndex((r) => r.id === id);
+  const cur = timeRowStore[i];
+  if (cur) timeRowStore[i] = { ...cur, ...patch };
+}
+
+/** Rows logged for a site+date. Membership is the row's SNAPSHOT (logged site,
+ *  or project-code for legacy site-less rows) — NOT the employee's live assign. */
+export function getTimeRowsForSite(
+  site: string,
+  date: string,
+): readonly TimeRow[] {
+  const proj = projCodeForAssign(site);
+  return timeRowStore
+    .filter((r) => {
+      if (r.date !== date) return false;
+      if (r.site != null) return r.site === site;
+      // legacy site-less rows: match project sites by proj; internal "—" would
+      // collide with leave/absent rows, so never match those.
+      return proj !== "—" && r.proj === proj;
+    })
+    .map((r) => ({ ...r }));
+}
+
+/** All rows for one employee (the By-employee grid + cross-tab visibility). */
+export function getTimeRowsForEmployee(empNo: string): readonly TimeRow[] {
+  return timeRowStore
+    .filter((r) => (r.empNo ?? LEGACY_EMP_NO) === empNo)
+    .map((r) => ({ ...r }));
 }
 
 // ---- Verification batches (MUTABLE store — survives across routes) ----------
@@ -1580,6 +1843,10 @@ export function dailyTotal(c: Compensation): number | null {
 
 export function findEmployee(id: number): Employee | undefined {
   return EMPLOYEES.find((e) => e.id === id);
+}
+
+export function findEmployeeByNo(no: string): Employee | undefined {
+  return EMPLOYEES.find((e) => e.no === no);
 }
 
 /** Append a new employee to the in-session store (H3 create). Assigns the next
