@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import { WebHero } from "@/components/sections/web-hero";
 import { WebSection } from "@/components/sections/web-section";
+import { NewsHero } from "@/components/sections/web-news-hero";
 import { WebNewsList } from "@/components/sections/web-news-list";
 import { WebCta } from "@/components/sections/web-cta";
 
@@ -15,11 +15,7 @@ export const metadata: Metadata = {
 export default function NewsPage() {
   return (
     <>
-      <WebHero
-        eyebrow="Newsroom"
-        title="News & insights."
-        sub="Project milestones and perspectives on Philippine power infrastructure."
-      />
+      <NewsHero />
       <WebSection>
         <WebNewsList />
       </WebSection>
