@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Loans" };
 // A3 · Loans.
 export default function LoansPage() {
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <PayrollSubNav />
       <LoansLedger />
     </div>

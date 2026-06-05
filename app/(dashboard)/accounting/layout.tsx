@@ -14,7 +14,7 @@ export default function AccountingLayout({
 }) {
   return (
     <>
-      <div className="mx-auto mb-5 w-full max-w-6xl">
+      <div className="mx-auto mb-5 w-full max-w-app">
         <AccSubNav />
       </div>
       {children}

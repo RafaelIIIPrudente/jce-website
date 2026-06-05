@@ -14,7 +14,7 @@ import { HOME_CAPABILITIES } from "@/lib/content/website";
 export function HomeCapabilities() {
   return (
     <section className="px-5 py-16 sm:py-20 md:py-24">
-      <div className="mx-auto w-full max-w-6xl">
+      <div className="mx-auto w-full max-w-site">
         <CircuitReveal className="mb-8 max-w-[44ch] md:mb-10">
           <p className="kicker text-jce-green-600">What we do</p>
           <h2 className="mt-2 text-[clamp(24px,3.6vw,38px)] leading-[1.1] font-bold tracking-[-0.02em] text-balance text-jce-ink">

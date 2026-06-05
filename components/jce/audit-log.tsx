@@ -29,7 +29,7 @@ export function AuditLog({
   return (
     <div
       data-slot="audit-log"
-      className={cn("solid max-h-[420px] overflow-auto p-0", className)}
+      className={cn("solid max-h-105 overflow-auto p-0", className)}
     >
       <table
         className={cn("jtable", stickyFirstColumn && "jtable-sticky-first")}

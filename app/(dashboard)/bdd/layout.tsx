@@ -9,7 +9,7 @@ import { BddSubNav } from "./bdd-sub-nav";
 export default function BddLayout({ children }: { children: ReactNode }) {
   return (
     <>
-      <div className="mx-auto mb-5 w-full max-w-6xl">
+      <div className="mx-auto mb-5 w-full max-w-app">
         <BddSubNav />
       </div>
       {children}

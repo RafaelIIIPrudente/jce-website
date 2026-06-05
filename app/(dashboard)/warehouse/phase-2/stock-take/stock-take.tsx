@@ -23,7 +23,7 @@ export function StockTake() {
   ).length;
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
+    <div className="mx-auto flex w-full max-w-app flex-col gap-4">
       <PageHeader
         kicker="Warehouse · W11 · Phase 2"
         title="Stock-take — count session"

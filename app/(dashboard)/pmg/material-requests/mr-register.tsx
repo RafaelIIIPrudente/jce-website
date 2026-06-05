@@ -66,7 +66,7 @@ export function MrRegister() {
   ];
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <PageHeader
         kicker="PMG · P11"
         title="Material Request register"

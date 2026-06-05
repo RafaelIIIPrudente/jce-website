@@ -13,7 +13,7 @@
 // cost-centres (Workshop / Motorpool). UI/UX mock only — no backend.
 // ============================================================================
 
-import { SALES_ORDERS, type Tone } from "@/lib/mock/bdd";
+import { SALES_ORDERS, SO_STATUS_OPTIONS, type Tone } from "@/lib/mock/bdd";
 
 // Compensation is sensitive — masked for every role except Payroll + Owner.
 // Single source of truth lives in rbac; re-exported so HR screens import locally.
@@ -24,6 +24,24 @@ export { CAN_SEE_COMP } from "@/lib/rbac";
 export const HR_TODAY = "2026-06-03";
 
 const MS_DAY = 1000 * 60 * 60 * 24;
+
+/**
+ * Add n calendar months to a YYYY-MM-DD date (n may be negative), clamping the
+ * day to the target month's last day on overflow (2026-01-31 +1 → 2026-02-28).
+ * Deterministic — no Date.now in the path; the contract-renewal computation.
+ */
+export function addMonths(date: string, n: number): string {
+  const parts = date.split("-");
+  const y = Number(parts[0] ?? "0");
+  const m0 = Number(parts[1] ?? "1") - 1; // 0-based source month
+  const d = Number(parts[2] ?? "1");
+  const total = m0 + n;
+  const ty = y + Math.floor(total / 12);
+  const tm = ((total % 12) + 12) % 12; // 0-based target month
+  const lastDay = new Date(Date.UTC(ty, tm + 1, 0)).getUTCDate();
+  const td = Math.min(d, lastDay);
+  return `${ty}-${String(tm + 1).padStart(2, "0")}-${String(td).padStart(2, "0")}`;
+}
 
 // ---- Employees -------------------------------------------------------------
 export type SalaryCategory = "Daily" | "Weekly" | "Monthly";
@@ -62,7 +80,15 @@ export type Employee = {
   tin: string;
   emName: string;
   emNum: string;
+  /** enrolled status ("Yes" / "No") */
   insurance: string;
+  /** insurance enrollment detail — present when insurance === "Yes" */
+  insProvider?: string;
+  insPolicyNo?: string;
+  /** YYYY-MM-DD */
+  insEnrolled?: string;
+  /** YYYY-MM-DD */
+  insExpiry?: string;
   vaccinated: string;
   atm: string;
   atmExp: string;
@@ -70,7 +96,9 @@ export type Employee = {
   comp: Compensation;
 };
 
-export const EMPLOYEES: readonly Employee[] = [
+// The 12 hand-authored employees (kept FIRST, lowest ids/sn). A deterministic
+// generator appends ~100 more below to exercise the H1 list + dashboard at scale.
+const EMPLOYEES_BASE: readonly Employee[] = [
   // ---- MONTHLY ----
   {
     id: 1,
@@ -511,6 +539,257 @@ export const EMPLOYEES: readonly Employee[] = [
   },
 ];
 
+// ---- Deterministic roster fill (scale to 100+; additive) -------------------
+// Appends ~100 generated employees on top of the 12 hand-authored ones so H1 /
+// the HR dashboard / the timekeeping picker exercise a realistic roster. EVERY
+// field derives from the index — NO Math.random / Date.now — so years of
+// service, age and the contract-expiry KPI stay stable across builds (HR_TODAY
+// anchor). Generated nos/bios start well past the seed (no collisions), and the
+// sensitive IDs are obviously synthetic ("SYN-…"); CAN_SEE_COMP masking still
+// applies. The 12 above keep the lowest ids/sn.
+const GEN_COUNT = 100;
+
+const GEN_FIRST = [
+  "Juan",
+  "Mateo",
+  "Lucas",
+  "Gabriel",
+  "Rafael",
+  "Miguel",
+  "Andres",
+  "Diego",
+  "Emilio",
+  "Tomas",
+  "Ramon",
+  "Felipe",
+  "Ignacio",
+  "Vicente",
+  "Joaquin",
+  "Marcos",
+  "Cesar",
+  "Eduardo",
+  "Fernando",
+  "Maria",
+] as const;
+const GEN_LAST = [
+  "Reyes",
+  "Cruz",
+  "Bautista",
+  "Ocampo",
+  "Ramos",
+  "Mercado",
+  "Aquino",
+  "del Rosario",
+  "Salazar",
+  "Castillo",
+  "Navarro",
+  "Velasco",
+  "Pascual",
+  "Domingo",
+  "Espinosa",
+  "Gutierrez",
+  "Rivera",
+  "Flores",
+  "Mariano",
+  "Tan",
+] as const;
+const GEN_ASSIGNS = [
+  "26-05-378 · 13.2KV Distribution Line",
+  "26-04-355 · Cavite 69KV Transmission Line",
+  "25-11-290 · Solar Farm Tarlac 5MWp",
+  "Main Office",
+  "Workshop",
+  "Motorpool",
+] as const;
+const GEN_ADDRESS = [
+  "Bulacan",
+  "Cavite",
+  "Tarlac",
+  "Valenzuela City",
+  "Caloocan",
+  "Malabon",
+  "Quezon City",
+  "Pampanga",
+] as const;
+// Daily-heavy distribution (6 / 2 / 2 per 10).
+const GEN_CAT: readonly SalaryCategory[] = [
+  "Daily",
+  "Daily",
+  "Daily",
+  "Weekly",
+  "Daily",
+  "Monthly",
+  "Daily",
+  "Weekly",
+  "Daily",
+  "Monthly",
+];
+const GEN_POS: Record<SalaryCategory, readonly string[]> = {
+  Daily: [
+    "Lineman",
+    "Helper",
+    "Welder",
+    "Driver",
+    "Rigger",
+    "Electrician's Aide",
+  ],
+  Weekly: [
+    "Electrician",
+    "Lead Electrician",
+    "Foreman",
+    "Mechanic",
+    "Crew Lead",
+  ],
+  Monthly: [
+    "Site Engineer",
+    "Project Engineer",
+    "Admin Staff",
+    "Safety Officer",
+    "Purchasing Officer",
+    "Accounting Staff",
+  ],
+};
+
+function gpad(n: number, w = 4): string {
+  return String(n).padStart(w, "0");
+}
+
+function genComp(cat: SalaryCategory, i: number): Compensation {
+  if (cat === "Monthly")
+    return {
+      cat,
+      daily: "—",
+      monthly: 40000 + (i % 10) * 3000,
+      allowance: 8000 + (i % 4) * 2000,
+      dutyMeal: 0,
+      project: i % 2 === 0 ? 6000 : 0,
+    };
+  if (cat === "Weekly")
+    return {
+      cat,
+      daily: 800 + (i % 5) * 60,
+      monthly: "—",
+      allowance: 0,
+      dutyMeal: 150,
+      project: 0,
+    };
+  return {
+    cat,
+    daily: 600 + (i % 6) * 40,
+    monthly: "—",
+    allowance: 0,
+    dutyMeal: 120,
+    project: i % 3 === 0 ? 80 : 0,
+  };
+}
+
+function generateEmployees(): Employee[] {
+  // Continue the running S/N within each category past the seed (Daily 4 / Weekly
+  // 3 / Monthly 5 already used).
+  const sn: Record<SalaryCategory, number> = {
+    Daily: 4,
+    Weekly: 3,
+    Monthly: 5,
+  };
+  const out: Employee[] = [];
+  for (let i = 0; i < GEN_COUNT; i += 1) {
+    const cat = GEN_CAT[i % GEN_CAT.length] ?? "Daily";
+    sn[cat] += 1;
+    const first = GEN_FIRST[i % GEN_FIRST.length] ?? "Juan";
+    const last = GEN_LAST[(i * 3 + 1) % GEN_LAST.length] ?? "Cruz";
+    const posPool = GEN_POS[cat];
+    const pos = posPool[i % posPool.length] ?? "Staff";
+    const contractual = i % 5 === 0;
+    const expiringSoon = contractual && i % 2 === 0; // ~10 expiring < 6 months
+    const contractEnd = contractual
+      ? expiringSoon
+        ? "2026-09-30"
+        : "2027-08-31"
+      : undefined;
+    const status =
+      i % 23 === 0
+        ? "Suspended"
+        : i % 19 === 0
+          ? "On Leave"
+          : i % 17 === 0
+            ? "Probationary"
+            : "Regular";
+    out.push({
+      id: 13 + i,
+      sn: sn[cat],
+      no: `JCE 0${1000 + i}`,
+      name: `${first} ${last}`,
+      bio: String(4000 + i),
+      pos,
+      assign: GEN_ASSIGNS[i % GEN_ASSIGNS.length] ?? "Main Office",
+      cat,
+      status,
+      hired: `${2010 + (i % 15)}-${gpad((i % 12) + 1, 2)}-${gpad((i % 27) + 1, 2)}`,
+      type: contractual ? "Contractual" : "Regular",
+      ...(contractEnd ? { contractEnd } : {}),
+      birthday: `${1972 + (i % 28)}-${gpad((i % 12) + 1, 2)}-${gpad((i % 27) + 1, 2)}`,
+      gender: i % 3 === 0 ? "Female" : "Male",
+      contact: `0917-${gpad(300 + i, 3)}-${gpad(1000 + i)}`,
+      address: GEN_ADDRESS[i % GEN_ADDRESS.length] ?? "Valenzuela City",
+      sss: `SYN-SSS-${gpad(i)}`,
+      pagibig: `SYN-HDMF-${gpad(i)}`,
+      philhealth: `SYN-PHIC-${gpad(i)}`,
+      tin: `SYN-TIN-${gpad(i)}`,
+      emName: `${GEN_FIRST[(i * 2) % GEN_FIRST.length] ?? "Maria"} ${last}`,
+      emNum: `0918-${gpad(300 + i, 3)}-${gpad(2000 + i)}`,
+      insurance: i % 2 === 0 ? "Yes" : "No",
+      vaccinated: i % 4 === 0 ? "No" : "Yes",
+      atm: `SYN-ATM-${gpad(100000 + i, 6)}`,
+      atmExp: `202${7 + (i % 2)}-${gpad((i % 12) + 1, 2)}`,
+      remarks: contractEnd ? `Contract ends ${contractEnd}` : "—",
+      comp: genComp(cat, i),
+    });
+  }
+  return out;
+}
+
+// Seed insurance-enrollment detail for any enrolled employee (insurance ===
+// "Yes") that doesn't already carry it — deterministic from the roster index so
+// dates stay stable across builds. A deterministic minority land expiring/expired
+// to exercise the status Chip; "No" employees keep no provider/dates (graceful —).
+const INS_PROVIDERS = [
+  "MediCard",
+  "Maxicare",
+  "PhilCare",
+  "Intellicare",
+  "ValuCare",
+] as const;
+
+function seedInsurance(e: Employee, i: number): Employee {
+  if (e.insurance !== "Yes" || e.insProvider) return e;
+  const insExpiry =
+    i % 9 === 0
+      ? addMonths(HR_TODAY, -2) // lapsed
+      : i % 9 === 4
+        ? addMonths(HR_TODAY, 2) // expiring < 3 months
+        : addMonths(HR_TODAY, 10 + (i % 3)); // active, 10–12 months out
+  return {
+    ...e,
+    insProvider: INS_PROVIDERS[i % INS_PROVIDERS.length] ?? "MediCard",
+    insPolicyNo: `POL-${String(100000 + i).padStart(6, "0")}`,
+    insEnrolled: addMonths(HR_TODAY, -(2 + (i % 10))),
+    insExpiry,
+  };
+}
+
+// In-session MUTABLE employee store (mirrors lib/mock/inquiries.ts): the 12
+// hand-authored employees first, then the generated fill, each seeded with
+// insurance detail. renewContract() updates `contractEnd` here in place so the
+// expiry flags + the HR dashboard KPI recompute live; the frozen base seed
+// (EMPLOYEES_BASE) stays intact.
+const employeeStore: Employee[] = [
+  ...EMPLOYEES_BASE,
+  ...generateEmployees(),
+].map((e, i) => seedInsurance(e, i));
+
+/** Full roster — the in-session store (renewals update `contractEnd` in place). */
+export const EMPLOYEES: readonly Employee[] = employeeStore;
+
 /** The three Salary Rate Categories, in H1 stack order. */
 export const SALARY_CATEGORIES: readonly SalaryCategory[] = [
   "Daily",
@@ -536,6 +815,14 @@ export const EMP_STATUS_FILTERS = [
 ] as const;
 
 export const EMP_TYPE_FILTERS = ["All", "Regular", "Contractual"] as const;
+
+/** Distinct Places of Assignment across the live roster (base + generated), for
+ *  the H1 list filter. Derived once at module load so generated assignments are
+ *  covered. */
+export const EMP_ASSIGN_FILTERS: readonly string[] = [
+  "All",
+  ...Array.from(new Set(EMPLOYEES.map((e) => e.assign))).sort(),
+];
 
 export const STATUS_TONE: Record<string, Tone> = {
   Regular: "success",
@@ -593,18 +880,21 @@ export const ARCHIVED: readonly ArchivedEmployee[] = [
 // ---- Working projects (ALIGNED to canonical SALES_ORDERS) -------------------
 export type WorkingProject = { so: string; label: string; status: string };
 
-/** SO#s referenced by HR — must exist in the canonical registry (lib/mock/bdd). */
-const HR_SO_REFS = ["26-05-378", "26-04-355", "25-11-290"] as const;
-
 function projStatus(soStatus: string): string {
   if (soStatus === "On Hold") return "On Hold";
   if (soStatus.toLowerCase().includes("completed")) return "Completed";
   return "Ongoing";
 }
 
+// The Working-Project list is DERIVED from the live Sales Orders by STATUS (SRS
+// §4.2 — "Sourced from the Sales Orders list (Ongoing/On Hold/Completed, not
+// Archived)"): keep every SO whose status is a current registry status
+// (SO_STATUS_OPTIONS); SalesOrder has no archived flag, so "not Archived" is
+// satisfied automatically. No hardcoded SO# subset — the list tracks the BDD
+// registry. Plus the two internal cost-centres (Workshop / Motorpool).
 export const PROJECTS: readonly WorkingProject[] = [
   ...SALES_ORDERS.filter((o) =>
-    (HR_SO_REFS as readonly string[]).includes(o.so),
+    (SO_STATUS_OPTIONS as readonly string[]).includes(o.status),
   ).map((o) => ({ so: o.so, label: o.name, status: projStatus(o.status) })),
   { so: "WORKSHOP", label: "Internal — Workshop", status: "Ongoing" },
   { so: "MOTORPOOL", label: "Internal — Motorpool", status: "Ongoing" },
@@ -647,7 +937,19 @@ export type TimeRow = {
   autoLeave?: boolean;
   /** true for a multi-project working day (distribution splits evenly) */
   multi?: boolean;
+  /** owning employee (H5b site board); legacy/seed rows omit it → LEGACY_EMP_NO */
+  empNo?: string;
+  /** site SNAPSHOT at log time (Employee.assign) — resolves board membership so a
+   *  mid-period reassignment doesn't make a posted day's rows vanish */
+  site?: string;
+  /** the row's day type was set independently of the site default — a site
+   *  re-stamp skips it (persisted so protection survives reloads) */
+  dayTypeOverridden?: boolean;
 };
+
+/** Legacy seed rows (and any row without empNo) are attributed to this employee
+ *  (Noel V. Bautista) — the original single-employee timekeeping week. */
+export const LEGACY_EMP_NO = "JCE 00077";
 
 // One employee × one week (Noel Bautista, lineman) — incl. a multi-project split
 // day and an auto-created leave row. The Manhours Distribution is DERIVED from
@@ -750,23 +1052,41 @@ const timeRowStore: TimeRow[] = [
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+/** TZ-SAFE weekday short-name for a "YYYY-MM-DD" — parses the parts as LOCAL
+ *  midnight; never `new Date(str)`, which treats the string as UTC and can roll
+ *  back a day in negative-offset zones. */
+export function weekdayOf(date: string): string {
+  const [y, m, d] = date.split("-").map(Number);
+  if (!y || !m || !d) return "Mon";
+  return WEEKDAYS[new Date(y, m - 1, d).getDay()] ?? "Mon";
+}
+
+/** TZ-SAFE Sunday check (Rest-day inference) — same local-parse rationale. */
+export function isSunday(date: string): boolean {
+  const [y, m, d] = date.split("-").map(Number);
+  if (!y || !m || !d) return false;
+  return new Date(y, m - 1, d).getDay() === 0;
+}
+
 /** Current timekeeping rows (incl. any auto-created leave rows this session). */
 export function getTimeRows(): readonly TimeRow[] {
   return [...timeRowStore];
 }
 
-/** Auto-create a read-only leave row (an approved RFL/LOA, recording-only). */
+/** Auto-create a read-only leave row (an approved RFL/LOA, recording-only).
+ *  empNo defaults to the legacy employee for back-compat with existing callers. */
 export function addLeaveRow(input: {
   date: string;
   leave: string;
   leaveRef: string;
   remarks?: string;
+  empNo?: string;
 }): void {
-  const d = new Date(input.date);
   timeRowStore.push({
     id: Math.max(0, ...timeRowStore.map((r) => r.id)) + 1,
+    empNo: input.empNo ?? LEGACY_EMP_NO,
     date: input.date,
-    day: WEEKDAYS[d.getDay()] ?? "Mon",
+    day: weekdayOf(input.date),
     dayType: "Regular Day",
     proj: "—",
     in: "—",
@@ -838,7 +1158,18 @@ export function computeManhours(
     const ne = 30 * 60 + off; // 6 AM next day
     ndMin += Math.max(0, Math.min(b, ne) - Math.max(a, ns));
   }
-  const nd = ndMin / 60;
+  // SRS §4.2 step 5: subtract the 60-min night meal break (02:00–03:00) from the
+  // Night-Differential count when the worked window fully spans it. The night
+  // meal lies inside the 23:00–06:00 ND window by definition, so a fully-spanned
+  // break always falls within the overlap. Mirrors the break-offset loop above;
+  // this is a SEPARATE deduction from the net-worked break deduction.
+  let nightMealMin = 0;
+  for (const off of [0, 1440]) {
+    const ms = 2 * 60 + off; // 02:00
+    const me = 3 * 60 + off; // 03:00
+    if (a <= ms && b >= me) nightMealMin = 60;
+  }
+  const nd = Math.max(0, ndMin - nightMealMin) / 60;
 
   const gross = (b - a) / 60;
   const abs = dayType.startsWith("Rest") ? 0 : Math.max(0, 8 - gross);
@@ -865,6 +1196,7 @@ export function rowDistribution(
     rows.filter(
       (r) =>
         r.date === row.date &&
+        (r.empNo ?? LEGACY_EMP_NO) === (row.empNo ?? LEGACY_EMP_NO) &&
         r.in !== "—" &&
         r.out !== "—" &&
         !r.autoLeave &&
@@ -890,6 +1222,238 @@ export function weekTotals(rows: readonly TimeRow[]): Distribution {
       abs: round1(acc.abs + d.abs),
     };
   }, ZERO_DIST);
+}
+
+// ============================================================================
+// H5b · Site Day Sheet — site-grouped recording over the SAME per-employee rows.
+// A timekeeper picks a SITE + DATE; everyone is implicitly Present at the site's
+// standard hours under one site Day Type, and only exceptions are touched. Logging
+// stays PER EMPLOYEE (one TimeRow each, own in/out, own derived numbers). Purely
+// additive — the derived computation, multi-project split, ND, six Day Types,
+// SO-sourced Working Project, and per-employee verify→lock batches are preserved.
+// ============================================================================
+
+/** Map an Employee.assign (the site) to the TimeRow.proj code: project sites are
+ *  "<SO#> · <name>" → the SO# token; Workshop/Motorpool → their codes; Main
+ *  Office has no project ("—"). PROJECTS/projLabel/projName are untouched. */
+export function projCodeForAssign(assign: string): string {
+  if (assign === "Workshop") return "WORKSHOP";
+  if (assign === "Motorpool") return "MOTORPOOL";
+  if (assign === "Main Office") return "—";
+  const code = assign.split(" · ")[0]?.trim();
+  return code && code.length > 0 ? code : "—";
+}
+
+/** Header DocChip token for a site — never "—" (internal sites read e.g.
+ *  "MAIN OFFICE"). */
+export function siteToken(assign: string): string {
+  const code = projCodeForAssign(assign);
+  return code !== "—" ? code : assign.toUpperCase();
+}
+
+export const DEFAULT_SITE_HOURS = { in: "07:00", out: "16:00" } as const;
+
+/** Per-site standard hours (pre-fill DATA only — never a hard constraint). Project
+ *  sites default to 07:00–16:00; Main Office is 08:00–17:00. */
+export const SITE_STANDARD_HOURS: Record<string, { in: string; out: string }> =
+  {
+    "Main Office": { in: "08:00", out: "17:00" },
+  };
+
+export function standardHoursForSite(assign: string): {
+  in: string;
+  out: string;
+} {
+  return SITE_STANDARD_HOURS[assign] ?? DEFAULT_SITE_HOURS;
+}
+
+// Per-(site,date) site Day Type — in-session, keyed `${site}|${date}`.
+const siteDayTypeStore: Record<string, string> = {};
+function siteDayKey(site: string, date: string): string {
+  return `${site}|${date}`;
+}
+/** The site Day Type for a (site,date): an explicit override, else Rest Day on a
+ *  Sunday (TZ-safe), else Regular Day. */
+export function getSiteDayType(site: string, date: string): string {
+  return (
+    siteDayTypeStore[siteDayKey(site, date)] ??
+    (isSunday(date) ? "Rest Day (Sun)" : "Regular Day")
+  );
+}
+export function setSiteDayType(
+  site: string,
+  date: string,
+  dayType: string,
+): void {
+  siteDayTypeStore[siteDayKey(site, date)] = dayType;
+}
+
+// ---- Derived row STATUS (never from abs>0) ---------------------------------
+export type RowStatus =
+  | "Present"
+  | "Absent"
+  | "Leave"
+  | "OT"
+  | "Custom"
+  | "Rest";
+
+export const ROW_STATUS_TONE: Record<RowStatus, Tone> = {
+  Present: "success",
+  Absent: "danger",
+  Leave: "info",
+  OT: "pending",
+  Custom: "neutral",
+  Rest: "neutral",
+};
+
+/** A valid clock value: "—" or HH:MM in range. */
+export function isTimeValue(s: string): boolean {
+  return s === "—" || /^([01]?\d|2[0-3]):[0-5]\d$/.test(s.trim());
+}
+
+/** Attendance status derived FROM the row's fields (so a Rest-day no-show still
+ *  reads Absent, not off abs>0). */
+export function rowStatus(
+  row: Pick<TimeRow, "in" | "out" | "leave" | "dayType">,
+  std: { in: string; out: string } = DEFAULT_SITE_HOURS,
+): RowStatus {
+  if (row.leave) return "Leave";
+  if (row.dayType.startsWith("Rest")) return "Rest";
+  if (row.in === "—" || row.out === "—") return "Absent";
+  const d = computeManhours(row.in, row.out, row.dayType);
+  if (d.ot > 0) return "OT";
+  if (row.in === std.in && row.out === std.out) return "Present";
+  return "Custom";
+}
+
+/** Add n hours to an HH:MM value, wrapping at 24h. null if invalid / "—". */
+export function addHoursToTime(t: string, n: number): string | null {
+  const m = /^([01]?\d|2[0-3]):([0-5]\d)$/.exec(t.trim());
+  if (!m) return null;
+  const v =
+    (((Number(m[1]) * 60 + Number(m[2]) + n * 60) % 1440) + 1440) % 1440;
+  return `${String(Math.floor(v / 60)).padStart(2, "0")}:${String(v % 60).padStart(2, "0")}`;
+}
+
+// ---- Site-day row materialization ------------------------------------------
+/** Build (not persist) the standard rows for a site+date: one per assigned
+ *  employee at the site's standard hours under the resolved day type. On Leave →
+ *  a Leave row; Suspended → Absent. */
+export function buildSiteDayRows(input: {
+  site: string;
+  date: string;
+  dayType?: string;
+}): TimeRow[] {
+  const { site, date } = input;
+  const dayType = input.dayType ?? getSiteDayType(site, date);
+  const proj = projCodeForAssign(site);
+  const std = standardHoursForSite(site);
+  const day = weekdayOf(date);
+  const assigned = EMPLOYEES.filter((e) => e.assign === site);
+  let nextId = timeRowStore.reduce((m, r) => Math.max(m, r.id), 0) + 1;
+  return assigned.map((e) => {
+    const onLeave = e.status === "On Leave";
+    const suspended = e.status === "Suspended";
+    return {
+      id: nextId++,
+      empNo: e.no,
+      site,
+      date,
+      day,
+      dayType,
+      proj: onLeave ? "—" : proj,
+      in: onLeave || suspended ? "—" : std.in,
+      out: onLeave || suspended ? "—" : std.out,
+      leave: onLeave ? "On Leave" : null,
+      remarks: suspended ? "Suspended" : "",
+    };
+  });
+}
+
+/** Idempotent upsert of a site's day rows into the store (keyed empNo,date,proj);
+ *  never clobbers an existing/edited/locked row. Returns added/kept counts. */
+export function addSiteDayRows(input: {
+  site: string;
+  date: string;
+  dayType?: string;
+}): { added: number; kept: number } {
+  const candidates = buildSiteDayRows(input);
+  let added = 0;
+  let kept = 0;
+  for (const c of candidates) {
+    const exists = timeRowStore.some(
+      (r) =>
+        (r.empNo ?? LEGACY_EMP_NO) === c.empNo &&
+        r.date === c.date &&
+        r.proj === c.proj,
+    );
+    if (exists) {
+      kept += 1;
+      continue;
+    }
+    timeRowStore.push(c);
+    added += 1;
+  }
+  return { added, kept };
+}
+
+/** Insert a single time row (e.g. a second project on a multi-project day);
+ *  assigns the next id. Returns the created row. In-session. */
+export function addTimeRow(row: Omit<TimeRow, "id">): TimeRow {
+  const created: TimeRow = {
+    ...row,
+    id: timeRowStore.reduce((m, r) => Math.max(m, r.id), 0) + 1,
+  };
+  timeRowStore.push(created);
+  return created;
+}
+
+/** Per-employee exception edit. Derived manhours stay COMPUTED — never written. */
+export function updateTimeRow(
+  id: number,
+  patch: Partial<
+    Pick<
+      TimeRow,
+      | "in"
+      | "out"
+      | "dayType"
+      | "leave"
+      | "leaveRef"
+      | "remarks"
+      | "proj"
+      | "multi"
+      | "dayTypeOverridden"
+    >
+  >,
+): void {
+  const i = timeRowStore.findIndex((r) => r.id === id);
+  const cur = timeRowStore[i];
+  if (cur) timeRowStore[i] = { ...cur, ...patch };
+}
+
+/** Rows logged for a site+date. Membership is the row's SNAPSHOT (logged site,
+ *  or project-code for legacy site-less rows) — NOT the employee's live assign. */
+export function getTimeRowsForSite(
+  site: string,
+  date: string,
+): readonly TimeRow[] {
+  const proj = projCodeForAssign(site);
+  return timeRowStore
+    .filter((r) => {
+      if (r.date !== date) return false;
+      if (r.site != null) return r.site === site;
+      // legacy site-less rows: match project sites by proj; internal "—" would
+      // collide with leave/absent rows, so never match those.
+      return proj !== "—" && r.proj === proj;
+    })
+    .map((r) => ({ ...r }));
+}
+
+/** All rows for one employee (the By-employee grid + cross-tab visibility). */
+export function getTimeRowsForEmployee(empNo: string): readonly TimeRow[] {
+  return timeRowStore
+    .filter((r) => (r.empNo ?? LEGACY_EMP_NO) === empNo)
+    .map((r) => ({ ...r }));
 }
 
 // ---- Verification batches (MUTABLE store — survives across routes) ----------
@@ -992,14 +1556,83 @@ export function isLockedForEmployee(no: string): boolean {
 // ---- HR requests -----------------------------------------------------------
 export type RequestStatus = "Pending" | "Approved" | "Recorded";
 
+// ---- H7–H11 · HR Requests (SRS §4.3) ---------------------------------------
+// One record = one filed form. Common shape (§4.3): manual form number (OB/OT/RFL)
+// or a system Internal ID (LOA) · date filed · employee(s) from the DB (auto-
+// populated) · signers recorded for audit (names from the DB) · a REQUIRED multi-
+// file signed scan (gates the terminal status) · status. Per-form fields are a
+// discriminated union (no boolean soup). emp/key/scan are DERIVED summaries kept
+// on the record for the register columns (computed on add/update).
+export type ReqEmployee = {
+  no: string;
+  name: string;
+  pos: string;
+  assign: string;
+};
+export type ReqSigner = { role: string; empNo?: string; name?: string };
+export type ReqFile = { name: string; kind: "pdf" | "jpg" | "png" };
+
+export type RequestDetails =
+  | {
+      kind: "ob";
+      reasons: string;
+      projectName: string;
+      salesOrderNo: string;
+      destination: string;
+      departAt: string;
+      returnAt: string;
+    }
+  | {
+      kind: "ot";
+      section: string;
+      project: string;
+      otDate: string;
+      otType: "Pre-approved" | "After-the-fact";
+      requestedFromTo: string;
+      actualFromTo: string;
+      reason: string;
+    }
+  | {
+      kind: "rfl";
+      leaveType: "Vacation Leave" | "Sick Leave" | "Others";
+      othersSpecify?: string;
+      payType: "With Pay" | "Without Pay";
+      from: string;
+      to: string;
+      days: number;
+      daysOverridden?: boolean;
+      requestType: "Pre-approved" | "After-the-fact";
+      proof: ReqFile[];
+    }
+  | {
+      kind: "loa";
+      from: string;
+      to: string;
+      days: number;
+      daysOverridden?: boolean;
+      leaveType: "Vacation" | "Sick" | "Paternity" | "Maternity" | "Others";
+      reason: string;
+    };
+
 export type RequestRecord = {
+  /** URL-safe slug of `no` (deduped) — the deep-link route key. */
+  id: string;
   no: string;
   filed: string;
+  type: RequestTypeLabel;
+  /** DERIVED employee summary (register column). */
   emp: string;
+  /** DERIVED short per-type descriptor (register column). */
   key: string;
   status: RequestStatus;
-  /** scanned signed copy attached — gates Pending → Approved/Recorded */
+  /** DERIVED scans.length > 0 — gates Pending → Approved/Recorded. */
   scan: boolean;
+  employees: ReqEmployee[];
+  signers: ReqSigner[];
+  scans: ReqFile[];
+  details: RequestDetails;
+  /** Source ref stamped on auto-created timekeeping rows (RFL/LOA) — idempotency. */
+  leaveRef?: string;
 };
 
 export const REQ_TONE: Record<string, Tone> = {
@@ -1112,72 +1745,478 @@ export const SIGNERS: Record<RequestTypeLabel, readonly string[]> = {
   ],
 };
 
-export const REQUESTS: Record<RequestTypeLabel, readonly RequestRecord[]> = {
-  "OB/Travel": [
-    {
-      no: "OB-2026-014",
-      filed: "2026-05-30",
-      emp: "5 employees · Cavite team",
-      key: "Cavite Line site visit",
-      status: "Pending",
-      scan: false,
+/** Map a request type to its details discriminator. */
+export function detailsKindForType(
+  type: RequestTypeLabel,
+): RequestDetails["kind"] {
+  switch (type) {
+    case "OB/Travel":
+      return "ob";
+    case "Overtime":
+      return "ot";
+    case "Request for Leave":
+      return "rfl";
+    case "LOA Without Pay":
+      return "loa";
+  }
+}
+
+// ---- mutable request store (mirrors lib/mock/inquiries.ts) ------------------
+// Migrated seeds carry the full §4.3 shape; reload resets to seed (intentional
+// mock). The register + record routes read THROUGH the accessors.
+const requestStore: RequestRecord[] = [
+  {
+    id: "ob-2026-014",
+    no: "OB-2026-014",
+    filed: "2026-05-30",
+    type: "OB/Travel",
+    emp: "5 employees · Cavite team",
+    key: "Cavite Line site visit",
+    status: "Pending",
+    scan: false,
+    employees: [
+      {
+        no: "JCE 00007",
+        name: "Carlos M. Mendoza",
+        pos: "Project Manager",
+        assign: "26-04-355 · Cavite 69KV Transmission Line",
+      },
+      {
+        no: "JCE 00055",
+        name: "Paolo R. Garcia",
+        pos: "Site Engineer",
+        assign: "26-04-355 · Cavite 69KV Transmission Line",
+      },
+    ],
+    signers: SIGNERS["OB/Travel"].map((role) => ({ role })),
+    scans: [],
+    details: {
+      kind: "ob",
+      reasons: "Site coordination & inspection",
+      projectName: "Cavite 69KV Transmission Line",
+      salesOrderNo: "26-04-355",
+      destination: "Cavite Line site",
+      departAt: "2026-05-31T07:00",
+      returnAt: "2026-05-31T17:00",
     },
-    {
-      no: "OB-2026-012",
-      filed: "2026-05-22",
-      emp: "P. Garcia +2",
-      key: "Bulacan inspection",
-      status: "Approved",
-      scan: true,
+  },
+  {
+    id: "ob-2026-012",
+    no: "OB-2026-012",
+    filed: "2026-05-22",
+    type: "OB/Travel",
+    emp: "P. Garcia +2",
+    key: "Bulacan inspection",
+    status: "Approved",
+    scan: true,
+    employees: [
+      {
+        no: "JCE 00055",
+        name: "Paolo R. Garcia",
+        pos: "Site Engineer",
+        assign: "26-05-378 · 13.2KV Distribution Line",
+      },
+      {
+        no: "JCE 00007",
+        name: "Carlos M. Mendoza",
+        pos: "Project Manager",
+        assign: "26-05-378 · 13.2KV Distribution Line",
+      },
+      {
+        no: "JCE 00077",
+        name: "Noel V. Bautista",
+        pos: "Lineman",
+        assign: "26-05-378 · 13.2KV Distribution Line",
+      },
+    ],
+    signers: [
+      { role: "Requester", empNo: "JCE 00055", name: "Paolo R. Garcia" },
+      {
+        role: "Approving Officer / Dept. Head",
+        empNo: "JCE 00007",
+        name: "Carlos M. Mendoza",
+      },
+      { role: "Admin and Finance", empNo: "JCE 00009", name: "Ana L. Reyes" },
+      { role: "HR Acknowledger", empNo: "JCE 00014", name: "Maria T. Santos" },
+    ],
+    scans: [{ name: "ob-2026-012-signed.pdf", kind: "pdf" }],
+    details: {
+      kind: "ob",
+      reasons: "Pre-construction inspection",
+      projectName: "13.2KV Distribution Line",
+      salesOrderNo: "26-05-378",
+      destination: "Bulacan",
+      departAt: "2026-05-22T08:00",
+      returnAt: "2026-05-22T16:00",
     },
-  ],
-  Overtime: [
-    {
-      no: "OT FORM NO. 2026-022",
-      filed: "2026-05-29",
-      emp: "Shop · 8 staff",
-      key: "Fabrication push",
-      status: "Pending",
-      scan: false,
+  },
+  {
+    id: "ot-form-no-2026-022",
+    no: "OT FORM NO. 2026-022",
+    filed: "2026-05-29",
+    type: "Overtime",
+    emp: "Shop · 8 staff",
+    key: "Fabrication push",
+    status: "Pending",
+    scan: false,
+    employees: [
+      {
+        no: "JCE 00055",
+        name: "Paolo R. Garcia",
+        pos: "Site Engineer",
+        assign: "Internal — Workshop",
+      },
+    ],
+    signers: SIGNERS["Overtime"].map((role) => ({ role })),
+    scans: [],
+    details: {
+      kind: "ot",
+      section: "Shop / Office",
+      project: "Internal — Workshop",
+      otDate: "2026-05-29",
+      otType: "Pre-approved",
+      requestedFromTo: "18:00 – 22:00",
+      actualFromTo: "18:00 – 22:00",
+      reason: "Fabrication push for Cavite delivery",
     },
-    {
-      no: "OT FORM NO. 2026-019",
-      filed: "2026-05-20",
-      emp: "N. Bautista",
-      key: "Night energization",
-      status: "Approved",
-      scan: true,
+  },
+  {
+    id: "ot-form-no-2026-019",
+    no: "OT FORM NO. 2026-019",
+    filed: "2026-05-20",
+    type: "Overtime",
+    emp: "N. Bautista",
+    key: "Night energization",
+    status: "Approved",
+    scan: true,
+    employees: [
+      {
+        no: "JCE 00077",
+        name: "Noel V. Bautista",
+        pos: "Lineman",
+        assign: "26-05-378 · 13.2KV Distribution Line",
+      },
+    ],
+    signers: [
+      { role: "Requester", empNo: "JCE 00077", name: "Noel V. Bautista" },
+      {
+        role: "Department Head",
+        empNo: "JCE 00007",
+        name: "Carlos M. Mendoza",
+      },
+      {
+        role: "Timekeeper (Noted by)",
+        empNo: "JCE 00031",
+        name: "Ramon D. dela Cruz",
+      },
+      {
+        role: "HR Head (Approved by)",
+        empNo: "JCE 00014",
+        name: "Maria T. Santos",
+      },
+    ],
+    scans: [{ name: "ot-2026-019-signed.jpg", kind: "jpg" }],
+    details: {
+      kind: "ot",
+      section: "Project site",
+      project: "13.2KV Distribution Line",
+      otDate: "2026-05-20",
+      otType: "Pre-approved",
+      requestedFromTo: "20:00 – 02:00",
+      actualFromTo: "20:10 – 02:05",
+      reason: "Night line energization",
     },
-  ],
-  "Request for Leave": [
-    {
-      no: "RFL-26-051",
-      filed: "2026-06-01",
-      emp: "R. dela Cruz",
-      key: "Vacation Leave · With Pay · 3 days",
-      status: "Pending",
-      scan: false,
+  },
+  {
+    id: "rfl-26-051",
+    no: "RFL-26-051",
+    filed: "2026-06-01",
+    type: "Request for Leave",
+    emp: "R. dela Cruz",
+    key: "Vacation Leave · With Pay · 3 days",
+    status: "Pending",
+    scan: false,
+    leaveRef: "RFL-26-051",
+    employees: [
+      {
+        no: "JCE 00031",
+        name: "Ramon D. dela Cruz",
+        pos: "Lineman",
+        assign: "26-04-355 · Cavite 69KV Transmission Line",
+      },
+    ],
+    signers: SIGNERS["Request for Leave"].map((role) => ({ role })),
+    scans: [],
+    details: {
+      kind: "rfl",
+      leaveType: "Vacation Leave",
+      payType: "With Pay",
+      from: "2026-06-03",
+      to: "2026-06-05",
+      days: 3,
+      requestType: "Pre-approved",
+      proof: [],
     },
-    {
-      no: "RFL-26-044",
-      filed: "2026-05-26",
-      emp: "N. Bautista",
-      key: "Sick Leave · With Pay · 1 day",
-      status: "Recorded",
-      scan: true,
+  },
+  {
+    id: "rfl-26-044",
+    no: "RFL-26-044",
+    filed: "2026-05-26",
+    type: "Request for Leave",
+    emp: "N. Bautista",
+    key: "Sick Leave · With Pay · 1 day",
+    status: "Recorded",
+    scan: true,
+    leaveRef: "RFL-26-044",
+    employees: [
+      {
+        no: "JCE 00077",
+        name: "Noel V. Bautista",
+        pos: "Lineman",
+        assign: "26-05-378 · 13.2KV Distribution Line",
+      },
+    ],
+    signers: [
+      {
+        role: "Employee's Signature",
+        empNo: "JCE 00077",
+        name: "Noel V. Bautista",
+      },
+      {
+        role: "Approved by (Dept Head)",
+        empNo: "JCE 00007",
+        name: "Carlos M. Mendoza",
+      },
+      {
+        role: "Checked by (HR Head)",
+        empNo: "JCE 00014",
+        name: "Maria T. Santos",
+      },
+      {
+        role: "Noted by (President / VP)",
+        empNo: "JCE 00001",
+        name: "Jose A. Cruz",
+      },
+    ],
+    scans: [{ name: "rfl-26-044-signed.pdf", kind: "pdf" }],
+    details: {
+      kind: "rfl",
+      leaveType: "Sick Leave",
+      payType: "With Pay",
+      from: "2026-05-26",
+      to: "2026-05-26",
+      days: 1,
+      requestType: "After-the-fact",
+      proof: [{ name: "med-cert.jpg", kind: "jpg" }],
     },
-  ],
-  "LOA Without Pay": [
-    {
-      no: "LOA-WP-2026-006",
-      filed: "2026-05-18",
-      emp: "D. Aguilar",
-      key: "Personal · 5 days",
-      status: "Recorded",
-      scan: true,
+  },
+  {
+    id: "loa-wp-2026-006",
+    no: "LOA-WP-2026-006",
+    filed: "2026-05-18",
+    type: "LOA Without Pay",
+    emp: "D. Aguilar",
+    key: "Others · 5 days",
+    status: "Recorded",
+    scan: true,
+    leaveRef: "LOA-WP-2026-006",
+    employees: [
+      {
+        no: "JCE 00048",
+        name: "Diego R. Aguilar",
+        pos: "Warehouseman",
+        assign: "Main Office",
+      },
+    ],
+    signers: [
+      { role: "Requester", empNo: "JCE 00048", name: "Diego R. Aguilar" },
+      {
+        role: "Approved by (Section Head)",
+        empNo: "JCE 00007",
+        name: "Carlos M. Mendoza",
+      },
+      {
+        role: "Noted by (Plant Operation Head)",
+        empNo: "JCE 00001",
+        name: "Jose A. Cruz",
+      },
+      {
+        role: "Acknowledged by (HR)",
+        empNo: "JCE 00014",
+        name: "Maria T. Santos",
+      },
+    ],
+    scans: [{ name: "loa-wp-2026-006-signed.pdf", kind: "pdf" }],
+    details: {
+      kind: "loa",
+      from: "2026-05-18",
+      to: "2026-05-22",
+      days: 5,
+      leaveType: "Others",
+      reason: "Personal matters",
     },
-  ],
-};
+  },
+];
+
+function reqSlug(no: string): string {
+  return (
+    no
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "") || "req"
+  );
+}
+function uniqueReqId(base: string): string {
+  let id = base;
+  let n = 2;
+  while (requestStore.some((r) => r.id === id)) id = `${base}-${n++}`;
+  return id;
+}
+function summarizeEmp(rec: { employees: readonly ReqEmployee[] }): string {
+  const es = rec.employees;
+  const first = es[0];
+  if (!first) return "—";
+  if (es.length === 1) return first.name;
+  return `${first.name} +${es.length - 1}`;
+}
+function summarizeKey(rec: { details: RequestDetails }): string {
+  const d = rec.details;
+  switch (d.kind) {
+    case "ob":
+      return d.destination || "Off-site work";
+    case "ot":
+      return d.reason || d.section || "Overtime";
+    case "rfl": {
+      const lt =
+        d.leaveType === "Others" && d.othersSpecify
+          ? `Others (${d.othersSpecify})`
+          : d.leaveType;
+      return `${lt} · ${d.payType} · ${d.days} day${d.days === 1 ? "" : "s"}`;
+    }
+    case "loa":
+      return `${d.leaveType} · ${d.days} day${d.days === 1 ? "" : "s"}`;
+  }
+}
+
+/** The editable shape for a new/updated request (emp/key/scan/id are derived). */
+export type RequestInput = Omit<RequestRecord, "id" | "emp" | "key" | "scan">;
+
+export function getAllRequests(): readonly RequestRecord[] {
+  return requestStore;
+}
+export function getRequests(type: RequestTypeLabel): readonly RequestRecord[] {
+  return requestStore.filter((r) => r.type === type);
+}
+export function getRequestById(
+  type: RequestTypeLabel,
+  id: string,
+): RequestRecord | undefined {
+  return requestStore.find((r) => r.type === type && r.id === id);
+}
+export function addRequest(input: RequestInput): RequestRecord {
+  const rec: RequestRecord = {
+    ...input,
+    id: uniqueReqId(reqSlug(input.no)),
+    emp: summarizeEmp(input),
+    key: summarizeKey(input),
+    scan: input.scans.length > 0,
+  };
+  requestStore.unshift(rec);
+  return rec;
+}
+export function updateRequest(
+  id: string,
+  patch: Partial<RequestInput>,
+): RequestRecord | undefined {
+  const i = requestStore.findIndex((r) => r.id === id);
+  const cur = requestStore[i];
+  if (!cur) return undefined;
+  const merged: RequestRecord = { ...cur, ...patch };
+  merged.emp = summarizeEmp(merged);
+  merged.key = summarizeKey(merged);
+  merged.scan = merged.scans.length > 0;
+  requestStore[i] = merged;
+  return merged;
+}
+
+// ---- §4.3 helpers ----------------------------------------------------------
+function reqPad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+/** Each YYYY-MM-DD in [from,to] that is NOT a Sunday (TZ-safe). Reversed/empty → []. */
+export function workingDaysBetween(from: string, to: string): string[] {
+  if (!from || !to) return [];
+  const [fy, fm, fd] = from.split("-").map(Number);
+  const [ty, tm, td] = to.split("-").map(Number);
+  if (!fy || !fm || !fd || !ty || !tm || !td) return [];
+  const cur = new Date(fy, fm - 1, fd);
+  const end = new Date(ty, tm - 1, td);
+  if (cur.getTime() > end.getTime()) return [];
+  const out: string[] = [];
+  let guard = 0;
+  while (cur.getTime() <= end.getTime() && guard < 400) {
+    const iso = `${cur.getFullYear()}-${reqPad2(cur.getMonth() + 1)}-${reqPad2(cur.getDate())}`;
+    if (!isSunday(iso)) out.push(iso);
+    cur.setDate(cur.getDate() + 1);
+    guard += 1;
+  }
+  return out;
+}
+
+/** "8 yrs 3 mos" from a hire date vs HR_TODAY (deterministic). */
+export function lengthOfService(hired: string): string {
+  const [hy, hm, hd] = hired.split("-").map(Number);
+  const [ty, tm, td] = HR_TODAY.split("-").map(Number);
+  if (!hy || !hm || !hd || !ty || !tm || !td) return "—";
+  let months = (ty - hy) * 12 + (tm - hm);
+  if (td < hd) months -= 1;
+  if (months < 0) months = 0;
+  const yrs = Math.floor(months / 12);
+  const mos = months % 12;
+  const parts: string[] = [];
+  if (yrs > 0) parts.push(`${yrs} yr${yrs === 1 ? "" : "s"}`);
+  parts.push(`${mos} mo${mos === 1 ? "" : "s"}`);
+  return parts.join(" ");
+}
+
+let loaSeq = 6;
+/** System Internal ID for an LOA (in-session sequential). */
+export function nextLoaId(): string {
+  loaSeq += 1;
+  return `LOA-WP-2026-0${loaSeq}`;
+}
+
+/** Auto-create a read-only timekeeping row per working day in [from,to]. Idempotent
+ *  per source ref — re-running for the same ref skips days already created. */
+export function autoCreateLeaveRowsForRange(input: {
+  empNo: string;
+  from: string;
+  to: string;
+  leave: string;
+  ref: string;
+}): number {
+  const days = workingDaysBetween(input.from, input.to);
+  let created = 0;
+  for (const date of days) {
+    const exists = timeRowStore.some(
+      (r) =>
+        (r.empNo ?? LEGACY_EMP_NO) === input.empNo &&
+        r.date === date &&
+        r.leaveRef === input.ref,
+    );
+    if (exists) continue;
+    addLeaveRow({
+      date,
+      leave: input.leave,
+      leaveRef: input.ref,
+      remarks: "Auto from RFL/LOA",
+      empNo: input.empNo,
+    });
+    created += 1;
+  }
+  return created;
+}
 
 // ---- HR audit log (H14, append-only) ---------------------------------------
 export type HrAuditEntry = {
@@ -1279,4 +2318,497 @@ export function dailyTotal(c: Compensation): number | null {
 
 export function findEmployee(id: number): Employee | undefined {
   return EMPLOYEES.find((e) => e.id === id);
+}
+
+export function findEmployeeByNo(no: string): Employee | undefined {
+  return EMPLOYEES.find((e) => e.no === no);
+}
+
+/** Append a new employee to the in-session store (H3 create). Assigns the next
+ *  id, a running S/N within the Salary Rate Category, and a fallback employee
+ *  number when blank. Returns the created record. In-session only. */
+export function addEmployee(input: Omit<Employee, "id" | "sn">): Employee {
+  const id = employeeStore.reduce((m, e) => Math.max(m, e.id), 0) + 1;
+  const sn = employeeStore.filter((e) => e.cat === input.cat).length + 1;
+  const no = input.no.trim() === "" ? `JCE 0${9000 + id}` : input.no.trim();
+  const created: Employee = { ...input, id, sn, no };
+  employeeStore.push(created);
+  return created;
+}
+
+/** Replace an existing employee in the store, by id (H3 edit). In-session. */
+export function updateEmployee(emp: Employee): void {
+  const i = employeeStore.findIndex((e) => e.id === emp.id);
+  if (i >= 0) employeeStore[i] = emp;
+}
+
+// ---- Insurance enrollment status -------------------------------------------
+export type InsuranceStatus = "active" | "expiring" | "expired" | "none";
+
+export const INS_STATUS_TONE: Record<InsuranceStatus, Tone> = {
+  active: "success",
+  expiring: "pending",
+  expired: "danger",
+  none: "neutral",
+};
+
+/** Insurance status for the (non-color-only) Chip. "expiring" = < 3 months out. */
+export function insuranceStatus(
+  e: Pick<Employee, "insurance" | "insExpiry">,
+): InsuranceStatus {
+  if (e.insurance !== "Yes") return "none";
+  const m = monthsLeft(e.insExpiry);
+  if (m == null) return "active"; // enrolled, no expiry on file
+  if (m < 0) return "expired";
+  if (m < 3) return "expiring";
+  return "active";
+}
+
+// ---- Contract extensions (append-only history + renew action) --------------
+export type ContractExtension = {
+  id: string;
+  empNo: string;
+  /** YYYY-MM-DD the renewal was recorded */
+  renewedOn: string;
+  term: 3 | 6;
+  previousEnd?: string;
+  newEnd: string;
+  by: string;
+};
+
+// In-session append-only extension log, seeded with a couple of examples for
+// existing contractual employees so the demo history isn't empty.
+const contractExtStore: ContractExtension[] = [
+  {
+    id: "CE-0001",
+    empNo: "JCE 00094", // Allan G. Tolentino (Contractual)
+    renewedOn: "2026-01-10",
+    term: 6,
+    previousEnd: "2026-01-10",
+    newEnd: "2026-07-10",
+    by: "M. Santos (HR Head)",
+  },
+  {
+    id: "CE-0002",
+    empNo: "JCE 00081", // Roberto S. Villanueva (Contractual)
+    renewedOn: "2026-03-03",
+    term: 6,
+    previousEnd: "2026-03-03",
+    newEnd: "2026-09-03",
+    by: "M. Santos (HR Head)",
+  },
+];
+
+let contractExtSeq = contractExtStore.length;
+
+/** Contract extensions for an employee, newest-first. */
+export function getContractExtensions(
+  empNo: string,
+): readonly ContractExtension[] {
+  return contractExtStore.filter((x) => x.empNo === empNo).reverse();
+}
+
+/**
+ * Renew a contractual employee's contract by `term` months FROM the renewal date
+ * (newEnd = addMonths(on, term)), regardless of the old end. Captures the
+ * previous end, updates the employee's contractEnd in the store (so expiry flags
+ * + the dashboard KPI recompute), appends the extension and returns it.
+ * In-session only.
+ */
+export function renewContract(input: {
+  empNo: string;
+  term: 3 | 6;
+  by: string;
+  on?: string;
+}): ContractExtension {
+  const on = input.on ?? HR_TODAY;
+  const i = employeeStore.findIndex((e) => e.no === input.empNo);
+  const cur = employeeStore[i];
+  const previousEnd = cur?.contractEnd;
+  const newEnd = addMonths(on, input.term);
+  if (cur) employeeStore[i] = { ...cur, contractEnd: newEnd };
+  contractExtSeq += 1;
+  const ext: ContractExtension = {
+    id: `CE-${String(contractExtSeq).padStart(4, "0")}`,
+    empNo: input.empNo,
+    renewedOn: on,
+    term: input.term,
+    ...(previousEnd ? { previousEnd } : {}),
+    newEnd,
+    by: input.by,
+  };
+  contractExtStore.push(ext);
+  return ext;
+}
+
+// ============================================================================
+// H5b · Excel bulk import — PURE parse/map/validate/commit layer (dep-free, so
+// it is Vitest-tested without SheetJS). One worksheet row = one TimeRow. Every
+// default/rule MIRRORS buildSiteDayRows so export∘import == the on-screen path,
+// and commit reuses addTimeRow/updateTimeRow + the (empNo,date,proj) key + the
+// per-employee lock check (never a second store, never a key/derived mutation).
+// SheetJS lives only in the client wizard and hands RawImportRow[] to here.
+// ============================================================================
+
+export type ImportColumn = { label: string; key: string; required: boolean };
+
+/** Canonical column contract. Header matching is case/space-insensitive. */
+export const IMPORT_COLUMNS: readonly ImportColumn[] = [
+  { label: "Employee No", key: "empNo", required: true },
+  { label: "Employee Name", key: "name", required: false },
+  { label: "Site / Place of Assignment", key: "site", required: false },
+  { label: "Date", key: "date", required: true },
+  { label: "Day Type", key: "dayType", required: false },
+  { label: "Time In", key: "timeIn", required: false },
+  { label: "Time Out", key: "timeOut", required: false },
+  { label: "Project Code", key: "proj", required: false },
+  { label: "Leave", key: "leave", required: false },
+  { label: "Leave Ref", key: "leaveRef", required: false },
+  { label: "Remarks", key: "remarks", required: false },
+];
+
+/** A worksheet row keyed by the canonical column keys (strings). */
+export type RawImportRow = Record<string, string>;
+
+export type StagedAction =
+  | "add"
+  | "update"
+  | "skip-locked"
+  | "skip-duplicate"
+  | "error";
+
+export type StagedRow = {
+  input: RawImportRow;
+  row: Omit<TimeRow, "id"> | null;
+  severity: "ok" | "warning" | "error";
+  action: StagedAction;
+  matchId?: number;
+  messages: string[];
+};
+
+export type ImportSummary = {
+  toAdd: number;
+  toUpdate: number;
+  skippedLocked: number;
+  errors: number;
+  warnings: number;
+};
+
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+const ABSENT_TOKENS = new Set(["ABSENT", "A", "—", "-"]);
+
+/** Match a raw worksheet header to a canonical column key (case/space-insensitive
+ *  + a few common aliases). null when it maps to no canonical column. */
+export function importHeaderKey(header: string): string | null {
+  const n = header.toLowerCase().replace(/[^a-z0-9]/g, "");
+  for (const c of IMPORT_COLUMNS)
+    if (c.label.toLowerCase().replace(/[^a-z0-9]/g, "") === n) return c.key;
+  if (n === "employeeno" || n === "empno" || n === "no") return "empNo";
+  if (n === "employeename") return "name";
+  if (n === "site" || n === "placeofassignment" || n === "assignment")
+    return "site";
+  if (n === "timein" || n === "in") return "timeIn";
+  if (n === "timeout" || n === "out") return "timeOut";
+  if (n === "projectcode" || n === "project" || n === "proj") return "proj";
+  if (n === "daytype") return "dayType";
+  if (n === "leaveref") return "leaveRef";
+  return null;
+}
+
+/** ISO "YYYY-MM-DD" / Excel serial number / JS Date → "YYYY-MM-DD" (or null). */
+export function normalizeImportDate(v: string | number | Date): string | null {
+  if (v instanceof Date) {
+    if (Number.isNaN(v.getTime())) return null;
+    return `${v.getFullYear()}-${pad2(v.getMonth() + 1)}-${pad2(v.getDate())}`;
+  }
+  if (typeof v === "number") {
+    if (!Number.isFinite(v) || v <= 0) return null;
+    // Excel serial: days since 1899-12-30 (25569 = that epoch in Unix days).
+    const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+    if (Number.isNaN(d.getTime())) return null;
+    return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
+  }
+  const s = v.trim();
+  if (s === "") return null;
+  const iso = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s);
+  if (iso) {
+    const m = Number(iso[2]);
+    const d = Number(iso[3]);
+    if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+    return `${iso[1]}-${pad2(m)}-${pad2(d)}`;
+  }
+  const us = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s);
+  if (us) {
+    const m = Number(us[1]);
+    const d = Number(us[2]);
+    if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+    return `${us[3]}-${pad2(m)}-${pad2(d)}`;
+  }
+  if (/^\d+(\.\d+)?$/.test(s)) return normalizeImportDate(Number(s));
+  return null;
+}
+
+/** Trim/collapse-spaces/upper an Employee No for matching against EMPLOYEES.no. */
+export function normalizeEmpNo(raw: string): string {
+  return raw.trim().replace(/\s+/g, " ").toUpperCase();
+}
+
+/** Serialize a TimeRow to canonical column strings — the template writer + the
+ *  round-trip test share this so export∘import is provably identity. */
+export function timeRowToRaw(row: Omit<TimeRow, "id">): RawImportRow {
+  const empNo = row.empNo ?? LEGACY_EMP_NO;
+  return {
+    empNo,
+    name: findEmployeeByNo(empNo)?.name ?? "",
+    site: row.site ?? "",
+    date: row.date,
+    dayType: row.dayType,
+    timeIn: row.in === "—" ? "ABSENT" : row.in,
+    timeOut: row.out === "—" ? "ABSENT" : row.out,
+    proj: row.proj,
+    leave: row.leave ?? "",
+    leaveRef: row.leaveRef ?? "",
+    remarks: row.remarks,
+  };
+}
+
+function field(raw: RawImportRow, key: string): string {
+  return (raw[key] ?? "").trim();
+}
+
+/** Map ONE raw row → a staged row (resolve + default + validate; no store probe
+ *  yet). Mirrors buildSiteDayRows defaults exactly. */
+export function mapImportRow(raw: RawImportRow): StagedRow {
+  const messages: string[] = [];
+  const err = (msg: string): StagedRow => ({
+    input: raw,
+    row: null,
+    severity: "error",
+    action: "error",
+    messages: [...messages, msg],
+  });
+
+  const rawNo = field(raw, "empNo");
+  if (!rawNo) return err("Employee No is required.");
+  const wanted = normalizeEmpNo(rawNo);
+  const emp = EMPLOYEES.find((e) => normalizeEmpNo(e.no) === wanted);
+  if (!emp)
+    return err(`Employee No "${rawNo}" not found (unknown or archived).`);
+  if (emp.status === "Resigned" || emp.status === "Terminated")
+    return err(`${emp.name} is ${emp.status} — cannot record time.`);
+
+  const date = normalizeImportDate(field(raw, "date"));
+  if (!date)
+    return err(`Date "${field(raw, "date")}" is invalid (use YYYY-MM-DD).`);
+
+  const rawSite = field(raw, "site");
+  const site = rawSite || emp.assign;
+  if (rawSite && rawSite !== emp.assign)
+    messages.push(
+      `Site "${rawSite}" differs from ${emp.name}'s assignment "${emp.assign}" — importing with the provided site.`,
+    );
+
+  const rawName = field(raw, "name");
+  if (rawName && rawName.toLowerCase() !== emp.name.toLowerCase())
+    messages.push(`Name "${rawName}" differs from record "${emp.name}".`);
+
+  const siteDefault = getSiteDayType(site, date);
+  const rawDayType = field(raw, "dayType");
+  let dayType = siteDefault;
+  let dayTypeOverridden = false;
+  if (rawDayType) {
+    if (!(DAY_TYPES as readonly string[]).includes(rawDayType))
+      return err(
+        `Day Type "${rawDayType}" is invalid. Use one of: ${DAY_TYPES.join(", ")}.`,
+      );
+    dayType = rawDayType;
+    dayTypeOverridden = rawDayType !== siteDefault;
+  }
+
+  const std = standardHoursForSite(site);
+  const parseTime = (key: string, fallback: string): string | null => {
+    const t = field(raw, key);
+    if (t === "") return fallback;
+    if (ABSENT_TOKENS.has(t.toUpperCase())) return "—";
+    if (isTimeValue(t) && t !== "—") return t;
+    return null;
+  };
+  const inT = parseTime("timeIn", std.in);
+  if (inT === null)
+    return err(
+      `Time In "${field(raw, "timeIn")}" is invalid — use HH:MM or ABSENT.`,
+    );
+  const outT = parseTime("timeOut", std.out);
+  if (outT === null)
+    return err(
+      `Time Out "${field(raw, "timeOut")}" is invalid — use HH:MM or ABSENT.`,
+    );
+
+  let proj = field(raw, "proj") || projCodeForAssign(site);
+  let inVal = inT;
+  let outVal = outT;
+  const rawLeave = field(raw, "leave");
+  let leave: string | null = null;
+  if (rawLeave) {
+    leave = rawLeave;
+    if (
+      inT !== std.in ||
+      outT !== std.out ||
+      field(raw, "timeIn") ||
+      field(raw, "timeOut")
+    )
+      messages.push("Leave set — Time In/Out forced to — and project cleared.");
+    inVal = "—";
+    outVal = "—";
+    proj = "—";
+  }
+  const leaveRef = field(raw, "leaveRef");
+  const remarks = field(raw, "remarks");
+
+  const row: Omit<TimeRow, "id"> = {
+    empNo: emp.no,
+    site,
+    date,
+    day: weekdayOf(date),
+    dayType,
+    proj,
+    in: inVal,
+    out: outVal,
+    leave,
+    remarks,
+    ...(leaveRef ? { leaveRef } : {}),
+    ...(dayTypeOverridden ? { dayTypeOverridden: true } : {}),
+  };
+  return {
+    input: raw,
+    row,
+    severity: messages.length > 0 ? "warning" : "ok",
+    action: "add",
+    messages,
+  };
+}
+
+/** Map all rows, collapse intra-file (empNo,date,proj) duplicates (keep last),
+ *  flag multi-project siblings, then decide each action against the live store +
+ *  per-employee lock. */
+export function validateImportRows(raws: readonly RawImportRow[]): {
+  staged: StagedRow[];
+  summary: ImportSummary;
+} {
+  const staged = raws.map((r) => mapImportRow(r));
+
+  // intra-file duplicate collapse + multi-project sibling detection
+  const lastByKey = new Map<string, number>(); // (empNo|date|proj) → staged index
+  const byEmpDate = new Map<string, Set<string>>(); // (empNo|date) → set of proj
+  staged.forEach((s, i) => {
+    if (!s.row || s.severity === "error") return;
+    const key = `${s.row.empNo}|${s.row.date}|${s.row.proj}`;
+    const prev = lastByKey.get(key);
+    if (prev != null) {
+      const p = staged[prev];
+      if (p) {
+        p.action = "skip-duplicate";
+        p.severity = "warning";
+        p.messages = [
+          ...p.messages,
+          "Superseded by a later row for the same employee/date/project.",
+        ];
+      }
+    }
+    lastByKey.set(key, i);
+    const ed = `${s.row.empNo}|${s.row.date}`;
+    const set = byEmpDate.get(ed) ?? new Set<string>();
+    set.add(s.row.proj);
+    byEmpDate.set(ed, set);
+  });
+
+  // mark multi-project siblings + resolve store action
+  for (const s of staged) {
+    if (!s.row || s.action === "skip-duplicate" || s.severity === "error")
+      continue;
+    const ed = `${s.row.empNo}|${s.row.date}`;
+    if ((byEmpDate.get(ed)?.size ?? 0) > 1) s.row = { ...s.row, multi: true };
+
+    const empNo = s.row.empNo ?? LEGACY_EMP_NO;
+    const existing = getTimeRowsForEmployee(empNo).find(
+      (r) => r.date === s.row?.date && r.proj === s.row?.proj,
+    );
+    if (existing) {
+      if (isLockedForEmployee(empNo)) {
+        s.action = "skip-locked";
+        s.messages = [
+          ...s.messages,
+          "Matches a Verified (locked) row — left unchanged.",
+        ];
+      } else {
+        s.action = "update";
+        s.matchId = existing.id;
+      }
+    } else {
+      s.action = "add";
+    }
+  }
+
+  const summary: ImportSummary = {
+    toAdd: staged.filter((s) => s.action === "add").length,
+    toUpdate: staged.filter((s) => s.action === "update").length,
+    skippedLocked: staged.filter((s) => s.action === "skip-locked").length,
+    errors: staged.filter((s) => s.severity === "error").length,
+    warnings: staged.filter((s) => s.severity === "warning").length,
+  };
+  return { staged, summary };
+}
+
+/** Commit staged rows into the shared store. add → addTimeRow; update →
+ *  updateTimeRow(matchId, editable patch only); skips locked/duplicate/error.
+ *  Idempotent: a re-commit re-applies the same patches (no-op end state). */
+export function commitImportRows(staged: readonly StagedRow[]): {
+  added: number;
+  updated: number;
+  skippedLocked: number;
+  errors: number;
+} {
+  let added = 0;
+  let updated = 0;
+  let skippedLocked = 0;
+  let errors = 0;
+  for (const s of staged) {
+    if (s.action === "add" && s.row) {
+      addTimeRow(s.row);
+      added += 1;
+    } else if (s.action === "update" && s.row && s.matchId != null) {
+      updateTimeRow(s.matchId, {
+        in: s.row.in,
+        out: s.row.out,
+        dayType: s.row.dayType,
+        leave: s.row.leave,
+        remarks: s.row.remarks,
+        dayTypeOverridden: true,
+        ...(s.row.leaveRef ? { leaveRef: s.row.leaveRef } : {}),
+        ...(s.row.multi ? { multi: true } : {}),
+      });
+      updated += 1;
+    } else if (s.action === "skip-locked") {
+      skippedLocked += 1;
+    } else if (s.action === "error") {
+      errors += 1;
+    }
+  }
+  return { added, updated, skippedLocked, errors };
+}
+
+/** Template rows = buildSiteDayRows for each requested (site,date) — the
+ *  round-trip source the export writes and the import reads back. */
+export function generateTemplateRows(input: {
+  sites: readonly string[];
+  dates: readonly string[];
+}): TimeRow[] {
+  const out: TimeRow[] = [];
+  for (const site of input.sites)
+    for (const date of input.dates)
+      out.push(...buildSiteDayRows({ site, date }));
+  return out;
 }

@@ -10,7 +10,7 @@ export default function WarehousePhase2Layout({
 }) {
   return (
     <>
-      <div className="mx-auto mb-4 w-full max-w-6xl">
+      <div className="mx-auto mb-4 w-full max-w-app">
         <WarehousePhase2SubNav />
       </div>
       {children}

@@ -49,7 +49,7 @@ export default function ProjectsPage() {
       {/* By category — dark electrified band linking the detailed case studies */}
       <section className="dark-section circuit-field relative isolate overflow-hidden px-5 py-16 sm:py-20 md:py-24">
         <OmegaMark className="pointer-events-none absolute -right-10 bottom-0 -z-10 size-[clamp(180px,32vw,360px)] text-jce-cyan/10" />
-        <div className="mx-auto w-full max-w-6xl">
+        <div className="mx-auto w-full max-w-site">
           <CircuitReveal
             lineClassName="text-jce-cyan"
             className="mb-8 max-w-[56ch] md:mb-10"

@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Payroll Summary" };
 // A4 · Payroll Summary list (Payroll sub-module landing).
 export default function PayrollPage() {
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <PayrollSubNav />
       <PayrollSummary />
     </div>

@@ -74,7 +74,7 @@ export function Disbursement() {
   };
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <PageHeader
         kicker="Accounting · A15 · Disbursement"
         title={
@@ -179,7 +179,7 @@ export function Disbursement() {
           </table>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {Object.entries(byBank).map(([b, t]) => (
             <div key={b} className="solid rounded-(--r-solid) p-4">
               <div className="flex items-center justify-between">

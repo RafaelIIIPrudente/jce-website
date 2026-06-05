@@ -9,7 +9,7 @@ export function HistoryNarrative({
 }) {
   return (
     <section className="border-b border-border bg-background">
-      <div className="mx-auto grid w-full max-w-6xl gap-12 px-6 py-section md:grid-cols-12 md:px-10">
+      <div className="mx-auto grid w-full max-w-site gap-12 px-6 py-section md:grid-cols-12 md:px-10">
         <header className="md:col-span-4">
           {eyebrow && (
             <p className="mb-4 text-eyebrow uppercase text-muted-foreground">

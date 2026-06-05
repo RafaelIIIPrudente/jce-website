@@ -50,7 +50,7 @@ function Field({ label, value }: { label: string; value?: string }) {
   return (
     <div>
       <dt className="kicker">{label}</dt>
-      <dd className="mt-0.5 text-ui-13 break-words text-jce-ink">
+      <dd className="mt-0.5 text-ui-13 wrap-break-word text-jce-ink">
         {value && value !== "—" ? (
           value
         ) : (
@@ -148,7 +148,7 @@ export function InquiriesInbox() {
   const showDetail = mobileDetail && selected != null;
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <PageHeader
         kicker="BDD · B10"
         title="Inquiries"
@@ -206,7 +206,7 @@ export function InquiriesInbox() {
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[360px_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[360px_1fr] 2xl:grid-cols-[420px_1fr]">
         {/* Master list */}
         <div
           className={cn(

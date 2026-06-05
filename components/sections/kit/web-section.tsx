@@ -28,7 +28,7 @@ export function WebSection({
         className,
       )}
     >
-      <div className="mx-auto w-full max-w-6xl">{children}</div>
+      <div className="mx-auto w-full max-w-site">{children}</div>
     </section>
   );
 }

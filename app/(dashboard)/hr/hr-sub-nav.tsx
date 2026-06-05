@@ -7,13 +7,16 @@ import { cn } from "@/lib/utils";
 import { useJce } from "@/lib/mock/role-context";
 import { hasGrant } from "@/lib/rbac";
 
-// HR section sub-nav. The HR module (sidebar) links to /hr → redirects to
-// Employees (H1 landing, OQ#7). Self-Service cross-links to /my-hr and is shown
-// only to roles that hold the `self` grant (hidden, never disabled).
+// HR section sub-nav. The HR module (sidebar) links to /hr → the department
+// Overview dashboard; Employees (H1) and the rest are their own tabs. Self-Service
+// cross-links to /my-hr and is shown only to roles that hold the `self` grant
+// (hidden, never disabled).
 const TABS = [
+  { href: "/hr", label: "Overview", module: "hr" as const },
   { href: "/hr/employees", label: "Employees", module: "hr" as const },
   { href: "/hr/timekeeping", label: "Timekeeping", module: "hr" as const },
   { href: "/hr/requests", label: "HR Requests", module: "hr" as const },
+  { href: "/hr/news-careers", label: "News & Careers", module: "hr" as const },
   { href: "/my-hr", label: "Self-Service", module: "self" as const },
   { href: "/hr/audit", label: "Audit", module: "hr" as const },
 ];
@@ -26,20 +29,23 @@ export function HrSubNav() {
   return (
     <nav
       aria-label="HR"
-      className="glass-nav inline-flex flex-wrap gap-0.5 rounded-[10px] p-1"
+      className="glass-nav inline-flex flex-wrap gap-0.5 rounded-(--r-solid) p-1"
     >
       {tabs.map((t) => {
-        const active = pathname.startsWith(t.href);
+        // Overview is the module home — EXACT match only, so it doesn't light up
+        // on every /hr/* route (mirrors the sidebar's /dashboard precedent).
+        const active =
+          t.href === "/hr" ? pathname === "/hr" : pathname.startsWith(t.href);
         return (
           <Link
             key={t.href}
             href={t.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "focus-ring-jce rounded-[7px] px-3.5 py-1.5 text-ui-12 font-semibold transition-colors",
+              "focus-ring-jce inline-flex min-h-11 items-center rounded-(--r-input) px-3.5 text-ui-12 font-semibold transition-colors",
               active
-                ? "bg-jce-green-700 text-primary-foreground"
-                : "text-jce-ink-2 hover:text-jce-green-900",
+                ? "bg-jce-green-50 text-jce-green-900"
+                : "text-jce-ink-2 hover:bg-jce-green-50 hover:text-jce-green-900",
             )}
           >
             {t.label}

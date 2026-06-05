@@ -6,7 +6,7 @@ import { Phase2SubNav } from "../pmg-sub-nav";
 // Budget (P14–P19).
 export default function Phase2Layout({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <Phase2SubNav />
       {children}
     </div>

@@ -27,7 +27,7 @@ export function ChartOfAccounts() {
   })).filter((g) => g.rows.length > 0);
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <PageHeader
         kicker="Accounting · A2"
         title="Chart of Accounts"

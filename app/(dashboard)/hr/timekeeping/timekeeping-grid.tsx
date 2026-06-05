@@ -10,9 +10,10 @@ import { useJce } from "@/lib/mock/role-context";
 import {
   DAY_TYPES,
   EMPLOYEES,
+  LEGACY_EMP_NO,
   PROJECTS,
   findEmployee,
-  getTimeRows,
+  getTimeRowsForEmployee,
   isLockedForEmployee,
   projLabel,
   rowDistribution,
@@ -38,8 +39,10 @@ const PROJECT_OPTIONS = ["—", ...PROJECTS.map((p) => p.so)];
 export function TimekeepingGrid() {
   const { role } = useJce();
   const [empId, setEmpId] = useState(9); // Noel Bautista
+  // Scoped to the legacy employee (Noel) so the grid stays a single-employee week
+  // even after the Site Day Sheet adds other employees' rows to the shared store.
   const [rows, setRows] = useState<TimeRow[]>(() =>
-    getTimeRows().map((r) => ({ ...r })),
+    getTimeRowsForEmployee(LEGACY_EMP_NO).map((r) => ({ ...r })),
   );
   const [previewLock, setPreviewLock] = useState(false);
 
@@ -121,7 +124,7 @@ export function TimekeepingGrid() {
   if (!emp) return null;
 
   return (
-    <div className="mx-auto flex w-full max-w-275 flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-app flex-col gap-5">
       {/* context bar */}
       <div className="glass flex flex-wrap items-end justify-between gap-4 rounded-(--r-glass) px-5 py-4">
         <div>

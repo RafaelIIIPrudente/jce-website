@@ -9,7 +9,7 @@ export function AccreditationStrip({
 }) {
   return (
     <section className="border-b border-border bg-background">
-      <div className="mx-auto w-full max-w-6xl px-6 py-block md:px-10">
+      <div className="mx-auto w-full max-w-site px-6 py-block md:px-10">
         <p className="text-center text-eyebrow uppercase text-muted-foreground">
           {eyebrow}
         </p>

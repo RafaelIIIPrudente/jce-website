@@ -1,19 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeftIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ClipboardCheckIcon,
+  SearchIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { useJce } from "@/lib/mock/role-context";
 import {
   BATCH_TONE,
   getBatches,
-  getTimeRows,
+  getTimeRowsForEmployee,
   projLabel,
   reopenBatch,
   rowDistribution,
   verifyBatch,
+  weekTotals,
   type Batch,
+  type BatchStatus,
 } from "@/lib/mock/hr";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,9 +31,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PageHeader } from "@/components/jce/page-header";
+import { KpiTile } from "@/components/jce/kpi-tile";
+import { MetricCard } from "@/components/jce/metric-card";
 import { Chip } from "@/components/jce/chip";
 import { DocChip } from "@/components/jce/doc-chip";
+import { EmptyState } from "@/components/jce/empty-state";
 import { LedgerGrid, type LedgerColumn } from "@/components/jce/ledger-grid";
 import { LockGateBanner } from "@/components/jce/lock-gate-banner";
 
@@ -35,8 +52,20 @@ import { LockGateBanner } from "@/components/jce/lock-gate-banner";
 // (lock-gate-banner). Re-open requires a reason (audited to H14). The verified
 // state is written to the lib/mock/hr BATCHES store so Accounting can read it and
 // the H5 grid locks. canVerify = timekeeper || owner (verbs ABSENT otherwise).
+// Premium register chrome: KPI strip + search/status toolbar + pager (list);
+// derived totals + sticky-first rows table (detail). Reads the local batches
+// state so the KPI strip tracks verify/re-open live.
 
 const VERIFIED_AT = "2026-06-03 10:15";
+const PAGE_SIZE = 8;
+
+type StatusFilter = BatchStatus | "All";
+const STATUS_FILTERS: readonly StatusFilter[] = [
+  "All",
+  "Open",
+  "Re-opened",
+  "Verified",
+];
 
 function statusLabel(b: Batch): string {
   return b.status === "Verified" ? "Verified · Locked" : b.status;
@@ -50,6 +79,11 @@ export function BatchesView() {
   const [selId, setSelId] = useState<number | null>(null);
   const [reopenOpen, setReopenOpen] = useState(false);
   const [reason, setReason] = useState("");
+
+  // List controls.
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState<StatusFilter>("All");
+  const [page, setPage] = useState(1);
 
   const sel = batches.find((b) => b.id === selId) ?? null;
 
@@ -73,9 +107,11 @@ export function BatchesView() {
   // ---- Detail ----
   if (sel) {
     const verified = sel.status === "Verified";
-    const tr = getTimeRows();
+    // FIX: the SELECTED batch's employee's rows (was the global getTimeRows()).
+    const tr = getTimeRowsForEmployee(sel.no);
+    const totals = weekTotals(tr);
     return (
-      <div className="mx-auto flex w-full max-w-275 flex-col gap-5">
+      <div className="mx-auto flex w-full max-w-app flex-col gap-5">
         <button
           type="button"
           onClick={() => setSelId(null)}
@@ -98,7 +134,11 @@ export function BatchesView() {
                 {statusLabel(sel)}
               </Chip>
               {canVerify && !verified ? (
-                <Button size="sm" onClick={() => markVerified(sel)}>
+                <Button
+                  size="sm"
+                  className="w-full sm:w-auto"
+                  onClick={() => markVerified(sel)}
+                >
                   Mark as Verified
                 </Button>
               ) : null}
@@ -106,6 +146,7 @@ export function BatchesView() {
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="w-full sm:w-auto"
                   onClick={() => setReopenOpen(true)}
                 >
                   Re-open…
@@ -134,6 +175,39 @@ export function BatchesView() {
           ))}
         </div>
 
+        {/* Derived period totals — the record centerpiece (summed over the
+            employee's rows; read-only `derived` identity). */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <MetricCard
+            derived
+            label="Total Reg"
+            value={`${totals.reg.toFixed(1)}`}
+            hint="regular hours"
+            tone="success"
+          />
+          <MetricCard
+            derived
+            label="Total OT"
+            value={`${totals.ot.toFixed(1)}`}
+            hint="overtime hours"
+            tone="info"
+          />
+          <MetricCard
+            derived
+            label="Total ND"
+            value={`${totals.nd.toFixed(1)}`}
+            hint="night differential"
+            tone="neutral"
+          />
+          <MetricCard
+            derived
+            label="Abs / UT"
+            value={`${totals.abs.toFixed(1)}`}
+            hint="absent / undertime"
+            tone={totals.abs > 0 ? "danger" : "neutral"}
+          />
+        </div>
+
         <LockGateBanner
           state={verified ? "locked" : "check"}
           title={
@@ -149,7 +223,7 @@ export function BatchesView() {
         />
 
         <div className="solid overflow-auto rounded-(--r-solid) p-0">
-          <table className="jtable">
+          <table className="jtable jtable-sticky-first">
             <thead>
               <tr>
                 <th>Date</th>
@@ -165,42 +239,50 @@ export function BatchesView() {
               </tr>
             </thead>
             <tbody>
-              {tr.map((r) => {
-                const d = rowDistribution(r, tr);
-                return (
-                  <tr key={r.id}>
-                    <td className="whitespace-nowrap">
-                      <strong>{r.day}</strong>{" "}
-                      <span className="font-mono text-jce-ink-2">
-                        {r.date.slice(8)}
-                      </span>
-                    </td>
-                    <td>{r.dayType}</td>
-                    <td>
-                      {r.proj === "—" ? (
-                        <span className="text-jce-ink-2">—</span>
-                      ) : (
-                        <DocChip code={projLabel(r.proj)} />
-                      )}
-                    </td>
-                    <td className="num font-mono">{r.in}</td>
-                    <td className="num font-mono">{r.out}</td>
-                    <td className="num">{d.reg.toFixed(1)}</td>
-                    <td className="num">{d.ot.toFixed(1)}</td>
-                    <td className="num">{d.nd.toFixed(1)}</td>
-                    <td className="num">
-                      {d.abs > 0 ? d.abs.toFixed(1) : "—"}
-                    </td>
-                    <td>
-                      {r.leave ? (
-                        <Chip tone="success">{r.leave}</Chip>
-                      ) : (
-                        <span className="text-jce-ink-2">—</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+              {tr.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="text-center text-jce-ink-2">
+                    No rows in this batch.
+                  </td>
+                </tr>
+              ) : (
+                tr.map((r) => {
+                  const d = rowDistribution(r, tr);
+                  return (
+                    <tr key={r.id}>
+                      <td className="whitespace-nowrap">
+                        <strong>{r.day}</strong>{" "}
+                        <span className="font-mono text-jce-ink-2">
+                          {r.date.slice(8)}
+                        </span>
+                      </td>
+                      <td>{r.dayType}</td>
+                      <td>
+                        {r.proj === "—" ? (
+                          <span className="text-jce-ink-2">—</span>
+                        ) : (
+                          <DocChip code={projLabel(r.proj)} />
+                        )}
+                      </td>
+                      <td className="num font-mono">{r.in}</td>
+                      <td className="num font-mono">{r.out}</td>
+                      <td className="num">{d.reg.toFixed(1)}</td>
+                      <td className="num">{d.ot.toFixed(1)}</td>
+                      <td className="num">{d.nd.toFixed(1)}</td>
+                      <td className="num">
+                        {d.abs > 0 ? d.abs.toFixed(1) : "—"}
+                      </td>
+                      <td>
+                        {r.leave ? (
+                          <Chip tone="success">{r.leave}</Chip>
+                        ) : (
+                          <span className="text-jce-ink-2">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
@@ -239,6 +321,40 @@ export function BatchesView() {
   }
 
   // ---- List ----
+  // KPI strip — derived live from the local batches state (tracks verify/re-open).
+  const openCount = batches.filter((b) => b.status === "Open").length;
+  const reopenedCount = batches.filter((b) => b.status === "Re-opened").length;
+  const verifiedCount = batches.filter((b) => b.status === "Verified").length;
+
+  const onSearch = (v: string) => {
+    setQ(v);
+    setPage(1);
+  };
+  const onStatus = (v: StatusFilter) => {
+    setStatus(v);
+    setPage(1);
+  };
+  const clearFilters = () => {
+    setQ("");
+    setStatus("All");
+    setPage(1);
+  };
+
+  const needle = q.trim().toLowerCase();
+  const filtered = batches.filter(
+    (b) =>
+      (status === "All" || b.status === status) &&
+      (needle === "" ||
+        (b.emp + b.no + b.period + b.range).toLowerCase().includes(needle)),
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages); // clamp when a filter shrinks the list
+  const pageRows = filtered.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  );
+
   const columns: LedgerColumn<Batch>[] = [
     {
       id: "emp",
@@ -284,18 +400,138 @@ export function BatchesView() {
   ];
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <PageHeader
         kicker="HR · H6 · Timekeeping"
         title="Verification batches"
         description="End-of-period review → correct → verify → lock → hand off to payroll."
       />
-      <LedgerGrid
-        columns={columns}
-        rows={batches}
-        getRowKey={(b) => b.id}
-        onRowClick={(b) => setSelId(b.id)}
-      />
+
+      {/* KPI strip — live across the batch store */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <KpiTile
+          label="Open"
+          value={openCount}
+          delta="awaiting review"
+          tone="neutral"
+        />
+        <KpiTile
+          label="Re-opened"
+          value={reopenedCount}
+          delta="needs re-verify"
+          tone="pending"
+        />
+        <KpiTile
+          label="Verified & locked"
+          value={verifiedCount}
+          delta="handed to payroll"
+          tone="success"
+        />
+        <KpiTile
+          label="Total batches"
+          value={batches.length}
+          delta="this period"
+          tone="info"
+        />
+      </div>
+
+      {/* Toolbar — search + status filter (44px controls, stack on mobile) */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex h-11 w-full items-center gap-2 rounded-(--r-input) border border-jce-line bg-white/70 px-3 transition-colors focus-within:border-jce-green-600 focus-within:shadow-(--focus-ring) sm:max-w-sm">
+          <SearchIcon className="size-4 shrink-0 text-jce-ink-2" aria-hidden />
+          <input
+            value={q}
+            onChange={(e) => onSearch(e.target.value)}
+            placeholder="Search employee, no., period, range…"
+            aria-label="Search verification batches"
+            className="h-full w-full bg-transparent text-ui-13 text-jce-ink outline-none placeholder:text-jce-ink-2"
+          />
+        </div>
+        <Select
+          value={status}
+          onValueChange={(v) => onStatus(v as StatusFilter)}
+        >
+          <SelectTrigger
+            className="min-h-11 w-full sm:w-44"
+            aria-label="Filter by status"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_FILTERS.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s === "All" ? "All statuses" : s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {batches.length === 0 ? (
+        <div className="glass rounded-(--r-glass) p-6">
+          <EmptyState
+            icon={
+              <ClipboardCheckIcon
+                className="size-7"
+                strokeWidth={1.5}
+                aria-hidden
+              />
+            }
+            title="No verification batches"
+            description="Batches are bundled per employee at period end — none are pending review yet."
+          />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="glass rounded-(--r-glass) p-6">
+          <EmptyState
+            icon={
+              <SearchIcon className="size-7" strokeWidth={1.5} aria-hidden />
+            }
+            title="No batches match your filters"
+            description="Try a different name, number, or status."
+            action={
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                Clear filters
+              </Button>
+            }
+          />
+        </div>
+      ) : (
+        <>
+          <LedgerGrid
+            columns={columns}
+            rows={pageRows}
+            getRowKey={(b) => b.id}
+            onRowClick={(b) => setSelId(b.id)}
+          />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-ui-12 text-jce-ink-2">
+              Page {safePage} of {totalPages} · {filtered.length} batch
+              {filtered.length === 1 ? "" : "es"}
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="focus-ring-jce min-h-11"
+                disabled={safePage <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                <ChevronLeftIcon aria-hidden /> Prev
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="focus-ring-jce min-h-11"
+                disabled={safePage >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                Next <ChevronRightIcon aria-hidden />
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

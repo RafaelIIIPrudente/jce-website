@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/jce/skeleton";
 // Suspense; the shimmer collapses to a static block under prefers-reduced-motion.
 export default function Loading() {
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <div className="glass rounded-(--r-glass) px-5 py-4">
         <Skeleton className="h-3 w-24" />
         <Skeleton className="mt-2 h-6 w-48" />

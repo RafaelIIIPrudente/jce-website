@@ -17,7 +17,7 @@ export function StatBand({
 }) {
   return (
     <section className={cn("border-y border-border bg-card", className)}>
-      <div className="mx-auto w-full max-w-6xl px-6 py-block md:px-10">
+      <div className="mx-auto w-full max-w-site px-6 py-block md:px-10">
         {eyebrow && (
           <p className="mb-8 text-eyebrow uppercase text-muted-foreground">
             {eyebrow}

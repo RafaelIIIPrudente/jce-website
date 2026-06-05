@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "PMG audit log" };
 // P13 · PMG audit log (pmg-screens.jsx:1241). Append-only before→after snapshots.
 export default function PmgAuditPage() {
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <PageHeader
         kicker="PMG · P13"
         title="PMG audit log"

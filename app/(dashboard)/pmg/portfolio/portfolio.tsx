@@ -56,7 +56,7 @@ export function Portfolio() {
     : PROJECTS_PMG;
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <PageHeader
         kicker="PMG · P2"
         title={
@@ -162,7 +162,7 @@ export function Portfolio() {
           </table>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {list.map((p) => (
             <Link
               key={p.code}

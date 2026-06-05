@@ -4,10 +4,10 @@ import Link from "next/link";
 import { ArrowRightIcon } from "lucide-react";
 
 import {
-  REQUESTS,
   REQUEST_TYPES,
   REQ_TONE,
   findEmployee,
+  getRequests,
   getTimeRows,
   projLabel,
   rowDistribution,
@@ -27,7 +27,7 @@ export function MyHrHome() {
   if (!me) return null;
 
   const myRequests = REQUEST_TYPES.flatMap((t) =>
-    REQUESTS[t.label]
+    getRequests(t.label)
       .filter((r) => r.emp.includes("Bautista"))
       .map((r) => ({ ...r, type: t.label })),
   );

@@ -16,8 +16,12 @@ import {
   type ProjectImage,
 } from "@/lib/content/projects";
 import {
+  CAREERS,
+  NEWS,
   PRODUCTS,
   SERVICES,
+  type CareerRole,
+  type NewsArticle,
   type Product,
   type Service,
 } from "@/lib/content/website";
@@ -1010,6 +1014,116 @@ export function updateCmsProduct(
   const i = cmsProductStore.findIndex((p) => p.name === name);
   const cur = cmsProductStore[i];
   if (cur) cmsProductStore[i] = { ...cur, ...patch };
+}
+
+// ---- HR News & Careers CMS (reuses the B7–B9 pattern + WebStatus + audit) ---
+// Same governance layered onto the public News/Careers types so HR can manage the
+// public site's announcements + openings (≤10 photos each). CareerRole has no slug
+// — the record gets a generated, deduped slug as its key (like services). Seeded
+// from NEWS/CAREERS (status Published); edits persist in-session + append to the
+// website audit; live write-back is PROPOSED (identical to B7–B9).
+export type CmsNews = NewsArticle & {
+  status: WebStatus;
+  sort: number;
+  photos?: readonly ProjectImage[];
+  coverIndex?: number;
+  archived?: boolean;
+};
+export type CmsCareer = CareerRole & {
+  slug: string;
+  status: WebStatus;
+  sort: number;
+  photos?: readonly ProjectImage[];
+  coverIndex?: number;
+  archived?: boolean;
+};
+
+function cmsSlug(s: string): string {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+const cmsNewsStore: CmsNews[] = NEWS.map(
+  (n, i): CmsNews => ({
+    ...n,
+    status: "Published",
+    sort: i,
+    photos: [],
+    coverIndex: 0,
+    archived: false,
+  }),
+);
+
+const cmsCareerStore: CmsCareer[] = (() => {
+  const seen = new Set<string>();
+  return CAREERS.map((c, i): CmsCareer => {
+    const base = cmsSlug(c.title) || `career-${i + 1}`;
+    let slug = base;
+    let n = 2;
+    while (seen.has(slug)) slug = `${base}-${n++}`;
+    seen.add(slug);
+    return {
+      ...c,
+      slug,
+      status: "Published",
+      sort: i,
+      photos: [],
+      coverIndex: 0,
+      archived: false,
+    };
+  });
+})();
+
+export type NewCmsNews = Pick<
+  CmsNews,
+  "slug" | "title" | "date" | "cat" | "excerpt" | "status"
+>;
+export type NewCmsCareer = Pick<
+  CmsCareer,
+  "slug" | "title" | "dept" | "loc" | "type" | "status"
+>;
+
+export function getCmsNews(): readonly CmsNews[] {
+  return cmsNewsStore;
+}
+export function addCmsNews(input: NewCmsNews): CmsNews {
+  const created: CmsNews = {
+    ...input,
+    photos: [],
+    coverIndex: 0,
+    sort: cmsNewsStore.length,
+    archived: false,
+  };
+  cmsNewsStore.push(created);
+  return created;
+}
+export function updateCmsNews(slug: string, patch: Partial<CmsNews>): void {
+  const i = cmsNewsStore.findIndex((n) => n.slug === slug);
+  const cur = cmsNewsStore[i];
+  if (cur) cmsNewsStore[i] = { ...cur, ...patch };
+}
+
+export function getCmsCareers(): readonly CmsCareer[] {
+  return cmsCareerStore;
+}
+export function addCmsCareer(input: NewCmsCareer): CmsCareer {
+  const created: CmsCareer = {
+    ...input,
+    photos: [],
+    coverIndex: 0,
+    sort: cmsCareerStore.length,
+    archived: false,
+  };
+  cmsCareerStore.push(created);
+  return created;
+}
+export function updateCmsCareer(slug: string, patch: Partial<CmsCareer>): void {
+  const i = cmsCareerStore.findIndex((c) => c.slug === slug);
+  const cur = cmsCareerStore[i];
+  if (cur) cmsCareerStore[i] = { ...cur, ...patch };
 }
 
 // ---- B10 · inquiry status tones (inquiries live in lib/mock/inquiries.ts) ---

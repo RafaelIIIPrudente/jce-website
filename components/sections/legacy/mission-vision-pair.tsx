@@ -9,7 +9,7 @@ export function MissionVisionPair({
 }) {
   return (
     <section className="border-b border-border bg-background">
-      <div className="mx-auto w-full max-w-6xl px-6 py-section md:px-10">
+      <div className="mx-auto w-full max-w-site px-6 py-section md:px-10">
         {eyebrow && (
           <p className="mb-10 text-eyebrow uppercase text-muted-foreground">
             {eyebrow}

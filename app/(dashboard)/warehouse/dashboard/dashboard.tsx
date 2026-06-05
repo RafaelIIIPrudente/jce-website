@@ -41,7 +41,7 @@ export function WarehouseDashboard() {
   ].filter((q) => !scoped || q.so === SITEENG_SO);
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-app flex-col gap-5">
       <PageHeader
         kicker="Warehouse · W1"
         title="Warehouse"
@@ -51,7 +51,7 @@ export function WarehouseDashboard() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         {cards.map((p) => (
           <Link
             key={p.name}

@@ -37,7 +37,7 @@ export function PrqRegister() {
   const canCreate = canEdit(role, "pur");
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
+    <div className="mx-auto flex w-full max-w-app flex-col gap-4">
       <PageHeader
         kicker="Purchasing · U11"
         title={

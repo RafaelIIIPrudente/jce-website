@@ -26,7 +26,7 @@ export function RoleSwitcher() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="focus-ring-jce flex items-center gap-1.5 rounded-[8px] border border-jce-line bg-white/70 px-2.5 py-1.5 text-ui-12 transition-colors hover:border-jce-green-500"
+          className="focus-ring-jce flex min-h-11 items-center gap-1.5 rounded-(--r-input) border border-jce-line bg-card/70 px-2.5 text-ui-12 transition-colors hover:border-jce-green-500"
         >
           <span className="hidden text-jce-ink-2 sm:inline">
             Prototype · view as
@@ -51,7 +51,7 @@ export function RoleSwitcher() {
               <div className="flex w-full items-center justify-between gap-2">
                 <span className="text-ui-13">{v.name}</span>
                 {v.note ? (
-                  <span className="shrink-0 text-[10px] text-jce-ink-2">
+                  <span className="shrink-0 text-ui-12 text-jce-ink-2">
                     {v.note}
                   </span>
                 ) : null}

@@ -10,7 +10,7 @@ import { PmgSubNav } from "./pmg-sub-nav";
 export default function PmgLayout({ children }: { children: ReactNode }) {
   return (
     <>
-      <div className="mx-auto mb-5 w-full max-w-6xl">
+      <div className="mx-auto mb-5 w-full max-w-app">
         <PmgSubNav />
       </div>
       {children}

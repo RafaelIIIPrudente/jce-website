@@ -9,7 +9,7 @@ import { HrSubNav } from "./hr-sub-nav";
 export default function HrLayout({ children }: { children: ReactNode }) {
   return (
     <>
-      <div className="mx-auto mb-5 w-full max-w-6xl">
+      <div className="mx-auto mb-5 w-full max-w-app">
         <HrSubNav />
       </div>
       {children}

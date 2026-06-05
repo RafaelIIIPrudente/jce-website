@@ -100,7 +100,7 @@ export function PayrollWorkspace({ batch }: { batch: PayBatch }) {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-310 flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-app flex-col gap-5">
       <Link
         href="/accounting/payroll"
         className="focus-ring-jce inline-flex w-fit items-center gap-1 rounded text-ui-13 text-jce-ink-2 transition-colors hover:text-jce-green-900"

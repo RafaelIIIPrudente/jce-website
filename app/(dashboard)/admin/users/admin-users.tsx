@@ -111,7 +111,7 @@ export function AdminUsers() {
   ];
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <PageHeader
         kicker="Admin · X5"
         title="Users & roles"
@@ -142,7 +142,7 @@ export function AdminUsers() {
         }
       />
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_280px]">
+      <div className="grid gap-5 lg:grid-cols-[1fr_280px] 2xl:grid-cols-[1fr_320px]">
         <LedgerGrid
           columns={columns}
           rows={filtered}

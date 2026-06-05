@@ -91,7 +91,7 @@ export function Reporting() {
   // ---- catalog ----
   if (!picked) {
     return (
-      <div className="mx-auto flex max-w-6xl flex-col gap-5">
+      <div className="mx-auto flex max-w-app flex-col gap-5">
         <PageHeader
           kicker="Accounting · A18"
           title="Reporting hub"
@@ -100,7 +100,7 @@ export function Reporting() {
         {Object.entries(REPORTS).map(([fam, items]) => (
           <section key={fam} className="flex flex-col gap-2">
             <div className="kicker text-jce-green-600">{fam}</div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
               {items.map((it) => (
                 <button
                   key={it.name}
@@ -135,7 +135,7 @@ export function Reporting() {
   const drCr = TB_ROWS.reduce((a, r) => a + r.cr, 0);
 
   return (
-    <div className="mx-auto flex w-full max-w-310 flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-app flex-col gap-5">
       <button
         type="button"
         onClick={() => {
@@ -164,7 +164,7 @@ export function Reporting() {
         }
       />
 
-      <div className="grid gap-5 lg:grid-cols-[300px_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[300px_1fr] 2xl:grid-cols-[340px_1fr]">
         {/* params */}
         <div className="solid flex flex-col gap-3 rounded-(--r-solid) p-5">
           <h2 className="text-ui-14 font-semibold text-jce-ink">Parameters</h2>

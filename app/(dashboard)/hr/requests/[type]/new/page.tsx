@@ -23,5 +23,5 @@ export default async function NewRequestPage({
   const { type } = await params;
   const def = typeBySlug(type);
   if (!def) notFound();
-  return <RequestForm type={def.label} />;
+  return <RequestForm type={def.label} slug={def.slug} />;
 }

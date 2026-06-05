@@ -38,7 +38,7 @@ export default function BudgetPage() {
         title="Project budget vs actual"
         description="BOQ contract vs committed POs & issued materials · ties to Purchasing U21."
       />
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3 2xl:grid-cols-4">
         {ROWS.map((r) => {
           const usedPct = Math.round((r.actual / r.contract) * 100);
           const commPct = Math.round((r.committed / r.contract) * 100);
