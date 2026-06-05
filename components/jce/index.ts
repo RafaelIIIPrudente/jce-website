@@ -28,6 +28,8 @@ export {
   LockGateBanner,
   type LockState,
 } from "@/components/jce/lock-gate-banner";
+export { Meter, type MeterTone } from "@/components/jce/meter";
+export { MetricCard, type MetricTone } from "@/components/jce/metric-card";
 export { ModuleIcon } from "@/components/jce/module-icon";
 export { PageHeader } from "@/components/jce/page-header";
 export { PhotoManager } from "@/components/jce/photo-manager";

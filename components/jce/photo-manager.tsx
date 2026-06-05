@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -16,6 +16,16 @@ import { Chip } from "@/components/jce/chip";
 
 // Photo manager (P14) — up to 10 photos with captions, reorder and a cover flag.
 // Mock only: "Add photo" appends a placeholder tile; no real upload. Tag: Solid.
+//
+// Two modes:
+//   • Uncontrolled (no value/onChange) — self-contained local state (P14 demo,
+//     foundations-gallery). Unchanged behavior.
+//   • Controlled (value + onChange) — bound to an owner record's photos, so the
+//     BDD Website CMS persists captions/cover/order to its in-session store.
+// `readOnly` renders the tiles statically (no add/remove/caption/reorder/cover).
+
+/** The owner-facing photo shape (caption + cover designation). */
+export type ManagedPhoto = { caption: string; cover: boolean };
 
 type Photo = { id: number; caption: string; cover: boolean };
 
@@ -26,48 +36,66 @@ const SEED: Photo[] = [
 
 export function PhotoManager({
   max = 10,
+  value,
+  onChange,
+  readOnly = false,
   className,
 }: {
   max?: number;
+  value?: readonly ManagedPhoto[];
+  onChange?: (next: ManagedPhoto[]) => void;
+  readOnly?: boolean;
   className?: string;
 }) {
-  const [photos, setPhotos] = useState<Photo[]>(SEED);
-  const nextId = useRef(SEED.length + 1);
+  const controlled = value != null && onChange != null;
+  const [internal, setInternal] = useState<Photo[]>(SEED);
 
-  const add = () =>
-    setPhotos((p) =>
-      p.length >= max
-        ? p
-        : [...p, { id: nextId.current++, caption: "", cover: p.length === 0 }],
-    );
+  // Working list: controlled from `value` (stable ids by position), else local.
+  const photos: Photo[] = controlled
+    ? value.map((p, i) => ({ id: i + 1, caption: p.caption, cover: p.cover }))
+    : internal;
 
-  const remove = (id: number) =>
-    setPhotos((p) => {
-      const np = p.filter((x) => x.id !== id);
-      if (np.length === 0) return np;
-      return np.some((x) => x.cover)
-        ? np
-        : np.map((x, i) => (i === 0 ? { ...x, cover: true } : x));
-    });
+  const commit = (np: Photo[]) => {
+    if (controlled)
+      onChange(np.map((p) => ({ caption: p.caption, cover: p.cover })));
+    else setInternal(np);
+  };
+
+  const add = () => {
+    if (readOnly || photos.length >= max) return;
+    const nextId = photos.reduce((m, p) => Math.max(m, p.id), 0) + 1;
+    commit([
+      ...photos,
+      { id: nextId, caption: "", cover: photos.length === 0 },
+    ]);
+  };
+
+  const remove = (id: number) => {
+    let np = photos.filter((x) => x.id !== id);
+    // Keep exactly one cover designated when photos remain.
+    if (np.length > 0 && !np.some((x) => x.cover)) {
+      np = np.map((x, i) => (i === 0 ? { ...x, cover: true } : x));
+    }
+    commit(np);
+  };
 
   const setCover = (id: number) =>
-    setPhotos((p) => p.map((x) => ({ ...x, cover: x.id === id })));
+    commit(photos.map((x) => ({ ...x, cover: x.id === id })));
 
   const setCaption = (id: number, caption: string) =>
-    setPhotos((p) => p.map((x) => (x.id === id ? { ...x, caption } : x)));
+    commit(photos.map((x) => (x.id === id ? { ...x, caption } : x)));
 
-  const move = (idx: number, dir: -1 | 1) =>
-    setPhotos((p) => {
-      const j = idx + dir;
-      if (j < 0 || j >= p.length) return p;
-      const a = p[idx];
-      const b = p[j];
-      if (!a || !b) return p;
-      const np = [...p];
-      np[idx] = b;
-      np[j] = a;
-      return np;
-    });
+  const move = (idx: number, dir: -1 | 1) => {
+    const j = idx + dir;
+    if (j < 0 || j >= photos.length) return;
+    const a = photos[idx];
+    const b = photos[j];
+    if (!a || !b) return;
+    const np = [...photos];
+    np[idx] = b;
+    np[j] = a;
+    commit(np);
+  };
 
   return (
     <div data-slot="photo-manager" className={className}>
@@ -75,74 +103,99 @@ export function PhotoManager({
         <span className="text-ui-12 text-jce-ink-2">
           {photos.length} / {max} photos
         </span>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={add}
-          disabled={photos.length >= max}
-        >
-          <PlusIcon data-icon="inline-start" />
-          Add photo
-        </Button>
+        {!readOnly ? (
+          <Button
+            size="sm"
+            variant="outline"
+            className="min-h-11"
+            onClick={add}
+            disabled={photos.length >= max}
+          >
+            <PlusIcon data-icon="inline-start" />
+            Add photo
+          </Button>
+        ) : null}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {photos.map((ph, idx) => (
-          <div
-            key={ph.id}
-            className="overflow-hidden rounded-[10px] border border-jce-line bg-card"
-          >
-            <div className="relative grid aspect-[4/3] place-items-center bg-[linear-gradient(135deg,var(--jce-green-50),var(--jce-orange-100))] text-jce-green-700">
-              <ImageIcon className="size-7" strokeWidth={1.5} aria-hidden />
-              {ph.cover ? (
-                <span className="absolute top-2 left-2">
-                  <Chip tone="success">Cover</Chip>
-                </span>
-              ) : null}
-            </div>
-            <div className="p-2">
-              <input
-                value={ph.caption}
-                onChange={(e) => setCaption(ph.id, e.target.value)}
-                placeholder="Caption…"
-                className="field text-ui-12"
-              />
-              <div className="mt-1.5 flex items-center justify-between">
-                <div className="flex gap-0.5">
-                  <IconBtn
-                    label="Move up"
-                    onClick={() => move(idx, -1)}
-                    disabled={idx === 0}
-                  >
-                    <ArrowUpIcon className="size-3.5" aria-hidden />
-                  </IconBtn>
-                  <IconBtn
-                    label="Move down"
-                    onClick={() => move(idx, 1)}
-                    disabled={idx === photos.length - 1}
-                  >
-                    <ArrowDownIcon className="size-3.5" aria-hidden />
-                  </IconBtn>
-                </div>
-                <div className="flex gap-0.5">
-                  <IconBtn label="Set as cover" onClick={() => setCover(ph.id)}>
-                    <StarIcon
-                      className={cn(
-                        "size-3.5",
-                        ph.cover && "fill-jce-orange-500 text-jce-orange-500",
-                      )}
-                      aria-hidden
-                    />
-                  </IconBtn>
-                  <IconBtn label="Remove" onClick={() => remove(ph.id)}>
-                    <TrashIcon className="size-3.5" aria-hidden />
-                  </IconBtn>
-                </div>
+      {photos.length === 0 ? (
+        <div className="flex flex-col items-center rounded-[10px] border border-dashed border-jce-line px-6 py-8 text-center">
+          <ImageIcon
+            className="size-7 text-jce-ink-2"
+            strokeWidth={1.5}
+            aria-hidden
+          />
+          <p className="mt-2 text-ui-12 text-jce-ink-2">
+            {readOnly
+              ? "No photos on this record."
+              : "No photos yet — add up to 10 placeholder images."}
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {photos.map((ph, idx) => (
+            <div
+              key={ph.id}
+              className="overflow-hidden rounded-[10px] border border-jce-line bg-card"
+            >
+              <div className="relative grid aspect-4/3 place-items-center bg-[linear-gradient(135deg,var(--jce-green-50),var(--jce-orange-100))] text-jce-green-700">
+                <ImageIcon className="size-7" strokeWidth={1.5} aria-hidden />
+                {ph.cover ? (
+                  <span className="absolute top-2 left-2">
+                    <Chip tone="success">Cover</Chip>
+                  </span>
+                ) : null}
+              </div>
+              <div className="p-2">
+                <input
+                  value={ph.caption}
+                  onChange={(e) => setCaption(ph.id, e.target.value)}
+                  placeholder="Caption…"
+                  readOnly={readOnly}
+                  className="field text-ui-12"
+                />
+                {!readOnly ? (
+                  <div className="mt-1.5 flex items-center justify-between">
+                    <div className="flex gap-0.5">
+                      <IconBtn
+                        label="Move up"
+                        onClick={() => move(idx, -1)}
+                        disabled={idx === 0}
+                      >
+                        <ArrowUpIcon className="size-3.5" aria-hidden />
+                      </IconBtn>
+                      <IconBtn
+                        label="Move down"
+                        onClick={() => move(idx, 1)}
+                        disabled={idx === photos.length - 1}
+                      >
+                        <ArrowDownIcon className="size-3.5" aria-hidden />
+                      </IconBtn>
+                    </div>
+                    <div className="flex gap-0.5">
+                      <IconBtn
+                        label="Set as cover"
+                        onClick={() => setCover(ph.id)}
+                      >
+                        <StarIcon
+                          className={cn(
+                            "size-3.5",
+                            ph.cover &&
+                              "fill-jce-orange-500 text-jce-orange-500",
+                          )}
+                          aria-hidden
+                        />
+                      </IconBtn>
+                      <IconBtn label="Remove" onClick={() => remove(ph.id)}>
+                        <TrashIcon className="size-3.5" aria-hidden />
+                      </IconBtn>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

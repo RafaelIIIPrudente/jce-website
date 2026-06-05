@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 
-import { OFFERS, OFFER_EVENTS } from "@/lib/mock/bdd";
+import { OFFERS } from "@/lib/mock/bdd";
 import { OfferRecord } from "./offer-record";
 
 export async function generateMetadata({
@@ -14,15 +13,14 @@ export async function generateMetadata({
   return { title: offer ? offer.ref : "Offer" };
 }
 
-// B4 · Offer record — event stream.
+// B4 · Offer record — event stream. The record resolves the offer from the shared
+// in-session store on the client (so offers created this session are reachable
+// without a 404); a genuinely-absent ref renders an empty state there.
 export default async function OfferPage({
   params,
 }: {
   params: Promise<{ ref: string }>;
 }) {
   const { ref } = await params;
-  const offer = OFFERS.find((x) => x.ref === ref);
-  if (!offer) notFound();
-  const seedEvents = OFFER_EVENTS[ref] ?? [];
-  return <OfferRecord offer={offer} seedEvents={seedEvents} />;
+  return <OfferRecord offerRef={ref} />;
 }

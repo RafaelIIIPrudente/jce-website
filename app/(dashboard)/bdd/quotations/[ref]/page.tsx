@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 
-import { QUOTATIONS, SUPPLIER_QUOTES } from "@/lib/mock/bdd";
+import { QUOTATIONS } from "@/lib/mock/bdd";
 import { QuotationDetail } from "./quotation-detail";
 
 export async function generateMetadata({
@@ -14,15 +13,15 @@ export async function generateMetadata({
   return { title: q ? q.ref : "Quotation" };
 }
 
-// B6 · Quotation comparison.
+// B6 · Quotation comparison. The detail resolves the request + its logged supplier
+// quotes from the shared in-session store on the client (so requests created this
+// session are reachable without a 404); a genuinely-absent ref renders an empty
+// state there.
 export default async function QuotationPage({
   params,
 }: {
   params: Promise<{ ref: string }>;
 }) {
   const { ref } = await params;
-  const quotation = QUOTATIONS.find((x) => x.ref === ref);
-  if (!quotation) notFound();
-  const seedQuotes = SUPPLIER_QUOTES[ref] ?? [];
-  return <QuotationDetail quotation={quotation} seedQuotes={seedQuotes} />;
+  return <QuotationDetail quotationRef={ref} />;
 }

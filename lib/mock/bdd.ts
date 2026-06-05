@@ -8,8 +8,24 @@
 // Inquiries do NOT live here — they share lib/mock/inquiries.ts with the website.
 // ============================================================================
 
-// Chip tone vocabulary (matches components/jce/chip ChipTone) — kept local so this
-// data module has no component dependency.
+import { type LucideIcon, ZapIcon } from "lucide-react";
+
+import {
+  ALL_PROJECTS,
+  type Project,
+  type ProjectImage,
+} from "@/lib/content/projects";
+import {
+  PRODUCTS,
+  SERVICES,
+  type Product,
+  type Service,
+} from "@/lib/content/website";
+
+// Chip tone vocabulary (matches components/jce/chip ChipTone). The B7–B9 Website
+// CMS below deliberately imports the public content schemas (lib/content): the CMS
+// record types are the public Project/Service/Product &-extended, so they track the
+// live site by construction (SRS §9.2) rather than re-declaring a parallel shape.
 export type Tone =
   | "success"
   | "pending"
@@ -24,6 +40,8 @@ export type SalesOrder = {
   date: string;
   client: string;
   name: string;
+  /** short, factual scope of work — register-cell length (B1 column, B2 header) */
+  scope: string;
   amount: number;
   /** cumulative progress-billed to date (sum of issued billings — external) */
   cumBilled: number;
@@ -33,12 +51,16 @@ export type SalesOrder = {
   by: string;
 };
 
+// Seed registry (frozen). This is the CANONICAL SO# list every other module
+// (Parts 4–8) aligns to — keep it exported and immutable for back-compat. The
+// in-session mutable store below is seeded from this and is what the BDD UI reads.
 export const SALES_ORDERS: readonly SalesOrder[] = [
   {
     so: "26-05-378",
     date: "2026-05-02",
     client: "NORECO II",
     name: "13.2KV Distribution Line",
+    scope: "13.2KV distribution line construction",
     amount: 53277688,
     cumBilled: 6039221.6, // 11.34% PB1 anchor → retention/recoup/remaining derive from this
     remarks: "With Contract",
@@ -51,6 +73,7 @@ export const SALES_ORDERS: readonly SalesOrder[] = [
     date: "2026-04-10",
     client: "Meralco",
     name: "Cavite 69KV Transmission Line",
+    scope: "69KV transmission line construction",
     amount: 38400000,
     cumBilled: 1920000,
     remarks: "With NTP",
@@ -63,6 +86,7 @@ export const SALES_ORDERS: readonly SalesOrder[] = [
     date: "2025-11-04",
     client: "SMC Global",
     name: "Solar Farm Tarlac 5MWp",
+    scope: "5MWp solar farm EPC",
     amount: 62000000,
     cumBilled: 12400000,
     remarks: "With SOA",
@@ -75,6 +99,7 @@ export const SALES_ORDERS: readonly SalesOrder[] = [
     date: "2025-09-18",
     client: "NGCP",
     name: "230KV Substation — Bulacan",
+    scope: "230KV substation erection",
     amount: 120400000,
     cumBilled: 120400000,
     remarks: "Done",
@@ -87,6 +112,7 @@ export const SALES_ORDERS: readonly SalesOrder[] = [
     date: "2026-06-01",
     client: "Aboitiz Power",
     name: "Switchgear supply",
+    scope: "Switchgear supply",
     amount: 0,
     cumBilled: 0,
     remarks: "No Offer Yet",
@@ -95,6 +121,192 @@ export const SALES_ORDERS: readonly SalesOrder[] = [
     by: "BDD Staff",
   },
 ] as const;
+
+// ---- B1/B2 · in-session SO store (mirrors lib/mock/inquiries.ts) -----------
+// ONE store, no parallel copy. Client-session singleton (module-level) — NO
+// backend/DB/persistence. Reloading the page resets it to the seed (intentional
+// mock). The BDD list + record read/write THROUGH these helpers so created SOs
+// are reachable; other modules keep aligning to the frozen SALES_ORDERS seed.
+const soStore: SalesOrder[] = SALES_ORDERS.map((o) => ({ ...o }));
+
+/** The fields a new SO needs; cumBilled/turned default for a fresh order. */
+export type NewSalesOrder = Pick<
+  SalesOrder,
+  | "so"
+  | "date"
+  | "client"
+  | "name"
+  | "scope"
+  | "amount"
+  | "remarks"
+  | "status"
+  | "by"
+>;
+
+/** Current SO registry (newest-created first, then seed order). */
+export function getSalesOrders(): readonly SalesOrder[] {
+  return soStore;
+}
+
+/** Append a new SO at the top so it lands on page 1; returns the created record. */
+export function addSalesOrder(input: NewSalesOrder): SalesOrder {
+  const created: SalesOrder = { ...input, cumBilled: 0, turned: false };
+  soStore.unshift(created);
+  return created;
+}
+
+/** In-session mutate (B2 status / remarks / contract amount). */
+export function updateSalesOrder(
+  so: string,
+  patch: Partial<Omit<SalesOrder, "so">>,
+): void {
+  const i = soStore.findIndex((o) => o.so === so);
+  const cur = soStore[i];
+  if (cur) soStore[i] = { ...cur, ...patch };
+}
+
+// ---- B2 · linked records (mock until Acctg/Purchasing/Warehouse are wired) --
+// Billings (Part 5) · POs (Part 7) · Material Requests (Part 8), keyed by SO#.
+// Amounts use `amount`; date-based rows use `date`. SOs with no activity are
+// simply absent (the record falls back to an all-empty group set).
+export type SoLinkedRow = {
+  doc: string;
+  label: string;
+  amount?: number;
+  date?: string;
+  status: string;
+  tone: Tone;
+};
+export type SoLinked = {
+  billings: readonly SoLinkedRow[];
+  pos: readonly SoLinkedRow[];
+  mrs: readonly SoLinkedRow[];
+};
+
+export const SO_LINKED: Record<string, SoLinked> = {
+  "26-05-378": {
+    billings: [
+      {
+        doc: "PB1",
+        label: "Progress Billing 1 · 11.34%",
+        amount: 6039221.6,
+        status: "Paid",
+        tone: "success",
+      },
+    ],
+    pos: [
+      {
+        doc: "PO-26-0142",
+        label: "Power transformer 10MVA — ABB Inc.",
+        amount: 4200000,
+        status: "Delivered",
+        tone: "success",
+      },
+      {
+        doc: "PO-26-0151",
+        label: "Conductor & line hardware",
+        amount: 1850000,
+        status: "In transit",
+        tone: "info",
+      },
+    ],
+    mrs: [
+      {
+        doc: "MR-26-088",
+        label: "Site mobilization materials",
+        date: "2026-05-15",
+        status: "Released",
+        tone: "success",
+      },
+    ],
+  },
+  "26-04-355": {
+    billings: [
+      {
+        doc: "PB1",
+        label: "Progress Billing 1 · 5.00%",
+        amount: 1920000,
+        status: "For Payment",
+        tone: "pending",
+      },
+    ],
+    pos: [
+      {
+        doc: "PO-26-0160",
+        label: "Steel transmission poles",
+        amount: 2400000,
+        status: "Ordered",
+        tone: "info",
+      },
+    ],
+    mrs: [],
+  },
+  "25-11-290": {
+    billings: [
+      {
+        doc: "PB1",
+        label: "Progress Billing 1 · 20.00%",
+        amount: 12400000,
+        status: "Paid",
+        tone: "success",
+      },
+    ],
+    pos: [
+      {
+        doc: "PO-25-0301",
+        label: "PV modules 550Wp — JinkoSolar",
+        amount: 9600000,
+        status: "Delivered",
+        tone: "success",
+      },
+    ],
+    mrs: [
+      {
+        doc: "MR-25-201",
+        label: "Mounting structures & inverters",
+        date: "2025-11-28",
+        status: "Released",
+        tone: "success",
+      },
+    ],
+  },
+  "25-09-201": {
+    billings: [
+      {
+        doc: "FB",
+        label: "Final Billing · 100.00%",
+        amount: 120400000,
+        status: "Paid",
+        tone: "success",
+      },
+    ],
+    pos: [
+      {
+        doc: "PO-25-0120",
+        label: "230KV GIS switchgear",
+        amount: 64000000,
+        status: "Delivered",
+        tone: "success",
+      },
+    ],
+    mrs: [
+      {
+        doc: "MR-25-110",
+        label: "Substation steelworks",
+        date: "2025-09-30",
+        status: "Released",
+        tone: "success",
+      },
+    ],
+  },
+};
+
+const SO_LINKED_EMPTY: SoLinked = { billings: [], pos: [], mrs: [] };
+
+/** Linked billings/POs/MRs for an SO# (all-empty when the SO has no activity). */
+export function getSoLinked(so: string): SoLinked {
+  return SO_LINKED[so] ?? SO_LINKED_EMPTY;
+}
 
 export const SO_REMARK_TONE: Record<string, Tone> = {
   "No Offer Yet": "neutral",
@@ -227,6 +439,50 @@ export const OFFERS: readonly Offer[] = [
   },
 ] as const;
 
+// ---- B3/B4 · in-session Offer store (mirrors the SO store above) ------------
+// ONE store, no parallel copy. Client-session singleton (module-level) — NO
+// backend/DB/persistence. The seed OFFERS above stays frozen for back-compat;
+// the BDD list + record read/write THROUGH these helpers so offers created this
+// session appear in their entity stream and open a working detail. Reloading the
+// page resets to the seed (intentional mock).
+const offerStore: Offer[] = OFFERS.map((o) => ({ ...o }));
+
+/** The fields a new offer needs; rev defaults to 0 for a fresh offer. */
+export type NewOffer = Pick<
+  Offer,
+  | "ref"
+  | "entity"
+  | "date"
+  | "emailed"
+  | "by"
+  | "client"
+  | "subject"
+  | "amount"
+  | "status"
+>;
+
+/** Current offer registry (newest-created first, then seed order). */
+export function getOffers(): readonly Offer[] {
+  return offerStore;
+}
+
+/** Prepend a new offer so it lands on page 1 of its entity stream; returns it. */
+export function addOffer(input: NewOffer): Offer {
+  const created: Offer = { ...input, rev: 0 };
+  offerStore.unshift(created);
+  return created;
+}
+
+/** In-session mutate (parity with updateSalesOrder; ref is the route key). */
+export function updateOffer(
+  ref: string,
+  patch: Partial<Omit<Offer, "ref">>,
+): void {
+  const i = offerStore.findIndex((o) => o.ref === ref);
+  const cur = offerStore[i];
+  if (cur) offerStore[i] = { ...cur, ...patch };
+}
+
 export const OFFER_STATUS_TONE: Record<string, Tone> = {
   "Waiting for Client Response": "pending",
   Acknowledged: "info",
@@ -237,6 +493,19 @@ export const OFFER_STATUS_TONE: Record<string, Tone> = {
   "Offer Lapsed": "neutral",
   Cancelled: "danger",
 };
+
+// Status options for the B3 create form. First entry is the initial issued
+// status a fresh offer defaults to (its derived state until an event is recorded).
+export const OFFER_STATUS_OPTIONS = [
+  "Waiting for Client Response",
+  "Acknowledged",
+  "For Revision",
+  "Revised",
+  "Awarded",
+  "Not Awarded",
+  "Offer Lapsed",
+  "Cancelled",
+] as const;
 
 export type OfferEventType =
   | "Status Change"
@@ -297,6 +566,15 @@ export const OFFER_EVENTS: Record<string, readonly OfferEvent[]> = {
     },
   ],
 };
+
+const OFFER_EVENTS_EMPTY: readonly OfferEvent[] = [];
+
+/** Seed event stream for an offer ref (mirrors getSoLinked). Offers created this
+ *  session have no entry → an empty stream, so offerState() falls back to the
+ *  offer's issued status. */
+export function getOfferEvents(ref: string): readonly OfferEvent[] {
+  return OFFER_EVENTS[ref] ?? OFFER_EVENTS_EMPTY;
+}
 
 export const EVENT_TONE: Record<string, Tone> = {
   "Status Change": "info",
@@ -442,70 +720,153 @@ export function lowestPrice(quotes: readonly SupplierQuote[]): number | null {
   return prices.length ? Math.min(...prices) : null;
 }
 
-// ---- B7/B8/B9 · Website content CMS ----------------------------------------
+// ---- B5/B6 · in-session quotation store (mirrors the SO/Offer stores) -------
+// ONE store, no parallel copy. Client-session singleton (module-level) — NO
+// backend/DB/persistence. The seed QUOTATIONS above stays frozen for back-compat;
+// this mutable copy is what the BDD UI reads/writes so created requests are
+// reachable. Resets to the seed on reload (intentional mock).
+const quotationStore: Quotation[] = QUOTATIONS.map((q) => ({ ...q }));
+
+/** The fields a new request needs; counts + winner default for a fresh request. */
+export type NewQuotation = Pick<
+  Quotation,
+  "ref" | "cat" | "item" | "client" | "date" | "offer" | "so"
+>;
+
+/** Current quotation registry (newest-created first, then seed order). */
+export function getQuotations(): readonly Quotation[] {
+  return quotationStore;
+}
+
+/** Append a new request at the top so it lands on page 1 of its category stream. */
+export function addQuotation(input: NewQuotation): Quotation {
+  const created: Quotation = {
+    ...input,
+    responded: 0,
+    invited: 0,
+    winner: null,
+  };
+  quotationStore.unshift(created);
+  return created;
+}
+
+/** In-session mutate (B6 winner persistence). */
+export function updateQuotation(
+  ref: string,
+  patch: Partial<Omit<Quotation, "ref">>,
+): void {
+  const i = quotationStore.findIndex((q) => q.ref === ref);
+  const cur = quotationStore[i];
+  if (cur) quotationStore[i] = { ...cur, ...patch };
+}
+
+// ---- B6 · in-session supplier-quote store (append-only children, OQ#16) -----
+// Each logged quote is an immutable child. Seeded from SUPPLIER_QUOTES; quotes
+// logged this session are appended in log order. Keyed by quotation ref.
+const supplierQuoteStore: Record<string, SupplierQuote[]> = Object.fromEntries(
+  Object.entries(SUPPLIER_QUOTES).map(([ref, quotes]) => [
+    ref,
+    quotes.map((q) => ({ ...q })),
+  ]),
+);
+
+/** Seed + session-logged supplier quotes for a ref, in log order. */
+export function getSupplierQuotes(ref: string): readonly SupplierQuote[] {
+  return supplierQuoteStore[ref] ?? [];
+}
+
+/** Append a logged supplier quote. */
+export function addSupplierQuote(ref: string, quote: SupplierQuote): void {
+  const list = supplierQuoteStore[ref];
+  if (list) list.push(quote);
+  else supplierQuoteStore[ref] = [quote];
+}
+
+/** In-session edit of a logged supplier quote, matched by its current supplier
+ *  name (the per-request key — each supplier is logged once). */
+export function updateSupplierQuote(
+  ref: string,
+  supplier: string,
+  patch: Partial<SupplierQuote>,
+): void {
+  const list = supplierQuoteStore[ref];
+  if (!list) return;
+  const i = list.findIndex((s) => s.supplier === supplier);
+  const cur = list[i];
+  if (cur) list[i] = { ...cur, ...patch };
+}
+
+/**
+ * Derived response counts for a request: invited = number of logged quotes,
+ * responded = those with a price. Falls back to the Quotation's stored counts
+ * when nothing has been logged yet, so the seed rows that ship counts but no
+ * supplier-quote rows (Q-WS-26012 3/3, Q-SP-26008 2/4) still display correctly.
+ */
+export function quotationCounts(q: Quotation): {
+  responded: number;
+  invited: number;
+} {
+  const logged = getSupplierQuotes(q.ref);
+  if (logged.length === 0)
+    return { responded: q.responded, invited: q.invited };
+  return {
+    invited: logged.length,
+    responded: logged.filter((s) => s.price != null).length,
+  };
+}
+
+/** Supplier-quote response statuses (B6 log dialog) — keys of QRESP_TONE, with
+ *  "Done (Quote Received)" first as the default for a newly-logged quote. */
+export const QRESP_OPTIONS = [
+  "Done (Quote Received)",
+  "Waiting",
+  "For Revision",
+  "No Quote",
+  "Other",
+] as const;
+
+/** Per-category Ref. No. prefix (EC → Q-EC-, Workshop → Q-WS-, Solar → Q-SP-). */
+export const QUOTATION_CAT_PREFIX: Record<QuotationCat, string> = {
+  EC: "Q-EC-",
+  Workshop: "Q-WS-",
+  Solar: "Q-SP-",
+};
+
+// ---- B7/B8/B9 · Website content CMS (SRS §9.2) -----------------------------
+// FIELD-MATCH IS THE POINT: a CMS record IS the public content record &-extended
+// with the §9.2 governance fields — never a re-declared parallel shape. Change the
+// public Project/Service/Product schema (lib/content) and these track it by
+// construction. Stores are in-session singletons SEEDED FROM the live content
+// (mirrors lib/mock/inquiries.ts); edits persist for the session and append to the
+// BDD audit (§9.6, edit-with-audit — NOT the immutable event-stream of Offers/
+// Quotations). Live write-back to the static lib/content is the documented target
+// but stays PROPOSED here (lib/content is static TS — never written to from a mock).
 export type WebStatus = "Published" | "Draft" | "Hidden";
 
-export type WebProject = {
-  name: string;
-  client: string;
+// Governance layered onto each public type. Projects' `gallery` already carries the
+// photos; services/products gain an optional `photos`. `coverIndex` designates the
+// row-thumbnail cover; `sort` is the public ordering; `archived` is the soft-delete.
+export type CmsProject = Project & {
   showClient: boolean;
-  loc: string;
-  done: string;
-  tags: readonly string[];
   status: WebStatus;
   sort: number;
+  coverIndex?: number;
+  archived?: boolean;
 };
-export type WebEntry = { name: string; status: WebStatus; sort: number };
-
-export const WEB_PROJECTS: readonly WebProject[] = [
-  {
-    name: "230KV Substation — Bulacan",
-    client: "NGCP",
-    showClient: true,
-    loc: "Bulacan",
-    done: "2026-03",
-    tags: ["Substation", "Transmission Line"],
-    status: "Published",
-    sort: 1,
-  },
-  {
-    name: "Solar Farm — Tarlac 5MWp",
-    client: "SMC Global",
-    showClient: false,
-    loc: "Tarlac",
-    done: "2025-12",
-    tags: ["Solar", "Renewable Energy"],
-    status: "Published",
-    sort: 2,
-  },
-  {
-    name: "13.2KV Distribution Line",
-    client: "NORECO II",
-    showClient: true,
-    loc: "Negros Oriental",
-    done: "—",
-    tags: ["Transmission Line"],
-    status: "Draft",
-    sort: 3,
-  },
-] as const;
-
-export const WEB_SERVICES: readonly WebEntry[] = [
-  {
-    name: "Substation Design and Construction (up to 230 KV)",
-    status: "Published",
-    sort: 1,
-  },
-  { name: "Transmission Line Construction", status: "Published", sort: 2 },
-  { name: "Solar / Renewable Energy EPC", status: "Published", sort: 3 },
-  { name: "Maintenance & Servicing", status: "Draft", sort: 4 },
-] as const;
-
-export const WEB_PRODUCTS: readonly WebEntry[] = [
-  { name: "Power Transformer (15 KV – 230 KV)", status: "Published", sort: 1 },
-  { name: "HVSG / MVSG / LVSG Switchgear", status: "Published", sort: 2 },
-  { name: "Distribution Transformers", status: "Hidden", sort: 3 },
-] as const;
+export type CmsService = Service & {
+  status: WebStatus;
+  sort: number;
+  photos?: readonly ProjectImage[];
+  coverIndex?: number;
+  archived?: boolean;
+};
+export type CmsProduct = Product & {
+  status: WebStatus;
+  sort: number;
+  photos?: readonly ProjectImage[];
+  coverIndex?: number;
+  archived?: boolean;
+};
 
 export const WEB_STATUS_TONE: Record<WebStatus, Tone> = {
   Published: "success",
@@ -517,6 +878,139 @@ export const WEB_STATUS_OPTIONS: readonly WebStatus[] = [
   "Draft",
   "Hidden",
 ];
+
+// The seed icon (LucideIcon) is carried verbatim and shown but is NOT user-editable;
+// CMS-created services/products get this sensible default glyph.
+export const CMS_DEFAULT_ICON: LucideIcon = ZapIcon;
+
+// ---- in-session stores, SEEDED from the live public content ----------------
+// ONE store per entity, no parallel copy. Reloading the page resets to the seed
+// (intentional mock). Status defaults Published; showClient mirrors whether the
+// seed project named a client; sort = seed index.
+const cmsProjectStore: CmsProject[] = ALL_PROJECTS.map((p, i) => ({
+  ...p,
+  showClient: p.client != null,
+  status: "Published",
+  sort: i,
+  coverIndex: 0,
+  archived: false,
+}));
+const cmsServiceStore: CmsService[] = SERVICES.map((s, i) => ({
+  ...s,
+  status: "Published",
+  sort: i,
+  photos: [],
+  coverIndex: 0,
+  archived: false,
+}));
+const cmsProductStore: CmsProduct[] = PRODUCTS.map((p, i) => ({
+  ...p,
+  status: "Published",
+  sort: i,
+  photos: [],
+  coverIndex: 0,
+  archived: false,
+}));
+
+// New-record inputs — Pick the editable public+governance fields (NO re-declare);
+// gallery/photos/sort/archived default inside the add* helpers. `icon` defaults.
+export type NewCmsProject = Pick<
+  CmsProject,
+  | "slug"
+  | "name"
+  | "category"
+  | "location"
+  | "client"
+  | "showClient"
+  | "capacity"
+  | "voltage"
+  | "scope"
+  | "year"
+  | "summary"
+  | "status"
+>;
+export type NewCmsService = Pick<
+  CmsService,
+  "slug" | "name" | "spec" | "desc" | "status"
+> & { icon?: LucideIcon };
+export type NewCmsProduct = Pick<
+  CmsProduct,
+  "name" | "spec" | "tag" | "status"
+> & { icon?: LucideIcon };
+
+export function getCmsProjects(): readonly CmsProject[] {
+  return cmsProjectStore;
+}
+export function addCmsProject(input: NewCmsProject): CmsProject {
+  const created: CmsProject = {
+    ...input,
+    gallery: [],
+    coverIndex: 0,
+    sort: cmsProjectStore.length,
+    archived: false,
+  };
+  cmsProjectStore.push(created);
+  return created;
+}
+export function updateCmsProject(
+  slug: string,
+  patch: Partial<CmsProject>,
+): void {
+  const i = cmsProjectStore.findIndex((p) => p.slug === slug);
+  const cur = cmsProjectStore[i];
+  if (cur) cmsProjectStore[i] = { ...cur, ...patch };
+}
+
+export function getCmsServices(): readonly CmsService[] {
+  return cmsServiceStore;
+}
+export function addCmsService(input: NewCmsService): CmsService {
+  const { icon, ...rest } = input;
+  const created: CmsService = {
+    ...rest,
+    icon: icon ?? CMS_DEFAULT_ICON,
+    photos: [],
+    coverIndex: 0,
+    sort: cmsServiceStore.length,
+    archived: false,
+  };
+  cmsServiceStore.push(created);
+  return created;
+}
+export function updateCmsService(
+  slug: string,
+  patch: Partial<CmsService>,
+): void {
+  const i = cmsServiceStore.findIndex((s) => s.slug === slug);
+  const cur = cmsServiceStore[i];
+  if (cur) cmsServiceStore[i] = { ...cur, ...patch };
+}
+
+export function getCmsProducts(): readonly CmsProduct[] {
+  return cmsProductStore;
+}
+export function addCmsProduct(input: NewCmsProduct): CmsProduct {
+  const { icon, ...rest } = input;
+  const created: CmsProduct = {
+    ...rest,
+    icon: icon ?? CMS_DEFAULT_ICON,
+    photos: [],
+    coverIndex: 0,
+    sort: cmsProductStore.length,
+    archived: false,
+  };
+  cmsProductStore.push(created);
+  return created;
+}
+/** Products have no slug — `name` is the record key. */
+export function updateCmsProduct(
+  name: string,
+  patch: Partial<CmsProduct>,
+): void {
+  const i = cmsProductStore.findIndex((p) => p.name === name);
+  const cur = cmsProductStore[i];
+  if (cur) cmsProductStore[i] = { ...cur, ...patch };
+}
 
 // ---- B10 · inquiry status tones (inquiries live in lib/mock/inquiries.ts) ---
 export const INQ_TONE: Record<string, Tone> = {
@@ -584,5 +1078,37 @@ export const BDD_AUDIT_AREAS = [
   "Quotation",
   "Supplier Quote",
   "Website Project",
+  "Website Service",
+  "Website Product",
   "Inquiry",
 ] as const;
+
+// ---- B11 · live audit channel (in-session) ---------------------------------
+// Edits made this session append HERE — never into the frozen BDD_AUDIT seed,
+// so history never double-counts. getBddHistory() merges the two newest-first.
+const liveAudit: BddAuditEntry[] = [];
+
+/** "YYYY-MM-DD HH:mm" stamp for a freshly-appended audit entry. */
+export function bddNow(): string {
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+/** Append a live audit entry (B2 edit-with-audit). */
+export function appendBddAudit(entry: BddAuditEntry): void {
+  liveAudit.push(entry);
+}
+
+/** Seed + live history for an SO#, newest-first (live edits on top of seed). */
+export function getBddHistory(so: string): readonly BddAuditEntry[] {
+  const seed = BDD_AUDIT.filter((a) => a.rec === so);
+  const live = liveAudit.filter((a) => a.rec === so).reverse();
+  return [...live, ...seed];
+}
+
+/** The whole BDD audit log — this-session live edits (newest-first) on top of the
+ *  frozen seed — for the B11 register, so Website-CMS edits surface there (§9.6). */
+export function getBddLog(): readonly BddAuditEntry[] {
+  return [...[...liveAudit].reverse(), ...BDD_AUDIT];
+}

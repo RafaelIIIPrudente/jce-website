@@ -2,7 +2,10 @@ import { cn } from "@/lib/utils";
 
 // Comparison matrix — best-value highlight (Foundations.html:229-234,728-742).
 // Used on B6 (offer comparison) and U16 (RFQ matrix). The winning column header
-// and best cells are tinted green. Tag: Solid.
+// and best cells are tinted green. Supplier columns make it inherently wide, so
+// the container scrolls horizontally and the criterion (row-header) column is
+// STICKY (left-0) — on a phone you keep the row labels in view while panning the
+// supplier columns, and the page never overflows. Tag: Solid.
 
 export type MatrixColumn = {
   id: string;
@@ -38,7 +41,7 @@ export function ComparisonMatrix({
       <table className="w-full border-collapse text-ui-12">
         <thead>
           <tr>
-            <th className="border border-jce-line bg-(--table-head) px-2.5 py-2 text-left font-semibold text-jce-ink-2">
+            <th className="sticky left-0 z-20 border border-jce-line bg-(--table-head) px-2.5 py-2 text-left font-semibold text-jce-ink-2">
               {rowHeader}
             </th>
             {columns.map((c) => (
@@ -60,7 +63,7 @@ export function ComparisonMatrix({
         <tbody>
           {rows.map((r, ri) => (
             <tr key={ri}>
-              <td className="border border-jce-line px-2.5 py-2 font-medium text-jce-ink">
+              <td className="sticky left-0 z-10 border border-jce-line bg-(--table-head) px-2.5 py-2 font-medium text-jce-ink">
                 {r.label}
               </td>
               {r.cells.map((cell, ci) => (
