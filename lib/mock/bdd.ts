@@ -24,6 +24,8 @@ export type SalesOrder = {
   date: string;
   client: string;
   name: string;
+  /** short, factual scope of work — register-cell length (B1 column, B2 header) */
+  scope: string;
   amount: number;
   /** cumulative progress-billed to date (sum of issued billings — external) */
   cumBilled: number;
@@ -33,12 +35,16 @@ export type SalesOrder = {
   by: string;
 };
 
+// Seed registry (frozen). This is the CANONICAL SO# list every other module
+// (Parts 4–8) aligns to — keep it exported and immutable for back-compat. The
+// in-session mutable store below is seeded from this and is what the BDD UI reads.
 export const SALES_ORDERS: readonly SalesOrder[] = [
   {
     so: "26-05-378",
     date: "2026-05-02",
     client: "NORECO II",
     name: "13.2KV Distribution Line",
+    scope: "13.2KV distribution line construction",
     amount: 53277688,
     cumBilled: 6039221.6, // 11.34% PB1 anchor → retention/recoup/remaining derive from this
     remarks: "With Contract",
@@ -51,6 +57,7 @@ export const SALES_ORDERS: readonly SalesOrder[] = [
     date: "2026-04-10",
     client: "Meralco",
     name: "Cavite 69KV Transmission Line",
+    scope: "69KV transmission line construction",
     amount: 38400000,
     cumBilled: 1920000,
     remarks: "With NTP",
@@ -63,6 +70,7 @@ export const SALES_ORDERS: readonly SalesOrder[] = [
     date: "2025-11-04",
     client: "SMC Global",
     name: "Solar Farm Tarlac 5MWp",
+    scope: "5MWp solar farm EPC",
     amount: 62000000,
     cumBilled: 12400000,
     remarks: "With SOA",
@@ -75,6 +83,7 @@ export const SALES_ORDERS: readonly SalesOrder[] = [
     date: "2025-09-18",
     client: "NGCP",
     name: "230KV Substation — Bulacan",
+    scope: "230KV substation erection",
     amount: 120400000,
     cumBilled: 120400000,
     remarks: "Done",
@@ -87,6 +96,7 @@ export const SALES_ORDERS: readonly SalesOrder[] = [
     date: "2026-06-01",
     client: "Aboitiz Power",
     name: "Switchgear supply",
+    scope: "Switchgear supply",
     amount: 0,
     cumBilled: 0,
     remarks: "No Offer Yet",
@@ -95,6 +105,192 @@ export const SALES_ORDERS: readonly SalesOrder[] = [
     by: "BDD Staff",
   },
 ] as const;
+
+// ---- B1/B2 · in-session SO store (mirrors lib/mock/inquiries.ts) -----------
+// ONE store, no parallel copy. Client-session singleton (module-level) — NO
+// backend/DB/persistence. Reloading the page resets it to the seed (intentional
+// mock). The BDD list + record read/write THROUGH these helpers so created SOs
+// are reachable; other modules keep aligning to the frozen SALES_ORDERS seed.
+const soStore: SalesOrder[] = SALES_ORDERS.map((o) => ({ ...o }));
+
+/** The fields a new SO needs; cumBilled/turned default for a fresh order. */
+export type NewSalesOrder = Pick<
+  SalesOrder,
+  | "so"
+  | "date"
+  | "client"
+  | "name"
+  | "scope"
+  | "amount"
+  | "remarks"
+  | "status"
+  | "by"
+>;
+
+/** Current SO registry (newest-created first, then seed order). */
+export function getSalesOrders(): readonly SalesOrder[] {
+  return soStore;
+}
+
+/** Append a new SO at the top so it lands on page 1; returns the created record. */
+export function addSalesOrder(input: NewSalesOrder): SalesOrder {
+  const created: SalesOrder = { ...input, cumBilled: 0, turned: false };
+  soStore.unshift(created);
+  return created;
+}
+
+/** In-session mutate (B2 status / remarks / contract amount). */
+export function updateSalesOrder(
+  so: string,
+  patch: Partial<Omit<SalesOrder, "so">>,
+): void {
+  const i = soStore.findIndex((o) => o.so === so);
+  const cur = soStore[i];
+  if (cur) soStore[i] = { ...cur, ...patch };
+}
+
+// ---- B2 · linked records (mock until Acctg/Purchasing/Warehouse are wired) --
+// Billings (Part 5) · POs (Part 7) · Material Requests (Part 8), keyed by SO#.
+// Amounts use `amount`; date-based rows use `date`. SOs with no activity are
+// simply absent (the record falls back to an all-empty group set).
+export type SoLinkedRow = {
+  doc: string;
+  label: string;
+  amount?: number;
+  date?: string;
+  status: string;
+  tone: Tone;
+};
+export type SoLinked = {
+  billings: readonly SoLinkedRow[];
+  pos: readonly SoLinkedRow[];
+  mrs: readonly SoLinkedRow[];
+};
+
+export const SO_LINKED: Record<string, SoLinked> = {
+  "26-05-378": {
+    billings: [
+      {
+        doc: "PB1",
+        label: "Progress Billing 1 · 11.34%",
+        amount: 6039221.6,
+        status: "Paid",
+        tone: "success",
+      },
+    ],
+    pos: [
+      {
+        doc: "PO-26-0142",
+        label: "Power transformer 10MVA — ABB Inc.",
+        amount: 4200000,
+        status: "Delivered",
+        tone: "success",
+      },
+      {
+        doc: "PO-26-0151",
+        label: "Conductor & line hardware",
+        amount: 1850000,
+        status: "In transit",
+        tone: "info",
+      },
+    ],
+    mrs: [
+      {
+        doc: "MR-26-088",
+        label: "Site mobilization materials",
+        date: "2026-05-15",
+        status: "Released",
+        tone: "success",
+      },
+    ],
+  },
+  "26-04-355": {
+    billings: [
+      {
+        doc: "PB1",
+        label: "Progress Billing 1 · 5.00%",
+        amount: 1920000,
+        status: "For Payment",
+        tone: "pending",
+      },
+    ],
+    pos: [
+      {
+        doc: "PO-26-0160",
+        label: "Steel transmission poles",
+        amount: 2400000,
+        status: "Ordered",
+        tone: "info",
+      },
+    ],
+    mrs: [],
+  },
+  "25-11-290": {
+    billings: [
+      {
+        doc: "PB1",
+        label: "Progress Billing 1 · 20.00%",
+        amount: 12400000,
+        status: "Paid",
+        tone: "success",
+      },
+    ],
+    pos: [
+      {
+        doc: "PO-25-0301",
+        label: "PV modules 550Wp — JinkoSolar",
+        amount: 9600000,
+        status: "Delivered",
+        tone: "success",
+      },
+    ],
+    mrs: [
+      {
+        doc: "MR-25-201",
+        label: "Mounting structures & inverters",
+        date: "2025-11-28",
+        status: "Released",
+        tone: "success",
+      },
+    ],
+  },
+  "25-09-201": {
+    billings: [
+      {
+        doc: "FB",
+        label: "Final Billing · 100.00%",
+        amount: 120400000,
+        status: "Paid",
+        tone: "success",
+      },
+    ],
+    pos: [
+      {
+        doc: "PO-25-0120",
+        label: "230KV GIS switchgear",
+        amount: 64000000,
+        status: "Delivered",
+        tone: "success",
+      },
+    ],
+    mrs: [
+      {
+        doc: "MR-25-110",
+        label: "Substation steelworks",
+        date: "2025-09-30",
+        status: "Released",
+        tone: "success",
+      },
+    ],
+  },
+};
+
+const SO_LINKED_EMPTY: SoLinked = { billings: [], pos: [], mrs: [] };
+
+/** Linked billings/POs/MRs for an SO# (all-empty when the SO has no activity). */
+export function getSoLinked(so: string): SoLinked {
+  return SO_LINKED[so] ?? SO_LINKED_EMPTY;
+}
 
 export const SO_REMARK_TONE: Record<string, Tone> = {
   "No Offer Yet": "neutral",
@@ -586,3 +782,27 @@ export const BDD_AUDIT_AREAS = [
   "Website Project",
   "Inquiry",
 ] as const;
+
+// ---- B11 · live audit channel (in-session) ---------------------------------
+// Edits made this session append HERE — never into the frozen BDD_AUDIT seed,
+// so history never double-counts. getBddHistory() merges the two newest-first.
+const liveAudit: BddAuditEntry[] = [];
+
+/** "YYYY-MM-DD HH:mm" stamp for a freshly-appended audit entry. */
+export function bddNow(): string {
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+/** Append a live audit entry (B2 edit-with-audit). */
+export function appendBddAudit(entry: BddAuditEntry): void {
+  liveAudit.push(entry);
+}
+
+/** Seed + live history for an SO#, newest-first (live edits on top of seed). */
+export function getBddHistory(so: string): readonly BddAuditEntry[] {
+  const seed = BDD_AUDIT.filter((a) => a.rec === so);
+  const live = liveAudit.filter((a) => a.rec === so).reverse();
+  return [...live, ...seed];
+}
