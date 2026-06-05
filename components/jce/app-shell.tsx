@@ -21,7 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="jce-backdrop flex h-[100dvh] overflow-hidden">
+    <div className="jce-backdrop flex h-dvh overflow-hidden">
       <span className="jce-glow-3" aria-hidden />
       <AppSidebar
         collapsed={collapsed}
