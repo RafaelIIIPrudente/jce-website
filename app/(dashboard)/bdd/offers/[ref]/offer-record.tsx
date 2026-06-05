@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeftIcon, PlusIcon } from "lucide-react";
+import { ChevronLeftIcon, PlusIcon, TriangleAlertIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { useJce } from "@/lib/mock/role-context";
@@ -11,6 +11,8 @@ import {
   EVENT_TONE,
   OFFER_EVENT_TYPES,
   OFFER_STATUS_TONE,
+  getOfferEvents,
+  getOffers,
   offerState,
   type Offer,
   type OfferEvent,
@@ -35,6 +37,7 @@ import {
 } from "@/components/ui/select";
 import { Chip } from "@/components/jce/chip";
 import { DocChip } from "@/components/jce/doc-chip";
+import { EmptyState } from "@/components/jce/empty-state";
 import { Timeline, type TimelineEvent } from "@/components/jce/timeline";
 
 // B4 · Offer record — event stream (bdd-flagships.jsx:9-85, brief:1044-1050).
@@ -52,7 +55,48 @@ function timestamp(): string {
   return new Date().toISOString().slice(0, 16).replace("T", " ");
 }
 
-export function OfferRecord({
+// Resolve the offer from the shared in-session store (client-side) so offers
+// created this session open without a 404. A genuinely-absent ref renders an
+// empty state. Created offers have no seed events → an empty stream, so the
+// derived state falls back to the offer's issued status.
+export function OfferRecord({ offerRef }: { offerRef: string }) {
+  const offer = getOffers().find((o) => o.ref === offerRef);
+
+  if (!offer) {
+    return (
+      <div className="mx-auto flex max-w-6xl flex-col gap-5">
+        <Link
+          href="/bdd/offers"
+          className="focus-ring-jce inline-flex w-fit items-center gap-1 rounded text-ui-13 text-jce-ink-2 transition-colors hover:text-jce-green-900"
+        >
+          <ChevronLeftIcon className="size-4" aria-hidden /> Offers
+        </Link>
+        <div className="glass rounded-(--r-glass) p-6">
+          <EmptyState
+            icon={
+              <TriangleAlertIcon
+                className="size-7"
+                strokeWidth={1.5}
+                aria-hidden
+              />
+            }
+            title="Offer not found"
+            description={`No offer “${offerRef}” exists in this session. The mock registry resets on reload — a record created earlier may no longer be here.`}
+            action={
+              <Button asChild variant="outline" size="sm">
+                <Link href="/bdd/offers">Back to Offers</Link>
+              </Button>
+            }
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return <OfferDetail offer={offer} seedEvents={getOfferEvents(offer.ref)} />;
+}
+
+function OfferDetail({
   offer,
   seedEvents,
 }: {

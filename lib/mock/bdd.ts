@@ -423,6 +423,50 @@ export const OFFERS: readonly Offer[] = [
   },
 ] as const;
 
+// ---- B3/B4 · in-session Offer store (mirrors the SO store above) ------------
+// ONE store, no parallel copy. Client-session singleton (module-level) — NO
+// backend/DB/persistence. The seed OFFERS above stays frozen for back-compat;
+// the BDD list + record read/write THROUGH these helpers so offers created this
+// session appear in their entity stream and open a working detail. Reloading the
+// page resets to the seed (intentional mock).
+const offerStore: Offer[] = OFFERS.map((o) => ({ ...o }));
+
+/** The fields a new offer needs; rev defaults to 0 for a fresh offer. */
+export type NewOffer = Pick<
+  Offer,
+  | "ref"
+  | "entity"
+  | "date"
+  | "emailed"
+  | "by"
+  | "client"
+  | "subject"
+  | "amount"
+  | "status"
+>;
+
+/** Current offer registry (newest-created first, then seed order). */
+export function getOffers(): readonly Offer[] {
+  return offerStore;
+}
+
+/** Prepend a new offer so it lands on page 1 of its entity stream; returns it. */
+export function addOffer(input: NewOffer): Offer {
+  const created: Offer = { ...input, rev: 0 };
+  offerStore.unshift(created);
+  return created;
+}
+
+/** In-session mutate (parity with updateSalesOrder; ref is the route key). */
+export function updateOffer(
+  ref: string,
+  patch: Partial<Omit<Offer, "ref">>,
+): void {
+  const i = offerStore.findIndex((o) => o.ref === ref);
+  const cur = offerStore[i];
+  if (cur) offerStore[i] = { ...cur, ...patch };
+}
+
 export const OFFER_STATUS_TONE: Record<string, Tone> = {
   "Waiting for Client Response": "pending",
   Acknowledged: "info",
@@ -433,6 +477,19 @@ export const OFFER_STATUS_TONE: Record<string, Tone> = {
   "Offer Lapsed": "neutral",
   Cancelled: "danger",
 };
+
+// Status options for the B3 create form. First entry is the initial issued
+// status a fresh offer defaults to (its derived state until an event is recorded).
+export const OFFER_STATUS_OPTIONS = [
+  "Waiting for Client Response",
+  "Acknowledged",
+  "For Revision",
+  "Revised",
+  "Awarded",
+  "Not Awarded",
+  "Offer Lapsed",
+  "Cancelled",
+] as const;
 
 export type OfferEventType =
   | "Status Change"
@@ -493,6 +550,15 @@ export const OFFER_EVENTS: Record<string, readonly OfferEvent[]> = {
     },
   ],
 };
+
+const OFFER_EVENTS_EMPTY: readonly OfferEvent[] = [];
+
+/** Seed event stream for an offer ref (mirrors getSoLinked). Offers created this
+ *  session have no entry → an empty stream, so offerState() falls back to the
+ *  offer's issued status. */
+export function getOfferEvents(ref: string): readonly OfferEvent[] {
+  return OFFER_EVENTS[ref] ?? OFFER_EVENTS_EMPTY;
+}
 
 export const EVENT_TONE: Record<string, Tone> = {
   "Status Change": "info",
