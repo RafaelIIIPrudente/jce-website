@@ -2,15 +2,29 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeftIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  PencilIcon,
+  PlusIcon,
+  TriangleAlertIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
+import { cn } from "@/lib/utils";
 import { useJce } from "@/lib/mock/role-context";
 import { ROLES, canEdit } from "@/lib/rbac";
 import {
   EVENT_TONE,
+  QRESP_OPTIONS,
   QRESP_TONE,
+  addSupplierQuote,
+  getQuotations,
+  getSupplierQuotes,
   lowestPrice,
+  quotationCounts,
+  updateQuotation,
+  updateSupplierQuote,
   type OfferEvent,
   type Quotation,
   type SupplierQuote,
@@ -18,6 +32,21 @@ import {
 } from "@/lib/mock/bdd";
 import { peso } from "@/lib/mock/format";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Chip } from "@/components/jce/chip";
 import { DocChip } from "@/components/jce/doc-chip";
 import {
@@ -28,35 +57,124 @@ import {
 import { Timeline, type TimelineEvent } from "@/components/jce/timeline";
 import { EmptyState } from "@/components/jce/empty-state";
 
-// B6 · Quotation comparison (bdd-flagships.jsx:90-128, brief:1060-1066). Supplier
-// quotes matrix with lowest-price highlight + response-status chips. Select
-// Winner is an EVENT on an immutable request (fires a sensitive-change
-// notification). Strictly divergent from edit-after-issue (OQ#16).
+// B6 · Quotation comparison (bdd-flagships.jsx:90-128, brief:1060-1066). The BDD
+// admin LOGS each supplier's quote (there is no invite/await flow); the matrix,
+// the responded/invited counts and the winner all derive from those logged rows.
+// The request header is immutable; a logged quote can be edited in-session (each
+// supplier is logged once). Select Winner fires a sensitive-change notification.
 
+const DONE_STATUS = "Done (Quote Received)";
+const MATRIX_PAGE_SIZE = 4; // supplier columns per matrix page
+const EVENTS_PAGE_SIZE = 5; // events per stream page
+
+type LogForm = {
+  supplier: string;
+  status: string;
+  price: string;
+  respDate: string;
+  note: string;
+};
+
+function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+function timestamp(): string {
+  return new Date().toISOString().slice(0, 16).replace("T", " ");
+}
 function tlTone(t: Tone): TimelineEvent["tone"] {
   if (t === "success" || t === "info") return "green";
   if (t === "pending" || t === "danger") return "orange";
   return "ink";
 }
-function timestamp(): string {
-  return new Date().toISOString().slice(0, 16).replace("T", " ");
+
+function LabeledField({
+  label,
+  htmlFor,
+  error,
+  hint,
+  className,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  error?: string;
+  hint?: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={cn("flex flex-col gap-1.5", className)}>
+      <label
+        htmlFor={htmlFor}
+        className="text-ui-12 font-semibold text-jce-ink-2"
+      >
+        {label}
+      </label>
+      {children}
+      {error ? (
+        <p role="alert" className="text-ui-12 text-(--st-danger-ink)">
+          {error}
+        </p>
+      ) : hint ? (
+        <p className="text-ui-12 text-jce-ink-2">{hint}</p>
+      ) : null}
+    </div>
+  );
 }
 
-export function QuotationDetail({
-  quotation,
-  seedQuotes,
-}: {
-  quotation: Quotation;
-  seedQuotes: readonly SupplierQuote[];
-}) {
+// Resolve the request from the shared in-session store (client-side) so requests
+// created this session open without a 404. A genuinely-absent ref renders an
+// empty state.
+export function QuotationDetail({ quotationRef }: { quotationRef: string }) {
+  const quotation = getQuotations().find((q) => q.ref === quotationRef);
+
+  if (!quotation) {
+    return (
+      <div className="mx-auto flex max-w-6xl flex-col gap-5">
+        <Link
+          href="/bdd/quotations"
+          className="focus-ring-jce inline-flex w-fit items-center gap-1 rounded text-ui-13 text-jce-ink-2 transition-colors hover:text-jce-green-900"
+        >
+          <ChevronLeftIcon className="size-4" aria-hidden /> Quotations
+        </Link>
+        <div className="glass rounded-(--r-glass) p-6">
+          <EmptyState
+            icon={
+              <TriangleAlertIcon
+                className="size-7"
+                strokeWidth={1.5}
+                aria-hidden
+              />
+            }
+            title="Quotation request not found"
+            description={`No request “${quotationRef}” exists in this session. The mock registry resets on reload — a request created earlier may no longer be here.`}
+            action={
+              <Button asChild variant="outline" size="sm">
+                <Link href="/bdd/quotations">Back to Quotations</Link>
+              </Button>
+            }
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return <QuotationDetailBody quotation={quotation} />;
+}
+
+function QuotationDetailBody({ quotation }: { quotation: Quotation }) {
   const { role, addNotification } = useJce();
   const readOnly = !canEdit(role, "bdd");
 
+  const [quotes, setQuotes] = useState<readonly SupplierQuote[]>(() =>
+    getSupplierQuotes(quotation.ref),
+  );
+
   const initialWinner =
-    seedQuotes.find((q) => q.winner)?.supplier ?? quotation.winner ?? null;
+    quotes.find((q) => q.winner)?.supplier ?? quotation.winner ?? null;
   const [winner, setWinner] = useState<string | null>(initialWinner);
   const [events, setEvents] = useState<OfferEvent[]>(() => {
-    const priced: OfferEvent[] = seedQuotes
+    const priced: OfferEvent[] = quotes
       .filter((q) => q.price != null)
       .map((q) => ({
         type: "Price Recorded",
@@ -75,11 +193,138 @@ export function QuotationDetail({
     return priced;
   });
 
-  const lowest = lowestPrice(seedQuotes);
+  // Pagination — matrix supplier columns + event stream.
+  const [matrixPage, setMatrixPage] = useState(1);
+  const [eventsPage, setEventsPage] = useState(1);
+
+  // Log/edit-supplier-quote dialog (one form, two modes).
+  const [logOpen, setLogOpen] = useState(false);
+  const [mode, setMode] = useState<"log" | "edit">("log");
+  const [editingSupplier, setEditingSupplier] = useState<string | null>(null);
+  const [form, setForm] = useState<LogForm>(() => ({
+    supplier: "",
+    status: DONE_STATUS,
+    price: "",
+    respDate: todayISO(),
+    note: "",
+  }));
+  const [errors, setErrors] = useState<Partial<Record<keyof LogForm, string>>>(
+    {},
+  );
+
+  const openLog = () => {
+    setMode("log");
+    setEditingSupplier(null);
+    setForm({
+      supplier: "",
+      status: DONE_STATUS,
+      price: "",
+      respDate: todayISO(),
+      note: "",
+    });
+    setErrors({});
+    setLogOpen(true);
+  };
+  const openEdit = (quote: SupplierQuote) => {
+    setMode("edit");
+    setEditingSupplier(quote.supplier);
+    setForm({
+      supplier: quote.supplier,
+      status: quote.status,
+      price: quote.price != null ? String(quote.price) : "",
+      respDate: quote.respDate === "—" ? "" : quote.respDate,
+      note: quote.note,
+    });
+    setErrors({});
+    setLogOpen(true);
+  };
+  const setField = (key: keyof LogForm, value: string) =>
+    setForm((f) => ({ ...f, [key]: value }));
+
+  const counts = quotationCounts(quotation);
+  const lowest = lowestPrice(quotes);
+
+  const submitQuote = () => {
+    const next: Partial<Record<keyof LogForm, string>> = {};
+    const supplier = form.supplier.trim();
+    if (!supplier) next.supplier = "Supplier is required.";
+    else if (
+      quotes.some(
+        (s) =>
+          s.supplier.toLowerCase() === supplier.toLowerCase() &&
+          s.supplier !== editingSupplier,
+      )
+    )
+      next.supplier = "That supplier is already logged on this request.";
+
+    const isDone = form.status === DONE_STATUS;
+    const hasPrice = form.price.trim() !== "";
+    const price = Number(form.price);
+    if (isDone && !hasPrice)
+      next.price = "Unit price is required when status is Done.";
+    else if (hasPrice && (!Number.isFinite(price) || price < 0))
+      next.price = "Enter a valid price of ₱0 or more.";
+
+    if (Object.keys(next).length > 0) {
+      setErrors(next);
+      return; // keep the dialog open; do not save on failure
+    }
+
+    const finalPrice = hasPrice ? price : null;
+    const respDate = form.respDate.trim() === "" ? "—" : form.respDate;
+
+    if (mode === "edit" && editingSupplier) {
+      updateSupplierQuote(quotation.ref, editingSupplier, {
+        supplier,
+        respDate,
+        status: form.status,
+        price: finalPrice,
+        note: form.note.trim(),
+      });
+      setQuotes([...getSupplierQuotes(quotation.ref)]);
+      // keep the winner highlight consistent if a winning supplier was renamed
+      if (editingSupplier === winner && supplier !== editingSupplier) {
+        setWinner(supplier);
+        updateQuotation(quotation.ref, { winner: supplier });
+      }
+      setLogOpen(false);
+      toast.success(`Updated quote — ${supplier}.`);
+      return;
+    }
+
+    const quote: SupplierQuote = {
+      supplier,
+      respDate,
+      status: form.status,
+      price: finalPrice,
+      winner: false,
+      note: form.note.trim(),
+    };
+    addSupplierQuote(quotation.ref, quote);
+    const nextQuotes = getSupplierQuotes(quotation.ref);
+    setQuotes([...nextQuotes]); // new reference → re-render
+    // surface the newly-logged supplier (appended last → last matrix page)
+    setMatrixPage(Math.ceil(nextQuotes.length / MATRIX_PAGE_SIZE));
+    if (finalPrice != null) {
+      setEvents((ev) => [
+        {
+          type: "Price Recorded",
+          data: `${supplier} · ${peso(finalPrice)}`,
+          ts: timestamp(),
+          user: ROLES[role].short,
+        },
+        ...ev,
+      ]);
+      setEventsPage(1); // new event is newest-first → page 1
+    }
+    setLogOpen(false);
+    toast.success(`Logged quote — ${supplier}.`);
+  };
 
   const selectWinner = (supplier: string) => {
     if (supplier === winner) return;
     setWinner(supplier);
+    updateQuotation(quotation.ref, { winner: supplier }); // persist across nav
     setEvents((ev) => [
       {
         type: "Selected as Winner",
@@ -89,6 +334,7 @@ export function QuotationDetail({
       },
       ...ev,
     ]);
+    setEventsPage(1); // new event is newest-first → page 1
     addNotification({
       mod: "BDD",
       type: "Sensitive",
@@ -101,15 +347,38 @@ export function QuotationDetail({
     toast.success(`Winner recorded — ${supplier} (sensitive-change sent)`);
   };
 
-  const columns: MatrixColumn[] = seedQuotes.map((q) => ({
+  // Matrix supplier-column pagination (BEST highlight stays global).
+  const matrixTotalPages = Math.max(
+    1,
+    Math.ceil(quotes.length / MATRIX_PAGE_SIZE),
+  );
+  const matrixSafePage = Math.min(matrixPage, matrixTotalPages);
+  const matrixStart = (matrixSafePage - 1) * MATRIX_PAGE_SIZE;
+  const pagedQuotes = quotes.slice(matrixStart, matrixStart + MATRIX_PAGE_SIZE);
+
+  const columns: MatrixColumn[] = pagedQuotes.map((q) => ({
     id: q.supplier,
-    label: q.supplier,
+    label: readOnly ? (
+      q.supplier
+    ) : (
+      <span className="inline-flex items-center gap-1.5">
+        {q.supplier}
+        <button
+          type="button"
+          onClick={() => openEdit(q)}
+          aria-label={`Edit ${q.supplier} quote`}
+          className="focus-ring-jce inline-grid size-6 shrink-0 place-items-center rounded text-jce-ink-2 transition-colors hover:text-jce-green-700"
+        >
+          <PencilIcon className="size-3.5" aria-hidden />
+        </button>
+      </span>
+    ),
     winner: winner === q.supplier,
   }));
   const rows: MatrixRow[] = [
     {
       label: "Unit price",
-      cells: seedQuotes.map((q) => ({
+      cells: pagedQuotes.map((q) => ({
         value: q.price != null ? peso(q.price) : "—",
         best: q.price != null && q.price === lowest,
         align: "right",
@@ -117,31 +386,41 @@ export function QuotationDetail({
     },
     {
       label: "Response date",
-      cells: seedQuotes.map((q) => ({ value: q.respDate })),
+      cells: pagedQuotes.map((q) => ({ value: q.respDate })),
     },
     {
       label: "Status",
-      cells: seedQuotes.map((q) => ({
+      cells: pagedQuotes.map((q) => ({
         value: <Chip tone={QRESP_TONE[q.status] ?? "neutral"}>{q.status}</Chip>,
       })),
     },
     {
       label: "Notes",
-      cells: seedQuotes.map((q) => ({ value: q.note })),
+      cells: pagedQuotes.map((q) => ({ value: q.note || "—" })),
     },
   ];
 
-  const tlEvents: TimelineEvent[] = events.map((e) => ({
-    title: (
-      <>
-        <span className="font-semibold">{e.type}</span>
-        {" — "}
-        {e.data}
-      </>
-    ),
-    meta: `${e.user} · ${e.ts}`,
-    tone: tlTone(EVENT_TONE[e.type] ?? "neutral"),
-  }));
+  // Event-stream pagination (newest-first).
+  const eventsTotalPages = Math.max(
+    1,
+    Math.ceil(events.length / EVENTS_PAGE_SIZE),
+  );
+  const eventsSafePage = Math.min(eventsPage, eventsTotalPages);
+  const eventsStart = (eventsSafePage - 1) * EVENTS_PAGE_SIZE;
+
+  const tlEvents: TimelineEvent[] = events
+    .slice(eventsStart, eventsStart + EVENTS_PAGE_SIZE)
+    .map((e) => ({
+      title: (
+        <>
+          <span className="font-semibold">{e.type}</span>
+          {" — "}
+          {e.data}
+        </>
+      ),
+      meta: `${e.user} · ${e.ts}`,
+      tone: tlTone(EVENT_TONE[e.type] ?? "neutral"),
+    }));
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-5">
@@ -169,35 +448,87 @@ export function QuotationDetail({
           {quotation.item}
         </h1>
         <p className="mt-1 text-ui-13 text-jce-ink-2">
-          {quotation.client} · requested {quotation.date} ·{" "}
-          {quotation.responded}/{quotation.invited} responded
+          {quotation.client} · requested {quotation.date} · {counts.responded}/
+          {counts.invited} quotes logged
         </p>
       </div>
 
-      {seedQuotes.length === 0 ? (
+      {quotes.length === 0 ? (
         <div className="glass rounded-(--r-glass) p-6">
           <EmptyState
-            title="No supplier quotes recorded"
-            description="Add supplier quotes (immutable children) to begin the comparison."
+            icon={<PlusIcon className="size-7" strokeWidth={1.5} aria-hidden />}
+            title="No supplier quotes logged yet"
+            description="Log each supplier's quote (price, status, date) to start comparing and pick a winner."
+            action={
+              !readOnly ? (
+                <Button size="sm" className="min-h-11" onClick={openLog}>
+                  <PlusIcon aria-hidden /> Log supplier quote
+                </Button>
+              ) : undefined
+            }
           />
         </div>
       ) : (
         <>
+          {!readOnly ? (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-ui-12 text-jce-ink-2">
+                {counts.responded} of {counts.invited} logged supplier
+                {counts.invited === 1 ? "" : "s"} quoted a price.
+              </p>
+              <Button size="sm" className="min-h-11" onClick={openLog}>
+                <PlusIcon aria-hidden /> Log supplier quote
+              </Button>
+            </div>
+          ) : null}
+
           <ComparisonMatrix
             rowHeader="Criterion"
             columns={columns}
             rows={rows}
           />
 
+          {matrixTotalPages > 1 ? (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-ui-12 text-jce-ink-2">
+                Suppliers {matrixStart + 1}–{matrixStart + pagedQuotes.length}{" "}
+                of {quotes.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="focus-ring-jce min-h-11"
+                  disabled={matrixSafePage <= 1}
+                  onClick={() => setMatrixPage((p) => Math.max(1, p - 1))}
+                >
+                  <ChevronLeftIcon aria-hidden /> Prev
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="focus-ring-jce min-h-11"
+                  disabled={matrixSafePage >= matrixTotalPages}
+                  onClick={() =>
+                    setMatrixPage((p) => Math.min(matrixTotalPages, p + 1))
+                  }
+                >
+                  Next <ChevronRightIcon aria-hidden />
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
           {!readOnly ? (
             <div className="solid flex flex-wrap items-center gap-2 rounded-(--r-solid) p-4">
               <span className="mr-1 text-ui-12 font-semibold text-jce-ink-2">
                 Select winner:
               </span>
-              {seedQuotes.map((q) => (
+              {quotes.map((q) => (
                 <Button
                   key={q.supplier}
                   size="sm"
+                  className="min-h-11"
                   variant={winner === q.supplier ? "approve" : "outline"}
                   disabled={q.price == null}
                   onClick={() => selectWinner(q.supplier)}
@@ -215,9 +546,146 @@ export function QuotationDetail({
               Event stream
             </h2>
             <Timeline events={tlEvents} />
+            {eventsTotalPages > 1 ? (
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-jce-line pt-4">
+                <p className="text-ui-12 text-jce-ink-2">
+                  Page {eventsSafePage} of {eventsTotalPages} · {events.length}{" "}
+                  events
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="focus-ring-jce min-h-11"
+                    disabled={eventsSafePage <= 1}
+                    onClick={() => setEventsPage((p) => Math.max(1, p - 1))}
+                  >
+                    <ChevronLeftIcon aria-hidden /> Prev
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="focus-ring-jce min-h-11"
+                    disabled={eventsSafePage >= eventsTotalPages}
+                    onClick={() =>
+                      setEventsPage((p) => Math.min(eventsTotalPages, p + 1))
+                    }
+                  >
+                    Next <ChevronRightIcon aria-hidden />
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </div>
         </>
       )}
+
+      {/* Log-supplier-quote dialog */}
+      <Dialog open={logOpen} onOpenChange={setLogOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>
+              {mode === "edit" ? "Edit supplier quote" : "Log supplier quote"}
+            </DialogTitle>
+            <DialogDescription>
+              {mode === "edit"
+                ? `Update the quote recorded for ${editingSupplier} on ${quotation.ref}.`
+                : `Record a quote you received from a supplier on ${quotation.ref}. Each supplier is logged once — you can edit it later.`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <LabeledField
+              label="Supplier"
+              htmlFor="sq-supplier"
+              error={errors.supplier}
+              className="sm:col-span-2"
+            >
+              <input
+                id="sq-supplier"
+                value={form.supplier}
+                onChange={(e) => setField("supplier", e.target.value)}
+                className="field"
+                placeholder="e.g. ABB Inc."
+                aria-invalid={errors.supplier ? true : undefined}
+              />
+            </LabeledField>
+            <LabeledField label="Status" htmlFor="sq-status">
+              <Select
+                value={form.status}
+                onValueChange={(v) => setField("status", v)}
+              >
+                <SelectTrigger id="sq-status" className="min-h-11 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {QRESP_OPTIONS.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </LabeledField>
+            <LabeledField
+              label="Unit price (₱)"
+              htmlFor="sq-price"
+              error={errors.price}
+              hint={
+                form.status === DONE_STATUS
+                  ? "Required for a received quote."
+                  : "Optional until a quote is received."
+              }
+            >
+              <input
+                id="sq-price"
+                type="number"
+                min={0}
+                step="0.01"
+                value={form.price}
+                onChange={(e) => setField("price", e.target.value)}
+                className="field font-mono tabular-nums"
+                aria-invalid={errors.price ? true : undefined}
+              />
+            </LabeledField>
+            <LabeledField label="Response date" htmlFor="sq-date">
+              <input
+                id="sq-date"
+                type="date"
+                value={form.respDate}
+                onChange={(e) => setField("respDate", e.target.value)}
+                className="field"
+              />
+            </LabeledField>
+            <LabeledField
+              label="Note (optional)"
+              htmlFor="sq-note"
+              className="sm:col-span-2"
+            >
+              <input
+                id="sq-note"
+                value={form.note}
+                onChange={(e) => setField("note", e.target.value)}
+                className="field"
+                placeholder="e.g. Best price + 30d lead"
+              />
+            </LabeledField>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              className="min-h-11"
+              onClick={() => setLogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button className="min-h-11" onClick={submitQuote}>
+              {mode === "edit" ? "Save changes" : "Log quote"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

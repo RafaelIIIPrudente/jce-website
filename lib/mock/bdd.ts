@@ -704,6 +704,118 @@ export function lowestPrice(quotes: readonly SupplierQuote[]): number | null {
   return prices.length ? Math.min(...prices) : null;
 }
 
+// ---- B5/B6 · in-session quotation store (mirrors the SO/Offer stores) -------
+// ONE store, no parallel copy. Client-session singleton (module-level) — NO
+// backend/DB/persistence. The seed QUOTATIONS above stays frozen for back-compat;
+// this mutable copy is what the BDD UI reads/writes so created requests are
+// reachable. Resets to the seed on reload (intentional mock).
+const quotationStore: Quotation[] = QUOTATIONS.map((q) => ({ ...q }));
+
+/** The fields a new request needs; counts + winner default for a fresh request. */
+export type NewQuotation = Pick<
+  Quotation,
+  "ref" | "cat" | "item" | "client" | "date" | "offer" | "so"
+>;
+
+/** Current quotation registry (newest-created first, then seed order). */
+export function getQuotations(): readonly Quotation[] {
+  return quotationStore;
+}
+
+/** Append a new request at the top so it lands on page 1 of its category stream. */
+export function addQuotation(input: NewQuotation): Quotation {
+  const created: Quotation = {
+    ...input,
+    responded: 0,
+    invited: 0,
+    winner: null,
+  };
+  quotationStore.unshift(created);
+  return created;
+}
+
+/** In-session mutate (B6 winner persistence). */
+export function updateQuotation(
+  ref: string,
+  patch: Partial<Omit<Quotation, "ref">>,
+): void {
+  const i = quotationStore.findIndex((q) => q.ref === ref);
+  const cur = quotationStore[i];
+  if (cur) quotationStore[i] = { ...cur, ...patch };
+}
+
+// ---- B6 · in-session supplier-quote store (append-only children, OQ#16) -----
+// Each logged quote is an immutable child. Seeded from SUPPLIER_QUOTES; quotes
+// logged this session are appended in log order. Keyed by quotation ref.
+const supplierQuoteStore: Record<string, SupplierQuote[]> = Object.fromEntries(
+  Object.entries(SUPPLIER_QUOTES).map(([ref, quotes]) => [
+    ref,
+    quotes.map((q) => ({ ...q })),
+  ]),
+);
+
+/** Seed + session-logged supplier quotes for a ref, in log order. */
+export function getSupplierQuotes(ref: string): readonly SupplierQuote[] {
+  return supplierQuoteStore[ref] ?? [];
+}
+
+/** Append a logged supplier quote. */
+export function addSupplierQuote(ref: string, quote: SupplierQuote): void {
+  const list = supplierQuoteStore[ref];
+  if (list) list.push(quote);
+  else supplierQuoteStore[ref] = [quote];
+}
+
+/** In-session edit of a logged supplier quote, matched by its current supplier
+ *  name (the per-request key — each supplier is logged once). */
+export function updateSupplierQuote(
+  ref: string,
+  supplier: string,
+  patch: Partial<SupplierQuote>,
+): void {
+  const list = supplierQuoteStore[ref];
+  if (!list) return;
+  const i = list.findIndex((s) => s.supplier === supplier);
+  const cur = list[i];
+  if (cur) list[i] = { ...cur, ...patch };
+}
+
+/**
+ * Derived response counts for a request: invited = number of logged quotes,
+ * responded = those with a price. Falls back to the Quotation's stored counts
+ * when nothing has been logged yet, so the seed rows that ship counts but no
+ * supplier-quote rows (Q-WS-26012 3/3, Q-SP-26008 2/4) still display correctly.
+ */
+export function quotationCounts(q: Quotation): {
+  responded: number;
+  invited: number;
+} {
+  const logged = getSupplierQuotes(q.ref);
+  if (logged.length === 0)
+    return { responded: q.responded, invited: q.invited };
+  return {
+    invited: logged.length,
+    responded: logged.filter((s) => s.price != null).length,
+  };
+}
+
+/** Supplier-quote response statuses (B6 log dialog) — keys of QRESP_TONE, with
+ *  "Done (Quote Received)" first as the default for a newly-logged quote. */
+export const QRESP_OPTIONS = [
+  "Done (Quote Received)",
+  "Waiting",
+  "For Revision",
+  "No Quote",
+  "Other",
+] as const;
+
+/** Per-category Ref. No. prefix (EC → Q-EC-, Workshop → Q-WS-, Solar → Q-SP-). */
+export const QUOTATION_CAT_PREFIX: Record<QuotationCat, string> = {
+  EC: "Q-EC-",
+  Workshop: "Q-WS-",
+  Solar: "Q-SP-",
+};
+
 // ---- B7/B8/B9 · Website content CMS ----------------------------------------
 export type WebStatus = "Published" | "Draft" | "Hidden";
 
