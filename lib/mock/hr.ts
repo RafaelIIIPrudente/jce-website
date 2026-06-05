@@ -1965,3 +1965,375 @@ export function renewContract(input: {
   contractExtStore.push(ext);
   return ext;
 }
+
+// ============================================================================
+// H5b · Excel bulk import — PURE parse/map/validate/commit layer (dep-free, so
+// it is Vitest-tested without SheetJS). One worksheet row = one TimeRow. Every
+// default/rule MIRRORS buildSiteDayRows so export∘import == the on-screen path,
+// and commit reuses addTimeRow/updateTimeRow + the (empNo,date,proj) key + the
+// per-employee lock check (never a second store, never a key/derived mutation).
+// SheetJS lives only in the client wizard and hands RawImportRow[] to here.
+// ============================================================================
+
+export type ImportColumn = { label: string; key: string; required: boolean };
+
+/** Canonical column contract. Header matching is case/space-insensitive. */
+export const IMPORT_COLUMNS: readonly ImportColumn[] = [
+  { label: "Employee No", key: "empNo", required: true },
+  { label: "Employee Name", key: "name", required: false },
+  { label: "Site / Place of Assignment", key: "site", required: false },
+  { label: "Date", key: "date", required: true },
+  { label: "Day Type", key: "dayType", required: false },
+  { label: "Time In", key: "timeIn", required: false },
+  { label: "Time Out", key: "timeOut", required: false },
+  { label: "Project Code", key: "proj", required: false },
+  { label: "Leave", key: "leave", required: false },
+  { label: "Leave Ref", key: "leaveRef", required: false },
+  { label: "Remarks", key: "remarks", required: false },
+];
+
+/** A worksheet row keyed by the canonical column keys (strings). */
+export type RawImportRow = Record<string, string>;
+
+export type StagedAction =
+  | "add"
+  | "update"
+  | "skip-locked"
+  | "skip-duplicate"
+  | "error";
+
+export type StagedRow = {
+  input: RawImportRow;
+  row: Omit<TimeRow, "id"> | null;
+  severity: "ok" | "warning" | "error";
+  action: StagedAction;
+  matchId?: number;
+  messages: string[];
+};
+
+export type ImportSummary = {
+  toAdd: number;
+  toUpdate: number;
+  skippedLocked: number;
+  errors: number;
+  warnings: number;
+};
+
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+const ABSENT_TOKENS = new Set(["ABSENT", "A", "—", "-"]);
+
+/** Match a raw worksheet header to a canonical column key (case/space-insensitive
+ *  + a few common aliases). null when it maps to no canonical column. */
+export function importHeaderKey(header: string): string | null {
+  const n = header.toLowerCase().replace(/[^a-z0-9]/g, "");
+  for (const c of IMPORT_COLUMNS)
+    if (c.label.toLowerCase().replace(/[^a-z0-9]/g, "") === n) return c.key;
+  if (n === "employeeno" || n === "empno" || n === "no") return "empNo";
+  if (n === "employeename") return "name";
+  if (n === "site" || n === "placeofassignment" || n === "assignment")
+    return "site";
+  if (n === "timein" || n === "in") return "timeIn";
+  if (n === "timeout" || n === "out") return "timeOut";
+  if (n === "projectcode" || n === "project" || n === "proj") return "proj";
+  if (n === "daytype") return "dayType";
+  if (n === "leaveref") return "leaveRef";
+  return null;
+}
+
+/** ISO "YYYY-MM-DD" / Excel serial number / JS Date → "YYYY-MM-DD" (or null). */
+export function normalizeImportDate(v: string | number | Date): string | null {
+  if (v instanceof Date) {
+    if (Number.isNaN(v.getTime())) return null;
+    return `${v.getFullYear()}-${pad2(v.getMonth() + 1)}-${pad2(v.getDate())}`;
+  }
+  if (typeof v === "number") {
+    if (!Number.isFinite(v) || v <= 0) return null;
+    // Excel serial: days since 1899-12-30 (25569 = that epoch in Unix days).
+    const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+    if (Number.isNaN(d.getTime())) return null;
+    return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
+  }
+  const s = v.trim();
+  if (s === "") return null;
+  const iso = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s);
+  if (iso) {
+    const m = Number(iso[2]);
+    const d = Number(iso[3]);
+    if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+    return `${iso[1]}-${pad2(m)}-${pad2(d)}`;
+  }
+  const us = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s);
+  if (us) {
+    const m = Number(us[1]);
+    const d = Number(us[2]);
+    if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+    return `${us[3]}-${pad2(m)}-${pad2(d)}`;
+  }
+  if (/^\d+(\.\d+)?$/.test(s)) return normalizeImportDate(Number(s));
+  return null;
+}
+
+/** Trim/collapse-spaces/upper an Employee No for matching against EMPLOYEES.no. */
+export function normalizeEmpNo(raw: string): string {
+  return raw.trim().replace(/\s+/g, " ").toUpperCase();
+}
+
+/** Serialize a TimeRow to canonical column strings — the template writer + the
+ *  round-trip test share this so export∘import is provably identity. */
+export function timeRowToRaw(row: Omit<TimeRow, "id">): RawImportRow {
+  const empNo = row.empNo ?? LEGACY_EMP_NO;
+  return {
+    empNo,
+    name: findEmployeeByNo(empNo)?.name ?? "",
+    site: row.site ?? "",
+    date: row.date,
+    dayType: row.dayType,
+    timeIn: row.in === "—" ? "ABSENT" : row.in,
+    timeOut: row.out === "—" ? "ABSENT" : row.out,
+    proj: row.proj,
+    leave: row.leave ?? "",
+    leaveRef: row.leaveRef ?? "",
+    remarks: row.remarks,
+  };
+}
+
+function field(raw: RawImportRow, key: string): string {
+  return (raw[key] ?? "").trim();
+}
+
+/** Map ONE raw row → a staged row (resolve + default + validate; no store probe
+ *  yet). Mirrors buildSiteDayRows defaults exactly. */
+export function mapImportRow(raw: RawImportRow): StagedRow {
+  const messages: string[] = [];
+  const err = (msg: string): StagedRow => ({
+    input: raw,
+    row: null,
+    severity: "error",
+    action: "error",
+    messages: [...messages, msg],
+  });
+
+  const rawNo = field(raw, "empNo");
+  if (!rawNo) return err("Employee No is required.");
+  const wanted = normalizeEmpNo(rawNo);
+  const emp = EMPLOYEES.find((e) => normalizeEmpNo(e.no) === wanted);
+  if (!emp)
+    return err(`Employee No "${rawNo}" not found (unknown or archived).`);
+  if (emp.status === "Resigned" || emp.status === "Terminated")
+    return err(`${emp.name} is ${emp.status} — cannot record time.`);
+
+  const date = normalizeImportDate(field(raw, "date"));
+  if (!date)
+    return err(`Date "${field(raw, "date")}" is invalid (use YYYY-MM-DD).`);
+
+  const rawSite = field(raw, "site");
+  const site = rawSite || emp.assign;
+  if (rawSite && rawSite !== emp.assign)
+    messages.push(
+      `Site "${rawSite}" differs from ${emp.name}'s assignment "${emp.assign}" — importing with the provided site.`,
+    );
+
+  const rawName = field(raw, "name");
+  if (rawName && rawName.toLowerCase() !== emp.name.toLowerCase())
+    messages.push(`Name "${rawName}" differs from record "${emp.name}".`);
+
+  const siteDefault = getSiteDayType(site, date);
+  const rawDayType = field(raw, "dayType");
+  let dayType = siteDefault;
+  let dayTypeOverridden = false;
+  if (rawDayType) {
+    if (!(DAY_TYPES as readonly string[]).includes(rawDayType))
+      return err(
+        `Day Type "${rawDayType}" is invalid. Use one of: ${DAY_TYPES.join(", ")}.`,
+      );
+    dayType = rawDayType;
+    dayTypeOverridden = rawDayType !== siteDefault;
+  }
+
+  const std = standardHoursForSite(site);
+  const parseTime = (key: string, fallback: string): string | null => {
+    const t = field(raw, key);
+    if (t === "") return fallback;
+    if (ABSENT_TOKENS.has(t.toUpperCase())) return "—";
+    if (isTimeValue(t) && t !== "—") return t;
+    return null;
+  };
+  const inT = parseTime("timeIn", std.in);
+  if (inT === null)
+    return err(
+      `Time In "${field(raw, "timeIn")}" is invalid — use HH:MM or ABSENT.`,
+    );
+  const outT = parseTime("timeOut", std.out);
+  if (outT === null)
+    return err(
+      `Time Out "${field(raw, "timeOut")}" is invalid — use HH:MM or ABSENT.`,
+    );
+
+  let proj = field(raw, "proj") || projCodeForAssign(site);
+  let inVal = inT;
+  let outVal = outT;
+  const rawLeave = field(raw, "leave");
+  let leave: string | null = null;
+  if (rawLeave) {
+    leave = rawLeave;
+    if (
+      inT !== std.in ||
+      outT !== std.out ||
+      field(raw, "timeIn") ||
+      field(raw, "timeOut")
+    )
+      messages.push("Leave set — Time In/Out forced to — and project cleared.");
+    inVal = "—";
+    outVal = "—";
+    proj = "—";
+  }
+  const leaveRef = field(raw, "leaveRef");
+  const remarks = field(raw, "remarks");
+
+  const row: Omit<TimeRow, "id"> = {
+    empNo: emp.no,
+    site,
+    date,
+    day: weekdayOf(date),
+    dayType,
+    proj,
+    in: inVal,
+    out: outVal,
+    leave,
+    remarks,
+    ...(leaveRef ? { leaveRef } : {}),
+    ...(dayTypeOverridden ? { dayTypeOverridden: true } : {}),
+  };
+  return {
+    input: raw,
+    row,
+    severity: messages.length > 0 ? "warning" : "ok",
+    action: "add",
+    messages,
+  };
+}
+
+/** Map all rows, collapse intra-file (empNo,date,proj) duplicates (keep last),
+ *  flag multi-project siblings, then decide each action against the live store +
+ *  per-employee lock. */
+export function validateImportRows(raws: readonly RawImportRow[]): {
+  staged: StagedRow[];
+  summary: ImportSummary;
+} {
+  const staged = raws.map((r) => mapImportRow(r));
+
+  // intra-file duplicate collapse + multi-project sibling detection
+  const lastByKey = new Map<string, number>(); // (empNo|date|proj) → staged index
+  const byEmpDate = new Map<string, Set<string>>(); // (empNo|date) → set of proj
+  staged.forEach((s, i) => {
+    if (!s.row || s.severity === "error") return;
+    const key = `${s.row.empNo}|${s.row.date}|${s.row.proj}`;
+    const prev = lastByKey.get(key);
+    if (prev != null) {
+      const p = staged[prev];
+      if (p) {
+        p.action = "skip-duplicate";
+        p.severity = "warning";
+        p.messages = [
+          ...p.messages,
+          "Superseded by a later row for the same employee/date/project.",
+        ];
+      }
+    }
+    lastByKey.set(key, i);
+    const ed = `${s.row.empNo}|${s.row.date}`;
+    const set = byEmpDate.get(ed) ?? new Set<string>();
+    set.add(s.row.proj);
+    byEmpDate.set(ed, set);
+  });
+
+  // mark multi-project siblings + resolve store action
+  for (const s of staged) {
+    if (!s.row || s.action === "skip-duplicate" || s.severity === "error")
+      continue;
+    const ed = `${s.row.empNo}|${s.row.date}`;
+    if ((byEmpDate.get(ed)?.size ?? 0) > 1) s.row = { ...s.row, multi: true };
+
+    const empNo = s.row.empNo ?? LEGACY_EMP_NO;
+    const existing = getTimeRowsForEmployee(empNo).find(
+      (r) => r.date === s.row?.date && r.proj === s.row?.proj,
+    );
+    if (existing) {
+      if (isLockedForEmployee(empNo)) {
+        s.action = "skip-locked";
+        s.messages = [
+          ...s.messages,
+          "Matches a Verified (locked) row — left unchanged.",
+        ];
+      } else {
+        s.action = "update";
+        s.matchId = existing.id;
+      }
+    } else {
+      s.action = "add";
+    }
+  }
+
+  const summary: ImportSummary = {
+    toAdd: staged.filter((s) => s.action === "add").length,
+    toUpdate: staged.filter((s) => s.action === "update").length,
+    skippedLocked: staged.filter((s) => s.action === "skip-locked").length,
+    errors: staged.filter((s) => s.severity === "error").length,
+    warnings: staged.filter((s) => s.severity === "warning").length,
+  };
+  return { staged, summary };
+}
+
+/** Commit staged rows into the shared store. add → addTimeRow; update →
+ *  updateTimeRow(matchId, editable patch only); skips locked/duplicate/error.
+ *  Idempotent: a re-commit re-applies the same patches (no-op end state). */
+export function commitImportRows(staged: readonly StagedRow[]): {
+  added: number;
+  updated: number;
+  skippedLocked: number;
+  errors: number;
+} {
+  let added = 0;
+  let updated = 0;
+  let skippedLocked = 0;
+  let errors = 0;
+  for (const s of staged) {
+    if (s.action === "add" && s.row) {
+      addTimeRow(s.row);
+      added += 1;
+    } else if (s.action === "update" && s.row && s.matchId != null) {
+      updateTimeRow(s.matchId, {
+        in: s.row.in,
+        out: s.row.out,
+        dayType: s.row.dayType,
+        leave: s.row.leave,
+        remarks: s.row.remarks,
+        dayTypeOverridden: true,
+        ...(s.row.leaveRef ? { leaveRef: s.row.leaveRef } : {}),
+        ...(s.row.multi ? { multi: true } : {}),
+      });
+      updated += 1;
+    } else if (s.action === "skip-locked") {
+      skippedLocked += 1;
+    } else if (s.action === "error") {
+      errors += 1;
+    }
+  }
+  return { added, updated, skippedLocked, errors };
+}
+
+/** Template rows = buildSiteDayRows for each requested (site,date) — the
+ *  round-trip source the export writes and the import reads back. */
+export function generateTemplateRows(input: {
+  sites: readonly string[];
+  dates: readonly string[];
+}): TimeRow[] {
+  const out: TimeRow[] = [];
+  for (const site of input.sites)
+    for (const date of input.dates)
+      out.push(...buildSiteDayRows({ site, date }));
+  return out;
+}

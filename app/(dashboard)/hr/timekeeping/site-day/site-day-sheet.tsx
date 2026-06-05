@@ -134,13 +134,23 @@ function ghostRow(
   };
 }
 
-export function SiteDaySheet() {
+export function SiteDaySheet({
+  initialSite = "",
+  initialDate,
+}: {
+  initialSite?: string;
+  initialDate?: string;
+} = {}) {
   const { role } = useJce();
   const isEditor = role === "timekeeper" || role === "owner";
 
-  const [site, setSite] = useState("");
-  const [date, setDate] = useState(HR_TODAY);
-  const [dayType, setDayType] = useState("Regular Day");
+  const [site, setSite] = useState(initialSite);
+  const [date, setDate] = useState(initialDate ?? HR_TODAY);
+  const [dayType, setDayType] = useState(() =>
+    initialSite
+      ? getSiteDayType(initialSite, initialDate ?? HR_TODAY)
+      : "Regular Day",
+  );
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [page, setPage] = useState(1);
@@ -662,13 +672,22 @@ export function SiteDaySheet() {
                 />
               </div>
               {isEditor ? (
-                <Button
-                  className="min-h-11 w-full sm:w-auto"
-                  disabled={!canPost}
-                  onClick={() => setPostOpen(true)}
-                >
-                  Post attendance
-                </Button>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="min-h-11 w-full sm:w-auto"
+                  >
+                    <Link href="/hr/timekeeping/import">Import Excel</Link>
+                  </Button>
+                  <Button
+                    className="min-h-11 w-full sm:w-auto"
+                    disabled={!canPost}
+                    onClick={() => setPostOpen(true)}
+                  >
+                    Post attendance
+                  </Button>
+                </div>
               ) : null}
             </div>
             <div className="-mx-1 overflow-x-auto px-1">
