@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
-import { ContactHero } from "@/components/sections/web-contact-hero";
-import { ContactAside } from "@/components/sections/web-contact-aside";
-import { ContactForm } from "@/components/sections/contact-form";
-import { MapEmbed } from "@/components/sections/map-embed";
-import { Reveal } from "@/components/sections/web-reveal";
+import { ContactHero } from "@/components/sections/contact/web-contact-hero";
+import { ContactAside } from "@/components/sections/contact/web-contact-aside";
+import { ContactForm } from "@/components/sections/contact/contact-form";
+import { MapEmbed } from "@/components/sections/contact/map-embed";
+import { Reveal } from "@/components/sections/kit/web-reveal";
 
 export const metadata: Metadata = {
   title: "Contact Us",

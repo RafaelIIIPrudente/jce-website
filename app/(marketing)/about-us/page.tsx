@@ -3,17 +3,17 @@ import Link from "next/link";
 import { CheckIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { WebSection } from "@/components/sections/web-section";
-import { Reveal } from "@/components/sections/web-reveal";
-import { CircuitReveal } from "@/components/sections/web-circuit-reveal";
-import { PhotoCard } from "@/components/sections/web-photo-card";
-import { VoltageTag } from "@/components/sections/web-voltage-tag";
-import { ElectrifiedDivider } from "@/components/sections/web-electrified-divider";
-import { OmegaMark } from "@/components/sections/web-omega-mark";
-import { MagneticButton } from "@/components/sections/web-magnetic-button";
-import { AboutHero } from "@/components/sections/web-about-hero";
-import { AboutStatBand } from "@/components/sections/web-about-stat-band";
-import { AboutVideos } from "@/components/sections/web-about-videos";
+import { WebSection } from "@/components/sections/kit/web-section";
+import { Reveal } from "@/components/sections/kit/web-reveal";
+import { CircuitReveal } from "@/components/sections/kit/web-circuit-reveal";
+import { PhotoCard } from "@/components/sections/kit/web-photo-card";
+import { VoltageTag } from "@/components/sections/kit/web-voltage-tag";
+import { ElectrifiedDivider } from "@/components/sections/kit/web-electrified-divider";
+import { OmegaMark } from "@/components/sections/kit/web-omega-mark";
+import { MagneticButton } from "@/components/sections/kit/web-magnetic-button";
+import { AboutHero } from "@/components/sections/about/web-about-hero";
+import { AboutStatBand } from "@/components/sections/about/web-about-stat-band";
+import { AboutVideos } from "@/components/sections/about/web-about-videos";
 import { ABOUT } from "@/lib/content/website";
 import { LICENSES } from "@/lib/content/accreditations";
 

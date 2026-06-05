@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
-import { WebProjectCategoryHero } from "@/components/sections/web-project-category-hero";
-import { WebProjectCategoryGrid } from "@/components/sections/web-project-category-grid";
-import { WebProjectCategoryCta } from "@/components/sections/web-project-category-cta";
+import { WebProjectCategoryHero } from "@/components/sections/projects/web-project-category-hero";
+import { WebProjectCategoryGrid } from "@/components/sections/projects/web-project-category-grid";
+import { WebProjectCategoryCta } from "@/components/sections/projects/web-project-category-cta";
 
 import { SOLAR_PROJECTS } from "@/lib/content/projects";
 

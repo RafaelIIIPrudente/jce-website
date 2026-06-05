@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
-import { WebSection } from "@/components/sections/web-section";
-import { NewsHero } from "@/components/sections/web-news-hero";
-import { WebNewsList } from "@/components/sections/web-news-list";
-import { WebCta } from "@/components/sections/web-cta";
+import { WebSection } from "@/components/sections/kit/web-section";
+import { NewsHero } from "@/components/sections/news/web-news-hero";
+import { WebNewsList } from "@/components/sections/news/web-news-list";
+import { WebCta } from "@/components/sections/kit/web-cta";
 
 export const metadata: Metadata = {
   title: "News",

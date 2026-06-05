@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { WebSection } from "@/components/sections/web-section";
-import { Reveal } from "@/components/sections/web-reveal";
-import { MagneticButton } from "@/components/sections/web-magnetic-button";
-import { OmegaMark } from "@/components/sections/web-omega-mark";
-import { ProductsHero } from "@/components/sections/web-products-hero";
-import { WebProductsGrid } from "@/components/sections/web-products-grid";
-import { ProductsEquipment } from "@/components/sections/web-products-equipment";
+import { WebSection } from "@/components/sections/kit/web-section";
+import { Reveal } from "@/components/sections/kit/web-reveal";
+import { MagneticButton } from "@/components/sections/kit/web-magnetic-button";
+import { OmegaMark } from "@/components/sections/kit/web-omega-mark";
+import { ProductsHero } from "@/components/sections/products/web-products-hero";
+import { WebProductsGrid } from "@/components/sections/products/web-products-grid";
+import { ProductsEquipment } from "@/components/sections/products/web-products-equipment";
 
 export const metadata: Metadata = {
   title: "Products",

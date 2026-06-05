@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
-import { WebSection } from "@/components/sections/web-section";
-import { CareersHero } from "@/components/sections/web-careers-hero";
-import { WebCareersList } from "@/components/sections/web-careers-list";
-import { WebCta } from "@/components/sections/web-cta";
+import { WebSection } from "@/components/sections/kit/web-section";
+import { CareersHero } from "@/components/sections/careers/web-careers-hero";
+import { WebCareersList } from "@/components/sections/careers/web-careers-list";
+import { WebCta } from "@/components/sections/kit/web-cta";
 
 export const metadata: Metadata = {
   title: "Careers",

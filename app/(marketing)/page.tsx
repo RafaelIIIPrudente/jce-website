@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
-import { HomeHero } from "@/components/sections/web-home-hero";
-import { HomeCapabilities } from "@/components/sections/web-home-capabilities";
-import { HomeProjects } from "@/components/sections/web-home-projects";
-import { HomeClients } from "@/components/sections/web-home-clients";
-import { HomeMotionBand } from "@/components/sections/web-home-motion-band";
-import { HomeCta } from "@/components/sections/web-home-cta";
+import { HomeHero } from "@/components/sections/home/web-home-hero";
+import { HomeCapabilities } from "@/components/sections/home/web-home-capabilities";
+import { HomeProjects } from "@/components/sections/home/web-home-projects";
+import { HomeClients } from "@/components/sections/home/web-home-clients";
+import { HomeMotionBand } from "@/components/sections/home/web-home-motion-band";
+import { HomeCta } from "@/components/sections/home/web-home-cta";
 
 // S1 · Home (FLAGSHIP) — the premium "electrified" rebuild. Dark showpiece hero,
 // photo-backed capability band, featured projects with voltage tags, NGCP trust

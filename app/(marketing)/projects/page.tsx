@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRightIcon } from "lucide-react";
 
-import { WebSection } from "@/components/sections/web-section";
-import { Reveal } from "@/components/sections/web-reveal";
-import { CircuitReveal } from "@/components/sections/web-circuit-reveal";
-import { OmegaMark } from "@/components/sections/web-omega-mark";
-import { VoltageTag } from "@/components/sections/web-voltage-tag";
-import { ProjectsHero } from "@/components/sections/web-projects-hero";
-import { WebProjectGallery } from "@/components/sections/web-project-gallery";
-import { WebProjectCategoryCta } from "@/components/sections/web-project-category-cta";
+import { WebSection } from "@/components/sections/kit/web-section";
+import { Reveal } from "@/components/sections/kit/web-reveal";
+import { CircuitReveal } from "@/components/sections/kit/web-circuit-reveal";
+import { OmegaMark } from "@/components/sections/kit/web-omega-mark";
+import { VoltageTag } from "@/components/sections/kit/web-voltage-tag";
+import { ProjectsHero } from "@/components/sections/projects/web-projects-hero";
+import { WebProjectGallery } from "@/components/sections/projects/web-project-gallery";
+import { WebProjectCategoryCta } from "@/components/sections/projects/web-project-category-cta";
 import {
   CATEGORY_HREF,
   CATEGORY_LABEL,
