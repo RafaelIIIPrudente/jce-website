@@ -254,6 +254,9 @@ export function EmployeeForm({
                 )}
               </Row>
               <Row label="Date Hired">{textInput(emp?.hired, "date")}</Row>
+              <Row label="Contract End (contractual)">
+                {textInput(emp?.contractEnd, "date")}
+              </Row>
               <Row label="Years of Service" computed>
                 {computedField("auto from Date Hired")}
               </Row>
@@ -344,6 +347,18 @@ export function EmployeeForm({
             <div className="grid gap-4 sm:grid-cols-2">
               <Row label="Insurance">
                 {selectInput(emp?.insurance, ["Yes", "No"])}
+              </Row>
+              <Row label="Insurance Provider">
+                {textInput(emp?.insProvider)}
+              </Row>
+              <Row label="Policy No." sensitive>
+                {textInput(emp?.insPolicyNo)}
+              </Row>
+              <Row label="Insurance Enrolled">
+                {textInput(emp?.insEnrolled, "date")}
+              </Row>
+              <Row label="Insurance Expiry">
+                {textInput(emp?.insExpiry, "date")}
               </Row>
               <Row label="Vaccinated">
                 {selectInput(emp?.vaccinated, ["Yes", "No"])}
