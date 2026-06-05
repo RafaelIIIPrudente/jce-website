@@ -23,6 +23,19 @@ export function peso(n: number): string {
 }
 
 /**
+ * "₱274.1M" / "₱62.0M" / "₱950.0K" — abbreviated peso for KPI / summary tiles,
+ * where the precise figure lives on the record. 1 dp; full grouping below ₱1,000.
+ * Keeps long totals from overflowing a tile on narrow (mobile) viewports.
+ */
+export function pesoCompact(n: number): string {
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000_000) return "₱" + (abs / 1_000_000_000).toFixed(1) + "B";
+  if (abs >= 1_000_000) return "₱" + (abs / 1_000_000).toFixed(1) + "M";
+  if (abs >= 1_000) return "₱" + (abs / 1_000).toFixed(1) + "K";
+  return "₱" + abs.toLocaleString(PH_LOCALE);
+}
+
+/**
  * "13,540,000.00" or "(1,700.68)" — no symbol, negatives in parentheses.
  * (acc-data.jsx:4-7)
  */

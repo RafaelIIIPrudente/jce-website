@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { BDD_AUDIT, BDD_AUDIT_AREAS, type BddAuditEntry } from "@/lib/mock/bdd";
+import { BDD_AUDIT_AREAS, getBddLog, type BddAuditEntry } from "@/lib/mock/bdd";
 import { PageHeader } from "@/components/jce/page-header";
 import { Segmented } from "@/components/jce/segmented";
 import { AuditLog, type AuditEntry } from "@/components/jce/audit-log";
@@ -33,9 +33,10 @@ function toAuditEntry(a: BddAuditEntry): AuditEntry {
 
 export function BddAudit() {
   const [area, setArea] = useState<string>("All");
-  const entries: AuditEntry[] = BDD_AUDIT.filter(
-    (a) => area === "All" || a.area === area,
-  ).map(toAuditEntry);
+  // Seed + this-session live edits (incl. Website-CMS changes), newest-first.
+  const entries: AuditEntry[] = getBddLog()
+    .filter((a) => area === "All" || a.area === area)
+    .map(toAuditEntry);
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-5">

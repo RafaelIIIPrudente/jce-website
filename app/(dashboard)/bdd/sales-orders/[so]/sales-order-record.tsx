@@ -255,7 +255,7 @@ function SalesOrderDetail({ order }: { order: SalesOrder }) {
                 SENSITIVE
               </span>
             </div>
-            <div className="text-ui-28 leading-none font-bold tracking-tight tabular-nums text-jce-ink">
+            <div className="text-ui-22 leading-none font-bold tracking-tight tabular-nums text-jce-ink sm:text-ui-28">
               {peso(amount)}
             </div>
             {!readOnly ? (
@@ -358,8 +358,8 @@ function SalesOrderDetail({ order }: { order: SalesOrder }) {
           </div>
         </div>
 
-        {/* Derived figures */}
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {/* Derived figures — precise peso, so stack on phones (no clipping) */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard
             label="Down Payment Amount"
             value={peso(d.dpAmt)}

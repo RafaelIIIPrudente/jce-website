@@ -22,7 +22,7 @@ import {
   SO_STATUS_TONE,
   type SalesOrder,
 } from "@/lib/mock/bdd";
-import { peso } from "@/lib/mock/format";
+import { peso, pesoCompact } from "@/lib/mock/format";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -294,7 +294,9 @@ export function SalesOrdersList() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiTile
           label="Total contract value"
-          value={<span className="text-ui-22">{peso(totalValue)}</span>}
+          value={
+            <span title={peso(totalValue)}>{pesoCompact(totalValue)}</span>
+          }
           delta={`${rows.length} sales order${rows.length === 1 ? "" : "s"}`}
           tone="neutral"
         />
@@ -326,7 +328,7 @@ export function SalesOrdersList() {
           />
         </div>
         {!readOnly ? (
-          <Button onClick={openCreate} className="min-h-11">
+          <Button onClick={openCreate} className="min-h-11 w-full sm:w-auto">
             <PlusIcon aria-hidden /> New SO
           </Button>
         ) : null}
@@ -386,7 +388,7 @@ export function SalesOrdersList() {
 
       {/* New-SO dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>New Sales Order</DialogTitle>
             <DialogDescription>
@@ -486,7 +488,7 @@ export function SalesOrdersList() {
                 aria-invalid={errors.amount ? true : undefined}
               />
             </LabeledField>
-            <div className="grid grid-cols-2 gap-4 sm:col-span-2 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-2">
               <LabeledField label="Remarks" htmlFor="so-remarks">
                 <Select
                   value={form.remarks}

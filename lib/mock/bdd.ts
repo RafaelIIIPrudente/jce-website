@@ -8,8 +8,24 @@
 // Inquiries do NOT live here — they share lib/mock/inquiries.ts with the website.
 // ============================================================================
 
-// Chip tone vocabulary (matches components/jce/chip ChipTone) — kept local so this
-// data module has no component dependency.
+import { type LucideIcon, ZapIcon } from "lucide-react";
+
+import {
+  ALL_PROJECTS,
+  type Project,
+  type ProjectImage,
+} from "@/lib/content/projects";
+import {
+  PRODUCTS,
+  SERVICES,
+  type Product,
+  type Service,
+} from "@/lib/content/website";
+
+// Chip tone vocabulary (matches components/jce/chip ChipTone). The B7–B9 Website
+// CMS below deliberately imports the public content schemas (lib/content): the CMS
+// record types are the public Project/Service/Product &-extended, so they track the
+// live site by construction (SRS §9.2) rather than re-declaring a parallel shape.
 export type Tone =
   | "success"
   | "pending"
@@ -816,70 +832,41 @@ export const QUOTATION_CAT_PREFIX: Record<QuotationCat, string> = {
   Solar: "Q-SP-",
 };
 
-// ---- B7/B8/B9 · Website content CMS ----------------------------------------
+// ---- B7/B8/B9 · Website content CMS (SRS §9.2) -----------------------------
+// FIELD-MATCH IS THE POINT: a CMS record IS the public content record &-extended
+// with the §9.2 governance fields — never a re-declared parallel shape. Change the
+// public Project/Service/Product schema (lib/content) and these track it by
+// construction. Stores are in-session singletons SEEDED FROM the live content
+// (mirrors lib/mock/inquiries.ts); edits persist for the session and append to the
+// BDD audit (§9.6, edit-with-audit — NOT the immutable event-stream of Offers/
+// Quotations). Live write-back to the static lib/content is the documented target
+// but stays PROPOSED here (lib/content is static TS — never written to from a mock).
 export type WebStatus = "Published" | "Draft" | "Hidden";
 
-export type WebProject = {
-  name: string;
-  client: string;
+// Governance layered onto each public type. Projects' `gallery` already carries the
+// photos; services/products gain an optional `photos`. `coverIndex` designates the
+// row-thumbnail cover; `sort` is the public ordering; `archived` is the soft-delete.
+export type CmsProject = Project & {
   showClient: boolean;
-  loc: string;
-  done: string;
-  tags: readonly string[];
   status: WebStatus;
   sort: number;
+  coverIndex?: number;
+  archived?: boolean;
 };
-export type WebEntry = { name: string; status: WebStatus; sort: number };
-
-export const WEB_PROJECTS: readonly WebProject[] = [
-  {
-    name: "230KV Substation — Bulacan",
-    client: "NGCP",
-    showClient: true,
-    loc: "Bulacan",
-    done: "2026-03",
-    tags: ["Substation", "Transmission Line"],
-    status: "Published",
-    sort: 1,
-  },
-  {
-    name: "Solar Farm — Tarlac 5MWp",
-    client: "SMC Global",
-    showClient: false,
-    loc: "Tarlac",
-    done: "2025-12",
-    tags: ["Solar", "Renewable Energy"],
-    status: "Published",
-    sort: 2,
-  },
-  {
-    name: "13.2KV Distribution Line",
-    client: "NORECO II",
-    showClient: true,
-    loc: "Negros Oriental",
-    done: "—",
-    tags: ["Transmission Line"],
-    status: "Draft",
-    sort: 3,
-  },
-] as const;
-
-export const WEB_SERVICES: readonly WebEntry[] = [
-  {
-    name: "Substation Design and Construction (up to 230 KV)",
-    status: "Published",
-    sort: 1,
-  },
-  { name: "Transmission Line Construction", status: "Published", sort: 2 },
-  { name: "Solar / Renewable Energy EPC", status: "Published", sort: 3 },
-  { name: "Maintenance & Servicing", status: "Draft", sort: 4 },
-] as const;
-
-export const WEB_PRODUCTS: readonly WebEntry[] = [
-  { name: "Power Transformer (15 KV – 230 KV)", status: "Published", sort: 1 },
-  { name: "HVSG / MVSG / LVSG Switchgear", status: "Published", sort: 2 },
-  { name: "Distribution Transformers", status: "Hidden", sort: 3 },
-] as const;
+export type CmsService = Service & {
+  status: WebStatus;
+  sort: number;
+  photos?: readonly ProjectImage[];
+  coverIndex?: number;
+  archived?: boolean;
+};
+export type CmsProduct = Product & {
+  status: WebStatus;
+  sort: number;
+  photos?: readonly ProjectImage[];
+  coverIndex?: number;
+  archived?: boolean;
+};
 
 export const WEB_STATUS_TONE: Record<WebStatus, Tone> = {
   Published: "success",
@@ -891,6 +878,139 @@ export const WEB_STATUS_OPTIONS: readonly WebStatus[] = [
   "Draft",
   "Hidden",
 ];
+
+// The seed icon (LucideIcon) is carried verbatim and shown but is NOT user-editable;
+// CMS-created services/products get this sensible default glyph.
+export const CMS_DEFAULT_ICON: LucideIcon = ZapIcon;
+
+// ---- in-session stores, SEEDED from the live public content ----------------
+// ONE store per entity, no parallel copy. Reloading the page resets to the seed
+// (intentional mock). Status defaults Published; showClient mirrors whether the
+// seed project named a client; sort = seed index.
+const cmsProjectStore: CmsProject[] = ALL_PROJECTS.map((p, i) => ({
+  ...p,
+  showClient: p.client != null,
+  status: "Published",
+  sort: i,
+  coverIndex: 0,
+  archived: false,
+}));
+const cmsServiceStore: CmsService[] = SERVICES.map((s, i) => ({
+  ...s,
+  status: "Published",
+  sort: i,
+  photos: [],
+  coverIndex: 0,
+  archived: false,
+}));
+const cmsProductStore: CmsProduct[] = PRODUCTS.map((p, i) => ({
+  ...p,
+  status: "Published",
+  sort: i,
+  photos: [],
+  coverIndex: 0,
+  archived: false,
+}));
+
+// New-record inputs — Pick the editable public+governance fields (NO re-declare);
+// gallery/photos/sort/archived default inside the add* helpers. `icon` defaults.
+export type NewCmsProject = Pick<
+  CmsProject,
+  | "slug"
+  | "name"
+  | "category"
+  | "location"
+  | "client"
+  | "showClient"
+  | "capacity"
+  | "voltage"
+  | "scope"
+  | "year"
+  | "summary"
+  | "status"
+>;
+export type NewCmsService = Pick<
+  CmsService,
+  "slug" | "name" | "spec" | "desc" | "status"
+> & { icon?: LucideIcon };
+export type NewCmsProduct = Pick<
+  CmsProduct,
+  "name" | "spec" | "tag" | "status"
+> & { icon?: LucideIcon };
+
+export function getCmsProjects(): readonly CmsProject[] {
+  return cmsProjectStore;
+}
+export function addCmsProject(input: NewCmsProject): CmsProject {
+  const created: CmsProject = {
+    ...input,
+    gallery: [],
+    coverIndex: 0,
+    sort: cmsProjectStore.length,
+    archived: false,
+  };
+  cmsProjectStore.push(created);
+  return created;
+}
+export function updateCmsProject(
+  slug: string,
+  patch: Partial<CmsProject>,
+): void {
+  const i = cmsProjectStore.findIndex((p) => p.slug === slug);
+  const cur = cmsProjectStore[i];
+  if (cur) cmsProjectStore[i] = { ...cur, ...patch };
+}
+
+export function getCmsServices(): readonly CmsService[] {
+  return cmsServiceStore;
+}
+export function addCmsService(input: NewCmsService): CmsService {
+  const { icon, ...rest } = input;
+  const created: CmsService = {
+    ...rest,
+    icon: icon ?? CMS_DEFAULT_ICON,
+    photos: [],
+    coverIndex: 0,
+    sort: cmsServiceStore.length,
+    archived: false,
+  };
+  cmsServiceStore.push(created);
+  return created;
+}
+export function updateCmsService(
+  slug: string,
+  patch: Partial<CmsService>,
+): void {
+  const i = cmsServiceStore.findIndex((s) => s.slug === slug);
+  const cur = cmsServiceStore[i];
+  if (cur) cmsServiceStore[i] = { ...cur, ...patch };
+}
+
+export function getCmsProducts(): readonly CmsProduct[] {
+  return cmsProductStore;
+}
+export function addCmsProduct(input: NewCmsProduct): CmsProduct {
+  const { icon, ...rest } = input;
+  const created: CmsProduct = {
+    ...rest,
+    icon: icon ?? CMS_DEFAULT_ICON,
+    photos: [],
+    coverIndex: 0,
+    sort: cmsProductStore.length,
+    archived: false,
+  };
+  cmsProductStore.push(created);
+  return created;
+}
+/** Products have no slug — `name` is the record key. */
+export function updateCmsProduct(
+  name: string,
+  patch: Partial<CmsProduct>,
+): void {
+  const i = cmsProductStore.findIndex((p) => p.name === name);
+  const cur = cmsProductStore[i];
+  if (cur) cmsProductStore[i] = { ...cur, ...patch };
+}
 
 // ---- B10 · inquiry status tones (inquiries live in lib/mock/inquiries.ts) ---
 export const INQ_TONE: Record<string, Tone> = {
@@ -958,6 +1078,8 @@ export const BDD_AUDIT_AREAS = [
   "Quotation",
   "Supplier Quote",
   "Website Project",
+  "Website Service",
+  "Website Product",
   "Inquiry",
 ] as const;
 
@@ -983,4 +1105,10 @@ export function getBddHistory(so: string): readonly BddAuditEntry[] {
   const seed = BDD_AUDIT.filter((a) => a.rec === so);
   const live = liveAudit.filter((a) => a.rec === so).reverse();
   return [...live, ...seed];
+}
+
+/** The whole BDD audit log — this-session live edits (newest-first) on top of the
+ *  frozen seed — for the B11 register, so Website-CMS edits surface there (§9.6). */
+export function getBddLog(): readonly BddAuditEntry[] {
+  return [...[...liveAudit].reverse(), ...BDD_AUDIT];
 }
