@@ -16,6 +16,7 @@ const TABS = [
   { href: "/hr/employees", label: "Employees", module: "hr" as const },
   { href: "/hr/timekeeping", label: "Timekeeping", module: "hr" as const },
   { href: "/hr/requests", label: "HR Requests", module: "hr" as const },
+  { href: "/hr/news-careers", label: "News & Careers", module: "hr" as const },
   { href: "/my-hr", label: "Self-Service", module: "self" as const },
   { href: "/hr/audit", label: "Audit", module: "hr" as const },
 ];
