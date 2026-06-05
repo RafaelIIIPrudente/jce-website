@@ -34,7 +34,7 @@ export function WebNewsList({
             id={n.slug}
             className="circuit-card solid flex h-full flex-col rounded-(--r-glass) p-5"
           >
-            <div className="relative aspect-[16/9] overflow-hidden rounded-(--r-input) bg-[linear-gradient(135deg,var(--jce-green-100),var(--jce-green-50))]">
+            <div className="relative aspect-video overflow-hidden rounded-(--r-input) bg-[linear-gradient(135deg,var(--jce-green-100),var(--jce-green-50))]">
               <OmegaMark
                 className="pointer-events-none absolute right-3 bottom-3 size-8 text-jce-green-700/15"
                 strokeWidth={5}
