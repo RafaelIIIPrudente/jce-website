@@ -15,8 +15,7 @@ import { cn } from "@/lib/utils";
 import { useJce } from "@/lib/mock/role-context";
 import {
   EMPLOYEES,
-  EMP_STATUS_FILTERS,
-  EMP_TYPE_FILTERS,
+  EMP_ASSIGN_FILTERS,
   SALARY_CATEGORIES,
   STATUS_TONE,
   expiringFlag,
@@ -112,8 +111,7 @@ export function EmployeesList() {
   const canEditEmployees = role === "hrhead" || role === "owner";
 
   const [q, setQ] = useState("");
-  const [status, setStatus] = useState<string>("All");
-  const [type, setType] = useState<string>("All");
+  const [assign, setAssign] = useState<string>("All");
   // Per-section collapse + page state, and the flattened search page.
   const [collapsed, setCollapsed] = useState<Record<SalaryCategory, boolean>>({
     Daily: false,
@@ -135,18 +133,13 @@ export function EmployeesList() {
     setQ(v);
     resetPaging();
   };
-  const onStatus = (v: string) => {
-    setStatus(v);
-    resetPaging();
-  };
-  const onType = (v: string) => {
-    setType(v);
+  const onAssign = (v: string) => {
+    setAssign(v);
     resetPaging();
   };
   const clearAll = () => {
     setQ("");
-    setStatus("All");
-    setType("All");
+    setAssign("All");
     resetPaging();
   };
   const toggle = (cat: SalaryCategory) =>
@@ -159,8 +152,7 @@ export function EmployeesList() {
       `${e.name}${e.no}${e.bio}${e.pos}${e.assign}`
         .toLowerCase()
         .includes(q.toLowerCase())) &&
-    (status === "All" || e.status === status) &&
-    (type === "All" || e.type === type);
+    (assign === "All" || e.assign === assign);
 
   const filtered = EMPLOYEES.filter(match);
   const searching = q.trim() !== "";
@@ -287,32 +279,17 @@ export function EmployeesList() {
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Select value={status} onValueChange={onStatus}>
+            <Select value={assign} onValueChange={onAssign}>
               <SelectTrigger
-                aria-label="Filter by status"
-                className="min-h-11 w-full sm:w-40"
+                aria-label="Filter by place of assignment"
+                className="min-h-11 w-full sm:w-64"
               >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {EMP_STATUS_FILTERS.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={type} onValueChange={onType}>
-              <SelectTrigger
-                aria-label="Filter by employment type"
-                className="min-h-11 w-full sm:w-40"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {EMP_TYPE_FILTERS.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
+                {EMP_ASSIGN_FILTERS.map((a) => (
+                  <SelectItem key={a} value={a}>
+                    {a}
                   </SelectItem>
                 ))}
               </SelectContent>

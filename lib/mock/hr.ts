@@ -816,6 +816,14 @@ export const EMP_STATUS_FILTERS = [
 
 export const EMP_TYPE_FILTERS = ["All", "Regular", "Contractual"] as const;
 
+/** Distinct Places of Assignment across the live roster (base + generated), for
+ *  the H1 list filter. Derived once at module load so generated assignments are
+ *  covered. */
+export const EMP_ASSIGN_FILTERS: readonly string[] = [
+  "All",
+  ...Array.from(new Set(EMPLOYEES.map((e) => e.assign))).sort(),
+];
+
 export const STATUS_TONE: Record<string, Tone> = {
   Regular: "success",
   Probationary: "info",
