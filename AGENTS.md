@@ -45,6 +45,8 @@ Compressed AI-readable contract. Rationale and long-form discussion in [`BASEPLA
 8. Lucide imports are named only: `import { Check } from 'lucide-react'`.
 9. `motion` from `motion/react`. Never `framer-motion`.
 
+> Quality bar beyond these rules — maintainability, performance, accessibility (WCAG 2.2 AA), SEO, and the canonical folder map — lives in [CLAUDE.md → Engineering Standards](./CLAUDE.md#engineering-standards--scalable--maintainable--production-ready).
+
 ## When-you-edit-X-also-update-Y
 
 - New protected route under `/dashboard` or `/settings` → add the prefix to `PROTECTED_PREFIXES` in `proxy.ts:7`.
