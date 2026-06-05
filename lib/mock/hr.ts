@@ -1556,14 +1556,83 @@ export function isLockedForEmployee(no: string): boolean {
 // ---- HR requests -----------------------------------------------------------
 export type RequestStatus = "Pending" | "Approved" | "Recorded";
 
+// ---- H7–H11 · HR Requests (SRS §4.3) ---------------------------------------
+// One record = one filed form. Common shape (§4.3): manual form number (OB/OT/RFL)
+// or a system Internal ID (LOA) · date filed · employee(s) from the DB (auto-
+// populated) · signers recorded for audit (names from the DB) · a REQUIRED multi-
+// file signed scan (gates the terminal status) · status. Per-form fields are a
+// discriminated union (no boolean soup). emp/key/scan are DERIVED summaries kept
+// on the record for the register columns (computed on add/update).
+export type ReqEmployee = {
+  no: string;
+  name: string;
+  pos: string;
+  assign: string;
+};
+export type ReqSigner = { role: string; empNo?: string; name?: string };
+export type ReqFile = { name: string; kind: "pdf" | "jpg" | "png" };
+
+export type RequestDetails =
+  | {
+      kind: "ob";
+      reasons: string;
+      projectName: string;
+      salesOrderNo: string;
+      destination: string;
+      departAt: string;
+      returnAt: string;
+    }
+  | {
+      kind: "ot";
+      section: string;
+      project: string;
+      otDate: string;
+      otType: "Pre-approved" | "After-the-fact";
+      requestedFromTo: string;
+      actualFromTo: string;
+      reason: string;
+    }
+  | {
+      kind: "rfl";
+      leaveType: "Vacation Leave" | "Sick Leave" | "Others";
+      othersSpecify?: string;
+      payType: "With Pay" | "Without Pay";
+      from: string;
+      to: string;
+      days: number;
+      daysOverridden?: boolean;
+      requestType: "Pre-approved" | "After-the-fact";
+      proof: ReqFile[];
+    }
+  | {
+      kind: "loa";
+      from: string;
+      to: string;
+      days: number;
+      daysOverridden?: boolean;
+      leaveType: "Vacation" | "Sick" | "Paternity" | "Maternity" | "Others";
+      reason: string;
+    };
+
 export type RequestRecord = {
+  /** URL-safe slug of `no` (deduped) — the deep-link route key. */
+  id: string;
   no: string;
   filed: string;
+  type: RequestTypeLabel;
+  /** DERIVED employee summary (register column). */
   emp: string;
+  /** DERIVED short per-type descriptor (register column). */
   key: string;
   status: RequestStatus;
-  /** scanned signed copy attached — gates Pending → Approved/Recorded */
+  /** DERIVED scans.length > 0 — gates Pending → Approved/Recorded. */
   scan: boolean;
+  employees: ReqEmployee[];
+  signers: ReqSigner[];
+  scans: ReqFile[];
+  details: RequestDetails;
+  /** Source ref stamped on auto-created timekeeping rows (RFL/LOA) — idempotency. */
+  leaveRef?: string;
 };
 
 export const REQ_TONE: Record<string, Tone> = {
@@ -1676,72 +1745,478 @@ export const SIGNERS: Record<RequestTypeLabel, readonly string[]> = {
   ],
 };
 
-export const REQUESTS: Record<RequestTypeLabel, readonly RequestRecord[]> = {
-  "OB/Travel": [
-    {
-      no: "OB-2026-014",
-      filed: "2026-05-30",
-      emp: "5 employees · Cavite team",
-      key: "Cavite Line site visit",
-      status: "Pending",
-      scan: false,
+/** Map a request type to its details discriminator. */
+export function detailsKindForType(
+  type: RequestTypeLabel,
+): RequestDetails["kind"] {
+  switch (type) {
+    case "OB/Travel":
+      return "ob";
+    case "Overtime":
+      return "ot";
+    case "Request for Leave":
+      return "rfl";
+    case "LOA Without Pay":
+      return "loa";
+  }
+}
+
+// ---- mutable request store (mirrors lib/mock/inquiries.ts) ------------------
+// Migrated seeds carry the full §4.3 shape; reload resets to seed (intentional
+// mock). The register + record routes read THROUGH the accessors.
+const requestStore: RequestRecord[] = [
+  {
+    id: "ob-2026-014",
+    no: "OB-2026-014",
+    filed: "2026-05-30",
+    type: "OB/Travel",
+    emp: "5 employees · Cavite team",
+    key: "Cavite Line site visit",
+    status: "Pending",
+    scan: false,
+    employees: [
+      {
+        no: "JCE 00007",
+        name: "Carlos M. Mendoza",
+        pos: "Project Manager",
+        assign: "26-04-355 · Cavite 69KV Transmission Line",
+      },
+      {
+        no: "JCE 00055",
+        name: "Paolo R. Garcia",
+        pos: "Site Engineer",
+        assign: "26-04-355 · Cavite 69KV Transmission Line",
+      },
+    ],
+    signers: SIGNERS["OB/Travel"].map((role) => ({ role })),
+    scans: [],
+    details: {
+      kind: "ob",
+      reasons: "Site coordination & inspection",
+      projectName: "Cavite 69KV Transmission Line",
+      salesOrderNo: "26-04-355",
+      destination: "Cavite Line site",
+      departAt: "2026-05-31T07:00",
+      returnAt: "2026-05-31T17:00",
     },
-    {
-      no: "OB-2026-012",
-      filed: "2026-05-22",
-      emp: "P. Garcia +2",
-      key: "Bulacan inspection",
-      status: "Approved",
-      scan: true,
+  },
+  {
+    id: "ob-2026-012",
+    no: "OB-2026-012",
+    filed: "2026-05-22",
+    type: "OB/Travel",
+    emp: "P. Garcia +2",
+    key: "Bulacan inspection",
+    status: "Approved",
+    scan: true,
+    employees: [
+      {
+        no: "JCE 00055",
+        name: "Paolo R. Garcia",
+        pos: "Site Engineer",
+        assign: "26-05-378 · 13.2KV Distribution Line",
+      },
+      {
+        no: "JCE 00007",
+        name: "Carlos M. Mendoza",
+        pos: "Project Manager",
+        assign: "26-05-378 · 13.2KV Distribution Line",
+      },
+      {
+        no: "JCE 00077",
+        name: "Noel V. Bautista",
+        pos: "Lineman",
+        assign: "26-05-378 · 13.2KV Distribution Line",
+      },
+    ],
+    signers: [
+      { role: "Requester", empNo: "JCE 00055", name: "Paolo R. Garcia" },
+      {
+        role: "Approving Officer / Dept. Head",
+        empNo: "JCE 00007",
+        name: "Carlos M. Mendoza",
+      },
+      { role: "Admin and Finance", empNo: "JCE 00009", name: "Ana L. Reyes" },
+      { role: "HR Acknowledger", empNo: "JCE 00014", name: "Maria T. Santos" },
+    ],
+    scans: [{ name: "ob-2026-012-signed.pdf", kind: "pdf" }],
+    details: {
+      kind: "ob",
+      reasons: "Pre-construction inspection",
+      projectName: "13.2KV Distribution Line",
+      salesOrderNo: "26-05-378",
+      destination: "Bulacan",
+      departAt: "2026-05-22T08:00",
+      returnAt: "2026-05-22T16:00",
     },
-  ],
-  Overtime: [
-    {
-      no: "OT FORM NO. 2026-022",
-      filed: "2026-05-29",
-      emp: "Shop · 8 staff",
-      key: "Fabrication push",
-      status: "Pending",
-      scan: false,
+  },
+  {
+    id: "ot-form-no-2026-022",
+    no: "OT FORM NO. 2026-022",
+    filed: "2026-05-29",
+    type: "Overtime",
+    emp: "Shop · 8 staff",
+    key: "Fabrication push",
+    status: "Pending",
+    scan: false,
+    employees: [
+      {
+        no: "JCE 00055",
+        name: "Paolo R. Garcia",
+        pos: "Site Engineer",
+        assign: "Internal — Workshop",
+      },
+    ],
+    signers: SIGNERS["Overtime"].map((role) => ({ role })),
+    scans: [],
+    details: {
+      kind: "ot",
+      section: "Shop / Office",
+      project: "Internal — Workshop",
+      otDate: "2026-05-29",
+      otType: "Pre-approved",
+      requestedFromTo: "18:00 – 22:00",
+      actualFromTo: "18:00 – 22:00",
+      reason: "Fabrication push for Cavite delivery",
     },
-    {
-      no: "OT FORM NO. 2026-019",
-      filed: "2026-05-20",
-      emp: "N. Bautista",
-      key: "Night energization",
-      status: "Approved",
-      scan: true,
+  },
+  {
+    id: "ot-form-no-2026-019",
+    no: "OT FORM NO. 2026-019",
+    filed: "2026-05-20",
+    type: "Overtime",
+    emp: "N. Bautista",
+    key: "Night energization",
+    status: "Approved",
+    scan: true,
+    employees: [
+      {
+        no: "JCE 00077",
+        name: "Noel V. Bautista",
+        pos: "Lineman",
+        assign: "26-05-378 · 13.2KV Distribution Line",
+      },
+    ],
+    signers: [
+      { role: "Requester", empNo: "JCE 00077", name: "Noel V. Bautista" },
+      {
+        role: "Department Head",
+        empNo: "JCE 00007",
+        name: "Carlos M. Mendoza",
+      },
+      {
+        role: "Timekeeper (Noted by)",
+        empNo: "JCE 00031",
+        name: "Ramon D. dela Cruz",
+      },
+      {
+        role: "HR Head (Approved by)",
+        empNo: "JCE 00014",
+        name: "Maria T. Santos",
+      },
+    ],
+    scans: [{ name: "ot-2026-019-signed.jpg", kind: "jpg" }],
+    details: {
+      kind: "ot",
+      section: "Project site",
+      project: "13.2KV Distribution Line",
+      otDate: "2026-05-20",
+      otType: "Pre-approved",
+      requestedFromTo: "20:00 – 02:00",
+      actualFromTo: "20:10 – 02:05",
+      reason: "Night line energization",
     },
-  ],
-  "Request for Leave": [
-    {
-      no: "RFL-26-051",
-      filed: "2026-06-01",
-      emp: "R. dela Cruz",
-      key: "Vacation Leave · With Pay · 3 days",
-      status: "Pending",
-      scan: false,
+  },
+  {
+    id: "rfl-26-051",
+    no: "RFL-26-051",
+    filed: "2026-06-01",
+    type: "Request for Leave",
+    emp: "R. dela Cruz",
+    key: "Vacation Leave · With Pay · 3 days",
+    status: "Pending",
+    scan: false,
+    leaveRef: "RFL-26-051",
+    employees: [
+      {
+        no: "JCE 00031",
+        name: "Ramon D. dela Cruz",
+        pos: "Lineman",
+        assign: "26-04-355 · Cavite 69KV Transmission Line",
+      },
+    ],
+    signers: SIGNERS["Request for Leave"].map((role) => ({ role })),
+    scans: [],
+    details: {
+      kind: "rfl",
+      leaveType: "Vacation Leave",
+      payType: "With Pay",
+      from: "2026-06-03",
+      to: "2026-06-05",
+      days: 3,
+      requestType: "Pre-approved",
+      proof: [],
     },
-    {
-      no: "RFL-26-044",
-      filed: "2026-05-26",
-      emp: "N. Bautista",
-      key: "Sick Leave · With Pay · 1 day",
-      status: "Recorded",
-      scan: true,
+  },
+  {
+    id: "rfl-26-044",
+    no: "RFL-26-044",
+    filed: "2026-05-26",
+    type: "Request for Leave",
+    emp: "N. Bautista",
+    key: "Sick Leave · With Pay · 1 day",
+    status: "Recorded",
+    scan: true,
+    leaveRef: "RFL-26-044",
+    employees: [
+      {
+        no: "JCE 00077",
+        name: "Noel V. Bautista",
+        pos: "Lineman",
+        assign: "26-05-378 · 13.2KV Distribution Line",
+      },
+    ],
+    signers: [
+      {
+        role: "Employee's Signature",
+        empNo: "JCE 00077",
+        name: "Noel V. Bautista",
+      },
+      {
+        role: "Approved by (Dept Head)",
+        empNo: "JCE 00007",
+        name: "Carlos M. Mendoza",
+      },
+      {
+        role: "Checked by (HR Head)",
+        empNo: "JCE 00014",
+        name: "Maria T. Santos",
+      },
+      {
+        role: "Noted by (President / VP)",
+        empNo: "JCE 00001",
+        name: "Jose A. Cruz",
+      },
+    ],
+    scans: [{ name: "rfl-26-044-signed.pdf", kind: "pdf" }],
+    details: {
+      kind: "rfl",
+      leaveType: "Sick Leave",
+      payType: "With Pay",
+      from: "2026-05-26",
+      to: "2026-05-26",
+      days: 1,
+      requestType: "After-the-fact",
+      proof: [{ name: "med-cert.jpg", kind: "jpg" }],
     },
-  ],
-  "LOA Without Pay": [
-    {
-      no: "LOA-WP-2026-006",
-      filed: "2026-05-18",
-      emp: "D. Aguilar",
-      key: "Personal · 5 days",
-      status: "Recorded",
-      scan: true,
+  },
+  {
+    id: "loa-wp-2026-006",
+    no: "LOA-WP-2026-006",
+    filed: "2026-05-18",
+    type: "LOA Without Pay",
+    emp: "D. Aguilar",
+    key: "Others · 5 days",
+    status: "Recorded",
+    scan: true,
+    leaveRef: "LOA-WP-2026-006",
+    employees: [
+      {
+        no: "JCE 00048",
+        name: "Diego R. Aguilar",
+        pos: "Warehouseman",
+        assign: "Main Office",
+      },
+    ],
+    signers: [
+      { role: "Requester", empNo: "JCE 00048", name: "Diego R. Aguilar" },
+      {
+        role: "Approved by (Section Head)",
+        empNo: "JCE 00007",
+        name: "Carlos M. Mendoza",
+      },
+      {
+        role: "Noted by (Plant Operation Head)",
+        empNo: "JCE 00001",
+        name: "Jose A. Cruz",
+      },
+      {
+        role: "Acknowledged by (HR)",
+        empNo: "JCE 00014",
+        name: "Maria T. Santos",
+      },
+    ],
+    scans: [{ name: "loa-wp-2026-006-signed.pdf", kind: "pdf" }],
+    details: {
+      kind: "loa",
+      from: "2026-05-18",
+      to: "2026-05-22",
+      days: 5,
+      leaveType: "Others",
+      reason: "Personal matters",
     },
-  ],
-};
+  },
+];
+
+function reqSlug(no: string): string {
+  return (
+    no
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "") || "req"
+  );
+}
+function uniqueReqId(base: string): string {
+  let id = base;
+  let n = 2;
+  while (requestStore.some((r) => r.id === id)) id = `${base}-${n++}`;
+  return id;
+}
+function summarizeEmp(rec: { employees: readonly ReqEmployee[] }): string {
+  const es = rec.employees;
+  const first = es[0];
+  if (!first) return "—";
+  if (es.length === 1) return first.name;
+  return `${first.name} +${es.length - 1}`;
+}
+function summarizeKey(rec: { details: RequestDetails }): string {
+  const d = rec.details;
+  switch (d.kind) {
+    case "ob":
+      return d.destination || "Off-site work";
+    case "ot":
+      return d.reason || d.section || "Overtime";
+    case "rfl": {
+      const lt =
+        d.leaveType === "Others" && d.othersSpecify
+          ? `Others (${d.othersSpecify})`
+          : d.leaveType;
+      return `${lt} · ${d.payType} · ${d.days} day${d.days === 1 ? "" : "s"}`;
+    }
+    case "loa":
+      return `${d.leaveType} · ${d.days} day${d.days === 1 ? "" : "s"}`;
+  }
+}
+
+/** The editable shape for a new/updated request (emp/key/scan/id are derived). */
+export type RequestInput = Omit<RequestRecord, "id" | "emp" | "key" | "scan">;
+
+export function getAllRequests(): readonly RequestRecord[] {
+  return requestStore;
+}
+export function getRequests(type: RequestTypeLabel): readonly RequestRecord[] {
+  return requestStore.filter((r) => r.type === type);
+}
+export function getRequestById(
+  type: RequestTypeLabel,
+  id: string,
+): RequestRecord | undefined {
+  return requestStore.find((r) => r.type === type && r.id === id);
+}
+export function addRequest(input: RequestInput): RequestRecord {
+  const rec: RequestRecord = {
+    ...input,
+    id: uniqueReqId(reqSlug(input.no)),
+    emp: summarizeEmp(input),
+    key: summarizeKey(input),
+    scan: input.scans.length > 0,
+  };
+  requestStore.unshift(rec);
+  return rec;
+}
+export function updateRequest(
+  id: string,
+  patch: Partial<RequestInput>,
+): RequestRecord | undefined {
+  const i = requestStore.findIndex((r) => r.id === id);
+  const cur = requestStore[i];
+  if (!cur) return undefined;
+  const merged: RequestRecord = { ...cur, ...patch };
+  merged.emp = summarizeEmp(merged);
+  merged.key = summarizeKey(merged);
+  merged.scan = merged.scans.length > 0;
+  requestStore[i] = merged;
+  return merged;
+}
+
+// ---- §4.3 helpers ----------------------------------------------------------
+function reqPad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+/** Each YYYY-MM-DD in [from,to] that is NOT a Sunday (TZ-safe). Reversed/empty → []. */
+export function workingDaysBetween(from: string, to: string): string[] {
+  if (!from || !to) return [];
+  const [fy, fm, fd] = from.split("-").map(Number);
+  const [ty, tm, td] = to.split("-").map(Number);
+  if (!fy || !fm || !fd || !ty || !tm || !td) return [];
+  const cur = new Date(fy, fm - 1, fd);
+  const end = new Date(ty, tm - 1, td);
+  if (cur.getTime() > end.getTime()) return [];
+  const out: string[] = [];
+  let guard = 0;
+  while (cur.getTime() <= end.getTime() && guard < 400) {
+    const iso = `${cur.getFullYear()}-${reqPad2(cur.getMonth() + 1)}-${reqPad2(cur.getDate())}`;
+    if (!isSunday(iso)) out.push(iso);
+    cur.setDate(cur.getDate() + 1);
+    guard += 1;
+  }
+  return out;
+}
+
+/** "8 yrs 3 mos" from a hire date vs HR_TODAY (deterministic). */
+export function lengthOfService(hired: string): string {
+  const [hy, hm, hd] = hired.split("-").map(Number);
+  const [ty, tm, td] = HR_TODAY.split("-").map(Number);
+  if (!hy || !hm || !hd || !ty || !tm || !td) return "—";
+  let months = (ty - hy) * 12 + (tm - hm);
+  if (td < hd) months -= 1;
+  if (months < 0) months = 0;
+  const yrs = Math.floor(months / 12);
+  const mos = months % 12;
+  const parts: string[] = [];
+  if (yrs > 0) parts.push(`${yrs} yr${yrs === 1 ? "" : "s"}`);
+  parts.push(`${mos} mo${mos === 1 ? "" : "s"}`);
+  return parts.join(" ");
+}
+
+let loaSeq = 6;
+/** System Internal ID for an LOA (in-session sequential). */
+export function nextLoaId(): string {
+  loaSeq += 1;
+  return `LOA-WP-2026-0${loaSeq}`;
+}
+
+/** Auto-create a read-only timekeeping row per working day in [from,to]. Idempotent
+ *  per source ref — re-running for the same ref skips days already created. */
+export function autoCreateLeaveRowsForRange(input: {
+  empNo: string;
+  from: string;
+  to: string;
+  leave: string;
+  ref: string;
+}): number {
+  const days = workingDaysBetween(input.from, input.to);
+  let created = 0;
+  for (const date of days) {
+    const exists = timeRowStore.some(
+      (r) =>
+        (r.empNo ?? LEGACY_EMP_NO) === input.empNo &&
+        r.date === date &&
+        r.leaveRef === input.ref,
+    );
+    if (exists) continue;
+    addLeaveRow({
+      date,
+      leave: input.leave,
+      leaveRef: input.ref,
+      remarks: "Auto from RFL/LOA",
+      empNo: input.empNo,
+    });
+    created += 1;
+  }
+  return created;
+}
 
 // ---- HR audit log (H14, append-only) ---------------------------------------
 export type HrAuditEntry = {

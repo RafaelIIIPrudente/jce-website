@@ -18,8 +18,8 @@ import {
   BATCH_TONE,
   EMPLOYEES,
   HR_AUDIT,
-  REQUESTS,
   REQUEST_TYPES,
+  getRequests,
   SALARY_CATEGORIES,
   STATUS_TONE,
   expiringFlag,
@@ -75,7 +75,7 @@ export function HrHome() {
 
   const expiring = EMPLOYEES.filter(expiringFlag);
   const pending = REQUEST_TYPES.flatMap((t) =>
-    REQUESTS[t.label]
+    getRequests(t.label)
       .filter((r) => r.status === "Pending")
       .map((r) => ({ ...r, type: t.label })),
   );
