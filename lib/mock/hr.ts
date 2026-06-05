@@ -1574,6 +1574,24 @@ export function findEmployee(id: number): Employee | undefined {
   return EMPLOYEES.find((e) => e.id === id);
 }
 
+/** Append a new employee to the in-session store (H3 create). Assigns the next
+ *  id, a running S/N within the Salary Rate Category, and a fallback employee
+ *  number when blank. Returns the created record. In-session only. */
+export function addEmployee(input: Omit<Employee, "id" | "sn">): Employee {
+  const id = employeeStore.reduce((m, e) => Math.max(m, e.id), 0) + 1;
+  const sn = employeeStore.filter((e) => e.cat === input.cat).length + 1;
+  const no = input.no.trim() === "" ? `JCE 0${9000 + id}` : input.no.trim();
+  const created: Employee = { ...input, id, sn, no };
+  employeeStore.push(created);
+  return created;
+}
+
+/** Replace an existing employee in the store, by id (H3 edit). In-session. */
+export function updateEmployee(emp: Employee): void {
+  const i = employeeStore.findIndex((e) => e.id === emp.id);
+  if (i >= 0) employeeStore[i] = emp;
+}
+
 // ---- Insurance enrollment status -------------------------------------------
 export type InsuranceStatus = "active" | "expiring" | "expired" | "none";
 
