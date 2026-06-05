@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { WebSection } from "@/components/sections/web-section";
-import { Reveal } from "@/components/sections/web-reveal";
-import { OmegaMark } from "@/components/sections/web-omega-mark";
-import { MagneticButton } from "@/components/sections/web-magnetic-button";
-import { ServicesHero } from "@/components/sections/web-services-hero";
-import { WebServiceList } from "@/components/sections/web-service-list";
+import { WebSection } from "@/components/sections/kit/web-section";
+import { Reveal } from "@/components/sections/kit/web-reveal";
+import { OmegaMark } from "@/components/sections/kit/web-omega-mark";
+import { MagneticButton } from "@/components/sections/kit/web-magnetic-button";
+import { ServicesHero } from "@/components/sections/services/web-services-hero";
+import { WebServiceList } from "@/components/sections/services/web-service-list";
 
 export const metadata: Metadata = {
   title: "Services",

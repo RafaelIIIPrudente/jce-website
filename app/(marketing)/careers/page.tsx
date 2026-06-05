@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
-import { WebHero } from "@/components/sections/web-hero";
-import { WebSection } from "@/components/sections/web-section";
-import { WebCareersList } from "@/components/sections/web-careers-list";
-import { WebCta } from "@/components/sections/web-cta";
+import { WebSection } from "@/components/sections/kit/web-section";
+import { CareersHero } from "@/components/sections/careers/web-careers-hero";
+import { WebCareersList } from "@/components/sections/careers/web-careers-list";
+import { WebCta } from "@/components/sections/kit/web-cta";
 
 export const metadata: Metadata = {
   title: "Careers",
@@ -15,11 +15,7 @@ export const metadata: Metadata = {
 export default function CareersPage() {
   return (
     <>
-      <WebHero
-        eyebrow="Join us"
-        title="Build what powers the Philippines."
-        sub="From substations to the national grid — open roles across engineering, project management, construction and purchasing."
-      />
+      <CareersHero />
       <WebSection>
         <WebCareersList />
       </WebSection>

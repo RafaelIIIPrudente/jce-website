@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
-import { WebHero } from "@/components/sections/web-hero";
-import { WebSection } from "@/components/sections/web-section";
-import { WebFaq } from "@/components/sections/web-faq";
-import { WebCta } from "@/components/sections/web-cta";
+import { FaqHero } from "@/components/sections/faq/web-faq-hero";
+import { WebSection } from "@/components/sections/kit/web-section";
+import { WebFaq } from "@/components/sections/faq/web-faq";
+import { WebCta } from "@/components/sections/kit/web-cta";
 import { FAQS } from "@/lib/content/website";
 
 export const metadata: Metadata = {
@@ -31,11 +31,7 @@ export default function FaqPage() {
         // FAQPage structured data — static content, no user input.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <WebHero
-        eyebrow="Answers"
-        title="Frequently asked questions."
-        sub="The questions buyers ask most about JCE's power capabilities."
-      />
+      <FaqHero />
       <WebSection>
         <WebFaq />
       </WebSection>

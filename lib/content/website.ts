@@ -591,32 +591,119 @@ export const CAREERS: readonly CareerRole[] = [
 ] as const;
 
 // ---- S9 FAQ (FAQPage-schema-friendly; location reconciled to canonical NAP) ---
-export type Faq = { q: string; a: string };
+// `category` groups items into accordion sections on the FAQ page; the FAQPage
+// JSON-LD still maps every item flat. Answers are plain, self-contained,
+// extractable sentences (GEO-friendly, FR-WEB-10/17) drawn ONLY from §9-SAFE
+// company-profile facts — never the withheld set (TINs, document scans, permit
+// fee/account numbers, personal emails, or officers' names in a tax context).
+export type Faq = { q: string; a: string; category?: string };
 
 export const FAQS: readonly Faq[] = [
+  // ---- Company & history ----
   {
+    category: "Company & history",
+    q: "What is JC Electrofields Power System, Inc.?",
+    a: "JC Electrofields Power System, Inc. (JCE) is a Filipino power-engineering firm — an EPC contractor and equipment supplier founded in 1997. It designs, supplies and builds power substations, transmission and distribution lines, and switchgear, undertakes solar PV plants, and supplies transformers and protection equipment to the energy sector nationwide.",
+  },
+  {
+    category: "Company & history",
+    q: "When was JCE founded, and is it a registered corporation?",
+    a: "JCE was founded in 1997 and is a corporation registered with the Securities and Exchange Commission (SEC) since 24 July 2007 under Registration No. CS200711697. It has an authorized capital stock of ₱1,000,000,000 (increased in 2021), reflecting its financial capacity for large-scale power projects.",
+  },
+  {
+    category: "Company & history",
+    q: "How did JCE start?",
+    a: "JCE began by serving the steel-manufacturing sector — helping plants secure their own power substations for direct connection to the national grid through the NGCP. From early work in the repair and fabrication of electrical equipment, it has grown into a major contractor and supplier across the entire energy sector.",
+  },
+
+  // ---- Capabilities ----
+  {
+    category: "Capabilities",
     q: "Who builds power substations up to 230 kV in the Philippines?",
     a: "JC Electrofields Power System, Inc. (JCE) designs and constructs substations up to 230 KV nationwide — full EPC scope including design, supply, civil works, electromechanical installation, testing and commissioning.",
   },
   {
-    q: "Is there an NGCP direct-connection (69 kV) contractor?",
-    a: "Yes. JCE facilitates and constructs NGCP direct-connection projects via 69 KV, handling the application process through to energization.",
-  },
-  {
-    q: "Where is JC Electrofields located?",
-    a: "JCE is headquartered at 3074 F. Bautista St., Brgy. Ugong, Valenzuela City, Metro Manila, Philippines, and executes projects nationwide.",
-  },
-  {
+    category: "Capabilities",
     q: "What voltage classes does JCE work with?",
     a: "From distribution voltages up to 230 KV transmission class — substations, transmission and distribution lines, and switchgear (HVSG/MVSG/LVSG).",
   },
   {
+    category: "Capabilities",
+    q: "Is there an NGCP direct-connection (69 kV) contractor?",
+    a: "Yes. JCE facilitates and constructs NGCP direct-connection projects via 69 KV, handling the application process through to energization.",
+  },
+  {
+    category: "Capabilities",
     q: "Does JCE supply power transformers?",
     a: "Yes — JCE supplies power and distribution transformers from 15 KV to 230 KV, including CT/PT, alongside switchgear and protection equipment. JCE is the exclusive Philippine distributor of Shenda Electric.",
   },
   {
+    category: "Capabilities",
+    q: "Does JCE design and fabricate switchgear?",
+    a: "Yes. JCE designs, fabricates and assembles high-, medium- and low-voltage switchgear (HVSG, MVSG and LVSG), along with panel boards, protection equipment and controls.",
+  },
+  {
+    category: "Capabilities",
+    q: "Does JCE provide substation and electrical maintenance?",
+    a: "Yes. Beyond new construction, JCE provides preventive and corrective maintenance and servicing of substations and of plant electrical systems.",
+  },
+
+  // ---- Renewable energy & consultancy ----
+  {
+    category: "Renewable energy & consultancy",
     q: "Does JCE undertake solar and renewable energy projects?",
     a: "Yes. JCE delivers utility-scale and commercial/industrial solar PV projects on an EPC basis, from feasibility through grid connection.",
+  },
+  {
+    category: "Renewable energy & consultancy",
+    q: "Does JCE provide renewable-energy pre-development consultancy?",
+    a: "Yes. JCE prepares Department of Energy (DOE) service contracts to avail of the Feed-in-Tariff (FIT), conducts the NGCP System Impact Study and Facility Study with connection coordination and compliance, and secures Energy Regulatory Commission (ERC) point-to-point approval. It also provides engineering design of substations, transmission lines and PV solar plants.",
+  },
+
+  // ---- Licenses & accreditations (§9-SAFE; numbers/validity are public record) ----
+  {
+    category: "Licenses & accreditations",
+    q: "What licenses and accreditations does JCE hold?",
+    a: "JCE holds a PCAB Regular Contractor's License (No. 37783 — General Engineering Category A, General Building, and Specialty Electrical Work, valid through April 2027), PhilGEPS Platinum Membership (valid until January 2027), and NGCP accreditation as a Local Contractor for Substation Erection (since 2016). It is an SEC-registered corporation (No. CS200711697), is BIR-registered and tax-compliant, and holds a current Valenzuela City business permit renewed annually. Complete documentation is available upon request for bidding and accreditation purposes.",
+  },
+  {
+    category: "Licenses & accreditations",
+    q: "Is JCE PCAB-licensed?",
+    a: "Yes. JCE holds PCAB Regular Contractor's License No. 37783, covering General Engineering Category A, General Building, and Specialty Electrical Work. It has been licensed since 2014 and the license is valid through April 2027. Complete documentation is available upon request for bidding and accreditation purposes.",
+  },
+  {
+    category: "Licenses & accreditations",
+    q: "Is JCE registered on PhilGEPS?",
+    a: "Yes. JCE holds a PhilGEPS Platinum Membership for Philippine government procurement, registered since 2012 and valid until January 2027. Complete documentation is available upon request for bidding and accreditation purposes.",
+  },
+
+  // ---- Track record & coverage (published project/client names only) ----
+  {
+    category: "Track record & coverage",
+    q: "Where has JCE delivered projects, and how large is its team?",
+    a: "JCE has delivered projects nationwide across Luzon, Visayas and Mindanao, and employs approximately 124 registered civil and electrical engineers and technicians.",
+  },
+  {
+    category: "Track record & coverage",
+    q: "What is JCE's track record with NGCP and utilities?",
+    a: "JCE has performed substation and transmission work for the National Grid Corporation of the Philippines (NGCP), including the Cebu–Negros–Panay 230 kV backbone. It has built substations for electric cooperatives and private utilities such as LUELCO, INEC and DMCI Power, delivered utility-scale solar including an urban solar farm in Valenzuela, and carried out substation work for Pilipinas Shell.",
+  },
+
+  // ---- Working with JCE ----
+  {
+    category: "Working with JCE",
+    q: "Where is JC Electrofields located?",
+    a: "JCE is headquartered at 3074 F. Bautista St., Brgy. Ugong, Valenzuela City, Metro Manila, Philippines, and executes projects nationwide.",
+  },
+  {
+    category: "Working with JCE",
+    q: "How do I request a quote or start a project with JCE?",
+    a: "Send a project brief through the Contact page — whether you are a utility, developer, or industrial client — and JCE's team responds within one business day. Complete documentation for bidding and accreditation is available upon request.",
+  },
+  {
+    category: "Working with JCE",
+    q: "What is JCE's commitment to safety and quality?",
+    a: "JCE serves every customer in the most responsible way, with safety as the main consideration, backed by reliable service, superior-quality materials, and continuously upskilled engineers and technicians.",
   },
 ] as const;
 

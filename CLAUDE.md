@@ -12,6 +12,7 @@ JC Electrofields Power System corporate marketing site, plus the internal JCE Sy
 
 ## What this file adds on top of AGENTS.md
 
+- Engineering Standards — the scalable/maintainable/production-ready quality bar + the canonical folder map (extends AGENTS, source-backed).
 - Skill mappings for common tasks in this repo.
 - Subagent dispatch guidance for this codebase.
 - Memory-system hints — what is worth persisting across sessions.
@@ -42,6 +43,104 @@ JC Electrofields Power System corporate marketing site, plus the internal JCE Sy
 
 For planning a multi-file change, dispatch the `Plan` subagent before editing. For "where does X live" lookups across the repo, dispatch `Explore` (quick or medium). For open-ended research that needs synthesis, use `general-purpose`. Skip subagents for single-file edits with a known target.
 
+## Engineering Standards — scalable · maintainable · production-ready
+
+Baseline = AGENTS.md's [9 Architectural rules](./AGENTS.md#architectural-rules-canonical) + [Style and conventions](./AGENTS.md#style-and-conventions); rationale in [`BASEPLATE.md`](./BASEPLATE.md) § 4. **Those are the floor and are NOT restated here** — this section adds the quality bar on top. Each external standard pairs a verified **source** with its **repo application**; repo-only conventions link the internal doc. Public pages also honor the SRS ([`docs/JCE_System_SRS_v1.0_Draft.md`](./docs/JCE_System_SRS_v1.0_Draft.md)) § 11 (Web) + § 12 (NFRs).
+
+### Maintainability & code quality
+
+- **Parse, don't validate, at boundaries.** Validate untrusted input (forms, route params, external JSON) with a Zod schema and `infer` its type — never hand-type then cast ([Zod](https://zod.dev/)). → inquiry/contact payloads and any fetched feed.
+- **Discriminated unions over boolean soup; honor `noUncheckedIndexedAccess`.** Tag variants with a literal `kind`; treat array/index access as `T | undefined` ([TS narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html) · [tsconfig](https://www.typescriptlang.org/tsconfig/)). → no `any`, no `!` to silence the checker.
+- **No needless `useEffect`.** Derive during render; do work in event handlers; reserve effects for external-system sync ([You Might Not Need an Effect](https://react.dev/learn/you-might-not-need-an-effect) · [Rules of Hooks](https://react.dev/reference/rules/rules-of-hooks)). → client leaves stay thin.
+- **Typed errors, not silent catches** (`error-handling-patterns` skill). → server actions return a typed Result; surface failure in UI.
+- **Repo conventions** ([AGENTS Style](./AGENTS.md#style-and-conventions)): single-responsibility files (one section per `web-<page>-*` file), comment density matching the surrounding file, and **no dead code** — quarantine unused under a `legacy/` folder, don't leave it loose (worked example: `components/sections/README.md`).
+
+### Architecture & scalability
+
+- **Server-first.** Pages/layouts are Server Components fetching close to the source; push `'use client'` to the smallest interactive leaf (AGENTS rule 1) ([RSC](https://react.dev/reference/rsc/server-components) · [Next: Server & Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)). → marketing sections are server; `kit/` motion atoms (`web-reveal`, `web-current-trace`) are the only `'use client'` leaves.
+- **Fetch + cache on the server; stream slow parts** with `<Suspense>`/`loading.tsx`; identical `fetch`es are memoized ([Next: Fetching Data](https://nextjs.org/docs/app/getting-started/fetching-data)). → ISR via `fetch(..., { next: { revalidate } })`.
+- **Separate content from logic** — static copy/data in `lib/content/`, components render it ([Next: Project structure](https://nextjs.org/docs/app/getting-started/project-structure)). → page bodies import `lib/content/*`, never inline marketing copy.
+- **Split a flat dir into per-feature/per-page subfolders once it spans many concerns** ([Next: split by feature/route](https://nextjs.org/docs/app/getting-started/project-structure)). → `components/sections/` already crossed this line — `kit/` (shared) + per-page + `legacy/` (its README); apply the same as a dashboard module's component dir grows.
+
+### Security (extends AGENTS rules 3–5 — do not re-declare)
+
+- **RLS on every exposed table; policies key off `auth.uid()`** (wrap in `select` for per-statement caching) ([Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security)).
+- **Server-side auth via `@supabase/ssr`; never trust `getSession()` in server code** ([Supabase SSR](https://supabase.com/docs/guides/auth/server-side/nextjs)). → use `lib/supabase/server.ts`, verify with `getUser()` (rule 3).
+- **No secrets client-side** — only `NEXT_PUBLIC_*` reach the browser; gate server modules with `import 'server-only'`; all env through `@/env` (rule 2) ([Next: Server & Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components) · [Twelve-Factor: config](https://12factor.net/config)).
+- **Validate every input boundary** with Zod; harden auth/validation with the `secure-code-guardian` skill.
+
+### Performance (Core Web Vitals budget)
+
+- **Budget (p75):** LCP ≤ 2.5 s · INP ≤ 200 ms · CLS ≤ 0.1 ([web.dev: Vitals](https://web.dev/articles/vitals)).
+- **`next/image` for all raster imagery** — automatic optimization, explicit `width`/`height` or `fill` + `sizes` to reserve space (no CLS), lazy by default ([next/image](https://nextjs.org/docs/app/api-reference/components/image)). → no layout-shifting placeholders; keep a `priority` hero from colliding with a lazy card (known LCP-src gotcha).
+- **Code-split via the client boundary** — small `'use client'` leaves keep JS off static pages ([Next: Server & Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)).
+
+### Accessibility — WCAG 2.2 AA
+
+- **Conform to WCAG 2.2 Level AA** ([WCAG 2.2](https://www.w3.org/TR/WCAG22/)): semantic HTML + landmarks, one `<h1>` / sane heading order, visible focus, labelled controls.
+- **Targets ≥ 24×24 CSS px (SC 2.5.8); this repo's bar is ≥ 44 px (`min-h-11`)** ([SC 2.5.8 Target Size](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html)).
+- **Reduced-motion + AA contrast are mandatory** (SRS § 12.9 NFR-UI). → every animation needs a `prefers-reduced-motion` static fallback (kit primitives already do).
+
+### SEO & metadata
+
+- **Per-route metadata.** Export `metadata`/`generateMetadata` (Server Components only); short page `title` feeds the root title template; set `alternates.canonical` ([Next: Metadata](https://nextjs.org/docs/app/api-reference/functions/generate-metadata)). → `app/(marketing)/<slug>/page.tsx` exports a short `title`; the root template appends ` — JC Electrofields`.
+- **Structured data (schema.org)** per SRS FR-WEB-09: `Organization` + `LocalBusiness` (NAP, foundingDate, sameAs), `Service`, `Project`/`CreativeWork`, `FAQPage`, `BreadcrumbList`. → keep NAP consistent; two addresses coexist (see Memory hints).
+
+### Production-readiness (gate before calling work "done")
+
+- **Gate trio green:** `pnpm lint` + `pnpm exec tsc --noEmit` + `pnpm build` (marketing routes prerender ○). Husky `lint-staged` also runs on commit.
+- **Boundaries present** at any segment that can fail/slow independently: `error.tsx` / `not-found.tsx` / `loading.tsx` ([Next: Project structure](https://nextjs.org/docs/app/getting-started/project-structure)).
+- **Every state designed:** happy + empty + error + loading + forbidden — never a bare/broken grid (`error-handling-patterns` skill).
+- **Env validated** in `env.ts` (Zod + `@t3-oss/env-nextjs`); config from the environment, never hard-coded (rule 2) ([Twelve-Factor: config](https://12factor.net/config)).
+- **Observability is already wired** — Sentry + Pino + Vercel Analytics/Speed Insights ([`BASEPLATE.md`](./BASEPLATE.md) § Observability); use it, don't re-add.
+- **Conventional Commits** for messages: `type(scope): description` — `feat`/`fix`/`docs`/`refactor`…, `!` or `BREAKING CHANGE` footer for breaks ([Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)).
+
+### Styling & data layer
+
+- **Tailwind v4 design tokens via `@theme`** in `app/globals.css` (no `tailwind.config.ts`); canonical `utility-(--var)` classes, never raw colors or bracketed `var()` ([AGENTS Style](./AGENTS.md#style-and-conventions); `suggestCanonicalClasses` lint) ([Tailwind v4 theme](https://tailwindcss.com/docs/theme)).
+- **Drizzle schema is the source of truth** — edit `lib/db/schema.ts`, then `pnpm db:generate` (SQL) / `pnpm db:push` (local only) ([Drizzle migrations](https://orm.drizzle.team/docs/migrations)).
+
+### Testing posture
+
+Vitest (unit) + Playwright (e2e) are **installed but unwired** — no `vitest.config.ts` / `playwright.config.ts` ([AGENTS Quirks](./AGENTS.md#quirks-and-known-limits)). Bar: any **non-trivial pure logic** added or changed (parsers, `formatScope`-style helpers, `lib/rbac.ts`) gets a Vitest unit test — wire `vitest.config.ts` on the first one; add a Playwright flow (`playwright-expert` skill) for a critical path (inquiry submit, auth gate) before it ships. UI-only re-skins don't require tests.
+
+### Folder structure (canonical)
+
+Reconciles [README § Folder structure](./README.md#folder-structure) with the live tree + [Next.js Project structure](https://nextjs.org/docs/app/getting-started/project-structure). (README's intended `(app)` group shipped as `(dashboard)`.)
+
+```text
+app/
+  (marketing)/   public site — page.tsx + about-us, services, products,
+                 projects (+ solar-farm / distribution-utility / ngcp), news,
+                 careers, contact-us, faq · layout.tsx (header+footer) · opengraph-image.tsx
+  (dashboard)/   JCE System ERP — accounting, admin, bdd, dashboard, engineering,
+                 foundations, hr, my-hr, pmg, purchasing, warehouse · layout.tsx
+  (auth)/        login · layout.tsx
+  og/route.tsx   dynamic OG route handler
+  layout.tsx · providers.tsx · error.tsx · loading.tsx · not-found.tsx
+components/
+  ui/            shadcn primitives — owned source (edit; don't re-CLI blindly)
+  sections/      marketing sections — kit/ (shared) + per-page + legacy/ (see README)
+  site-header.tsx · site-footer.tsx        shared chrome
+lib/
+  content/   static copy/data (separate from logic)   db/        Drizzle schema/client/migrations
+  supabase/  client | server | middleware (never mix) actions/   server actions (UI mutations)
+  mock/      seed/mock data    rbac.ts    utils.ts (cn())
+env.ts · proxy.ts · drizzle.config.ts · eslint.config.mjs · next.config.ts
+instrumentation*.ts · sentry.{server,edge}.config.ts            docs/  (SRS, plans, notes)
+```
+
+| Convention    | Rule                                                                                                                                                                                                                                       |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Files/symbols | kebab-case files, PascalCase exports; default export = pages only ([AGENTS Style](./AGENTS.md#style-and-conventions))                                                                                                                      |
+| Imports       | `@/…` alias across boundaries; external imports → blank line → `@/` group ([AGENTS Style](./AGENTS.md#style-and-conventions))                                                                                                              |
+| Boundary      | server-by-default; `'use client'` at the leaf (rule 1)                                                                                                                                                                                     |
+| Placement     | content → `lib/content` · shared section/atom → `components/sections/kit` · page section → `components/sections/<page>` · primitive → `components/ui`                                                                                      |
+| Route groups  | parens `(group)` organize without changing the URL; colocate non-routable files freely ([Next: Project structure](https://nextjs.org/docs/app/getting-started/project-structure))                                                          |
+| When to split | a flat dir spanning many concerns → per-feature/per-page subfolders + a `legacy/` for unused ([Next: split by feature/route](https://nextjs.org/docs/app/getting-started/project-structure)); `components/sections/` is the worked example |
+
+> Documentation only — this section **defines** the convention; it does not move/rename code. A physical restructure beyond `components/sections/` (e.g. splitting large dashboard module component dirs) is a possible follow-up.
+
 ## Memory hints
 
 Worth persisting across sessions in this project:
@@ -51,6 +150,7 @@ Worth persisting across sessions in this project:
 - **Stack identity**: see [README.md § Stack](./README.md#stack) — do not assume the BASEPLATE.md stack is fully wired up. Stripe, Inngest, and the AI SDK are installed but unused for a corporate marketing site.
 - **Live reference site**: <https://www.jcepower.com> — the IA above mirrors this.
 - **Official Facebook**: <https://web.facebook.com/JCElectrofields> — canonical social link; lives in `SITE.social.facebook` (`lib/content/site.ts`), which drives the footer + contact page.
+- **Legal & Accreditations (company-profile §9)**: the About page's "Licenses & Accreditations" block publishes ONLY the client-reviewed safe set — SEC since 24 Jul 2007 · Reg. CS200711697 · ₱1B authorized capital (increased 2021); PCAB Lic. 37783 (Gen-Eng A · Gen-Building · Specialty Electrical) valid to Apr 2027; PhilGEPS Platinum to Jan 2027; NGCP-accredited Substation Erection; BIR-registered; Valenzuela business permit; registered office 2129 La Mesa St., Ugong, Valenzuela. Digested in `docs/JCE-COMPANY-PROFILE-NOTES.md §9`; specced as **SRS FR-WEB-19** + design brief S2. **Hard rail — never render**: TINs (006-805-865), signed/sealed document scans, permit fee breakdowns/account numbers, the personal email jimwelcapillo@yahoo.com, or officers' names in a tax context. Two addresses coexist and are both correct: the **contact NAP** `3074 F. Bautista St.` (`SITE.address`, footer) vs. the **SEC registered office** `2129 La Mesa St., Ugong` (Licenses block) — do not "fix" one to the other. The About narrative also draws on the profile's verbatim **History** + **Mission & Commitment** (NOTES §2).
 
 Do not memorize anything that can be re-derived from `README.md`, `BASEPLATE.md`, or `git log`.
 

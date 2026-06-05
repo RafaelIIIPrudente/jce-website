@@ -3,9 +3,9 @@ import Image from "next/image";
 import { ClockIcon, MailIcon, MapPinIcon, PhoneIcon } from "lucide-react";
 
 import { FOOTER_LINKS, NAV_LINKS, SITE } from "@/lib/content/site";
-import { OmegaMark } from "@/components/sections/web-omega-mark";
-import { ElectrifiedDivider } from "@/components/sections/web-electrified-divider";
-import { VoltageTag } from "@/components/sections/web-voltage-tag";
+import { OmegaMark } from "@/components/sections/kit/web-omega-mark";
+import { ElectrifiedDivider } from "@/components/sections/kit/web-electrified-divider";
+import { VoltageTag } from "@/components/sections/kit/web-voltage-tag";
 import { CREDENTIAL_STRIP } from "@/lib/content/accreditations";
 
 // Electrified dark footer (--footer-bg). Mirrors the dark-section aesthetic: a

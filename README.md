@@ -103,7 +103,7 @@ These are enforced by convention, not tooling — but if you violate them you'll
 8. **Lucide named imports only**: `import { Check } from 'lucide-react'`.
 9. **`motion` from `motion/react`**, never `framer-motion`.
 
-Full architectural detail in [`BASEPLATE.md`](./BASEPLATE.md).
+Full architectural detail in [`BASEPLATE.md`](./BASEPLATE.md). The engineering quality bar (maintainability, performance, accessibility, SEO) and the canonical folder map live in [CLAUDE.md → Engineering Standards](./CLAUDE.md#engineering-standards--scalable--maintainable--production-ready).
 
 ## License
 
