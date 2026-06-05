@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  EMPLOYEES,
   computeManhours,
+  expiringFlag,
+  findEmployee,
   rowDistribution,
   weekTotals,
   type TimeRow,
@@ -92,5 +95,36 @@ describe("weekTotals — sum of per-row distributions", () => {
     expect(t.reg).toBe(14); // 8 + 6
     expect(t.ot).toBe(0);
     expect(t.nd).toBe(6); // 0 + 6 (night shift, post-deduction)
+  });
+});
+
+describe("EMPLOYEES roster — deterministic scale fill (100+)", () => {
+  it("appends the generated fill on top of the 12 hand-authored employees", () => {
+    expect(EMPLOYEES.length).toBeGreaterThanOrEqual(100);
+    // The 12 hand-authored stay first, lowest ids 1..12.
+    expect(EMPLOYEES.slice(0, 12).map((e) => e.id)).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+    ]);
+    // ME_ID = 9 (My-HR) is still resolvable.
+    expect(findEmployee(9)?.name).toBe("Noel V. Bautista");
+  });
+
+  it("is deterministic — the first generated record has stable index-derived fields", () => {
+    const first = findEmployee(13);
+    expect(first).toBeDefined();
+    if (!first) return;
+    expect(first.no).toBe("JCE 01000");
+    expect(first.bio).toBe("4000");
+    expect(first.sss.startsWith("SYN-")).toBe(true);
+  });
+
+  it("yields a non-trivial contract-expiry count (drives the danger KPI)", () => {
+    const expiring = EMPLOYEES.filter(expiringFlag).length;
+    expect(expiring).toBeGreaterThan(5);
+  });
+
+  it("has unique employee ids and `no`s across the whole roster", () => {
+    expect(new Set(EMPLOYEES.map((e) => e.id)).size).toBe(EMPLOYEES.length);
+    expect(new Set(EMPLOYEES.map((e) => e.no)).size).toBe(EMPLOYEES.length);
   });
 });

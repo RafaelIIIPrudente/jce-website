@@ -70,7 +70,9 @@ export type Employee = {
   comp: Compensation;
 };
 
-export const EMPLOYEES: readonly Employee[] = [
+// The 12 hand-authored employees (kept FIRST, lowest ids/sn). A deterministic
+// generator appends ~100 more below to exercise the H1 list + dashboard at scale.
+const EMPLOYEES_BASE: readonly Employee[] = [
   // ---- MONTHLY ----
   {
     id: 1,
@@ -509,6 +511,221 @@ export const EMPLOYEES: readonly Employee[] = [
       project: 80,
     },
   },
+];
+
+// ---- Deterministic roster fill (scale to 100+; additive) -------------------
+// Appends ~100 generated employees on top of the 12 hand-authored ones so H1 /
+// the HR dashboard / the timekeeping picker exercise a realistic roster. EVERY
+// field derives from the index — NO Math.random / Date.now — so years of
+// service, age and the contract-expiry KPI stay stable across builds (HR_TODAY
+// anchor). Generated nos/bios start well past the seed (no collisions), and the
+// sensitive IDs are obviously synthetic ("SYN-…"); CAN_SEE_COMP masking still
+// applies. The 12 above keep the lowest ids/sn.
+const GEN_COUNT = 100;
+
+const GEN_FIRST = [
+  "Juan",
+  "Mateo",
+  "Lucas",
+  "Gabriel",
+  "Rafael",
+  "Miguel",
+  "Andres",
+  "Diego",
+  "Emilio",
+  "Tomas",
+  "Ramon",
+  "Felipe",
+  "Ignacio",
+  "Vicente",
+  "Joaquin",
+  "Marcos",
+  "Cesar",
+  "Eduardo",
+  "Fernando",
+  "Maria",
+] as const;
+const GEN_LAST = [
+  "Reyes",
+  "Cruz",
+  "Bautista",
+  "Ocampo",
+  "Ramos",
+  "Mercado",
+  "Aquino",
+  "del Rosario",
+  "Salazar",
+  "Castillo",
+  "Navarro",
+  "Velasco",
+  "Pascual",
+  "Domingo",
+  "Espinosa",
+  "Gutierrez",
+  "Rivera",
+  "Flores",
+  "Mariano",
+  "Tan",
+] as const;
+const GEN_ASSIGNS = [
+  "26-05-378 · 13.2KV Distribution Line",
+  "26-04-355 · Cavite 69KV Transmission Line",
+  "25-11-290 · Solar Farm Tarlac 5MWp",
+  "Main Office",
+  "Workshop",
+  "Motorpool",
+] as const;
+const GEN_ADDRESS = [
+  "Bulacan",
+  "Cavite",
+  "Tarlac",
+  "Valenzuela City",
+  "Caloocan",
+  "Malabon",
+  "Quezon City",
+  "Pampanga",
+] as const;
+// Daily-heavy distribution (6 / 2 / 2 per 10).
+const GEN_CAT: readonly SalaryCategory[] = [
+  "Daily",
+  "Daily",
+  "Daily",
+  "Weekly",
+  "Daily",
+  "Monthly",
+  "Daily",
+  "Weekly",
+  "Daily",
+  "Monthly",
+];
+const GEN_POS: Record<SalaryCategory, readonly string[]> = {
+  Daily: [
+    "Lineman",
+    "Helper",
+    "Welder",
+    "Driver",
+    "Rigger",
+    "Electrician's Aide",
+  ],
+  Weekly: [
+    "Electrician",
+    "Lead Electrician",
+    "Foreman",
+    "Mechanic",
+    "Crew Lead",
+  ],
+  Monthly: [
+    "Site Engineer",
+    "Project Engineer",
+    "Admin Staff",
+    "Safety Officer",
+    "Purchasing Officer",
+    "Accounting Staff",
+  ],
+};
+
+function gpad(n: number, w = 4): string {
+  return String(n).padStart(w, "0");
+}
+
+function genComp(cat: SalaryCategory, i: number): Compensation {
+  if (cat === "Monthly")
+    return {
+      cat,
+      daily: "—",
+      monthly: 40000 + (i % 10) * 3000,
+      allowance: 8000 + (i % 4) * 2000,
+      dutyMeal: 0,
+      project: i % 2 === 0 ? 6000 : 0,
+    };
+  if (cat === "Weekly")
+    return {
+      cat,
+      daily: 800 + (i % 5) * 60,
+      monthly: "—",
+      allowance: 0,
+      dutyMeal: 150,
+      project: 0,
+    };
+  return {
+    cat,
+    daily: 600 + (i % 6) * 40,
+    monthly: "—",
+    allowance: 0,
+    dutyMeal: 120,
+    project: i % 3 === 0 ? 80 : 0,
+  };
+}
+
+function generateEmployees(): Employee[] {
+  // Continue the running S/N within each category past the seed (Daily 4 / Weekly
+  // 3 / Monthly 5 already used).
+  const sn: Record<SalaryCategory, number> = {
+    Daily: 4,
+    Weekly: 3,
+    Monthly: 5,
+  };
+  const out: Employee[] = [];
+  for (let i = 0; i < GEN_COUNT; i += 1) {
+    const cat = GEN_CAT[i % GEN_CAT.length] ?? "Daily";
+    sn[cat] += 1;
+    const first = GEN_FIRST[i % GEN_FIRST.length] ?? "Juan";
+    const last = GEN_LAST[(i * 3 + 1) % GEN_LAST.length] ?? "Cruz";
+    const posPool = GEN_POS[cat];
+    const pos = posPool[i % posPool.length] ?? "Staff";
+    const contractual = i % 5 === 0;
+    const expiringSoon = contractual && i % 2 === 0; // ~10 expiring < 6 months
+    const contractEnd = contractual
+      ? expiringSoon
+        ? "2026-09-30"
+        : "2027-08-31"
+      : undefined;
+    const status =
+      i % 23 === 0
+        ? "Suspended"
+        : i % 19 === 0
+          ? "On Leave"
+          : i % 17 === 0
+            ? "Probationary"
+            : "Regular";
+    out.push({
+      id: 13 + i,
+      sn: sn[cat],
+      no: `JCE 0${1000 + i}`,
+      name: `${first} ${last}`,
+      bio: String(4000 + i),
+      pos,
+      assign: GEN_ASSIGNS[i % GEN_ASSIGNS.length] ?? "Main Office",
+      cat,
+      status,
+      hired: `${2010 + (i % 15)}-${gpad((i % 12) + 1, 2)}-${gpad((i % 27) + 1, 2)}`,
+      type: contractual ? "Contractual" : "Regular",
+      ...(contractEnd ? { contractEnd } : {}),
+      birthday: `${1972 + (i % 28)}-${gpad((i % 12) + 1, 2)}-${gpad((i % 27) + 1, 2)}`,
+      gender: i % 3 === 0 ? "Female" : "Male",
+      contact: `0917-${gpad(300 + i, 3)}-${gpad(1000 + i)}`,
+      address: GEN_ADDRESS[i % GEN_ADDRESS.length] ?? "Valenzuela City",
+      sss: `SYN-SSS-${gpad(i)}`,
+      pagibig: `SYN-HDMF-${gpad(i)}`,
+      philhealth: `SYN-PHIC-${gpad(i)}`,
+      tin: `SYN-TIN-${gpad(i)}`,
+      emName: `${GEN_FIRST[(i * 2) % GEN_FIRST.length] ?? "Maria"} ${last}`,
+      emNum: `0918-${gpad(300 + i, 3)}-${gpad(2000 + i)}`,
+      insurance: i % 2 === 0 ? "Yes" : "No",
+      vaccinated: i % 4 === 0 ? "No" : "Yes",
+      atm: `SYN-ATM-${gpad(100000 + i, 6)}`,
+      atmExp: `202${7 + (i % 2)}-${gpad((i % 12) + 1, 2)}`,
+      remarks: contractEnd ? `Contract ends ${contractEnd}` : "—",
+      comp: genComp(cat, i),
+    });
+  }
+  return out;
+}
+
+/** Full roster — the 12 hand-authored employees first, then the generated fill. */
+export const EMPLOYEES: readonly Employee[] = [
+  ...EMPLOYEES_BASE,
+  ...generateEmployees(),
 ];
 
 /** The three Salary Rate Categories, in H1 stack order. */
