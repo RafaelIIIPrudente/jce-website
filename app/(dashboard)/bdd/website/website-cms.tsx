@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ImageIcon, PlusIcon, SearchIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ImageIcon,
+  PlusIcon,
+  SearchIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
@@ -73,6 +79,9 @@ const KIND_LABEL: Record<RecordKind, string> = {
   service: "service",
   product: "product",
 };
+
+// Rows per page in each tab (the register-standard pager, mirroring B1/B3/B5).
+const PAGE_SIZE = 8;
 
 const CATEGORY_ORDER: readonly ProjectCategory[] = [
   "solar",
@@ -195,6 +204,26 @@ function Field({
   );
 }
 
+// Resolve which page a just-saved record lands on, using the same ordering the
+// active tab renders with — so a created/edited row is never stranded off-page.
+function pageForRecord(kind: RecordKind, key: string): number {
+  let idx: number;
+  if (kind === "project") {
+    const flat = CATEGORY_ORDER.flatMap((cat) =>
+      getCmsProjects()
+        .filter((p) => p.category === cat)
+        .slice()
+        .sort((a, b) => a.sort - b.sort),
+    );
+    idx = flat.findIndex((p) => p.slug === key);
+  } else if (kind === "service") {
+    idx = getCmsServices().findIndex((s) => s.slug === key);
+  } else {
+    idx = getCmsProducts().findIndex((p) => p.name === key);
+  }
+  return idx < 0 ? 1 : Math.floor(idx / PAGE_SIZE) + 1;
+}
+
 // ===========================================================================
 
 export function WebsiteCms() {
@@ -203,6 +232,7 @@ export function WebsiteCms() {
 
   const [tab, setTab] = useState<RecordKind>("project");
   const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
 
   const [projects, setProjects] = useState<readonly CmsProject[]>(() =>
     getCmsProjects(),
@@ -296,12 +326,33 @@ export function WebsiteCms() {
   const fServices = services.filter((s) => match(s.name));
   const fProducts = products.filter((p) => match(p.name));
 
-  const groups = CATEGORY_ORDER.map((cat) => ({
-    cat,
-    items: fProjects
+  // Projects render grouped by category; flatten in category order so pagination
+  // is stable, then re-group whatever lands on the current page.
+  const sortedProjects = CATEGORY_ORDER.flatMap((cat) =>
+    fProjects
       .filter((p) => p.category === cat)
       .slice()
       .sort((a, b) => a.sort - b.sort),
+  );
+
+  // Per-tab pagination — one shared page index (inactive tabs are unmounted).
+  const activeCount =
+    tab === "project"
+      ? fProjects.length
+      : tab === "service"
+        ? fServices.length
+        : fProducts.length;
+  const totalPages = Math.max(1, Math.ceil(activeCount / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages); // clamp when search/edits shrink the list
+  const start = (safePage - 1) * PAGE_SIZE;
+  const end = safePage * PAGE_SIZE;
+
+  const pageProjects = sortedProjects.slice(start, end);
+  const pageServices = fServices.slice(start, end);
+  const pageProducts = fProducts.slice(start, end);
+  const groups = CATEGORY_ORDER.map((cat) => ({
+    cat,
+    items: pageProjects.filter((p) => p.category === cat),
   })).filter((g) => g.items.length > 0);
 
   // Publish-state KPI strip — derived live from all three stores combined so it
