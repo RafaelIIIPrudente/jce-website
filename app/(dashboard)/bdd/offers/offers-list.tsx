@@ -21,7 +21,7 @@ import {
   type Offer,
   type OfferEntity,
 } from "@/lib/mock/bdd";
-import { peso } from "@/lib/mock/format";
+import { peso, pesoCompact } from "@/lib/mock/format";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -39,6 +39,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PageHeader } from "@/components/jce/page-header";
+import { KpiTile } from "@/components/jce/kpi-tile";
 import { Segmented } from "@/components/jce/segmented";
 import { Chip } from "@/components/jce/chip";
 import { DocChip } from "@/components/jce/doc-chip";
@@ -143,6 +144,24 @@ export function OffersList() {
 
   const [rows, setRows] = useState<readonly Offer[]>(() => getOffers());
   const refresh = () => setRows(getOffers());
+
+  // KPI summary — derived from the WHOLE offer book (both entity streams, not the
+  // entity/search-filtered view) so the strip summarises the full register and
+  // tracks a newly-created offer. Status grouping follows OFFER_STATUS_TONE.
+  const totalValue = rows.reduce((sum, o) => sum + o.amount, 0);
+  const awarded = rows.filter((o) => o.status === "Awarded").length;
+  const awaiting = rows.filter(
+    (o) =>
+      o.status === "Waiting for Client Response" ||
+      o.status === "Acknowledged" ||
+      o.status === "For Revision",
+  ).length;
+  const notAwarded = rows.filter(
+    (o) =>
+      o.status === "Not Awarded" ||
+      o.status === "Offer Lapsed" ||
+      o.status === "Cancelled",
+  ).length;
 
   // Search + pagination.
   const [q, setQ] = useState("");
@@ -286,38 +305,66 @@ export function OffersList() {
         kicker="BDD · B3"
         title="Offers"
         description="Formal offers per entity stream. Immutable once issued — the record moves only by appended events (OQ#16)."
-        actions={
-          <>
-            <div className="flex h-9 w-56 items-center gap-2 rounded-[8px] border border-jce-line bg-white/70 px-2.5">
-              <SearchIcon
-                className="size-4 shrink-0 text-jce-ink-2"
-                aria-hidden
-              />
-              <input
-                value={q}
-                onChange={(e) => onSearch(e.target.value)}
-                placeholder="Search Ref. No., client, subject…"
-                aria-label="Search offers"
-                className="w-full bg-transparent text-ui-13 text-jce-ink outline-none placeholder:text-jce-ink-2"
-              />
-            </div>
-            {!readOnly ? (
-              <Button size="sm" onClick={openCreate}>
-                <PlusIcon aria-hidden /> New offer
-              </Button>
-            ) : null}
-          </>
-        }
       />
-      <Segmented
-        aria-label="Entity stream"
-        options={[
-          { value: "JCEPSI", label: "JCEPSI" },
-          { value: "JICA", label: "JICA" },
-        ]}
-        value={entity}
-        onValueChange={onEntity}
-      />
+
+      {/* KPI summary strip — derived live from the whole offer book (tracks created offers) */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <KpiTile
+          label="Total offered value"
+          value={
+            <span title={peso(totalValue)}>{pesoCompact(totalValue)}</span>
+          }
+          delta={`${rows.length} offer${rows.length === 1 ? "" : "s"}`}
+          tone="neutral"
+        />
+        <KpiTile label="Awarded" value={awarded} delta="won" tone="success" />
+        <KpiTile
+          label="Awaiting response"
+          value={awaiting}
+          delta="in play"
+          tone="pending"
+        />
+        <KpiTile
+          label="Not awarded"
+          value={notAwarded}
+          delta="lapsed / declined"
+          tone="danger"
+        />
+      </div>
+
+      {/* Toolbar — search + entity filter + primary action (≥44px controls;
+          stacks full-width on phones) */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="flex h-11 w-full items-center gap-2 rounded-(--r-input) border border-jce-line bg-white/70 px-3 transition-colors focus-within:border-jce-green-600 focus-within:shadow-(--focus-ring) sm:max-w-sm">
+            <SearchIcon
+              className="size-4 shrink-0 text-jce-ink-2"
+              aria-hidden
+            />
+            <input
+              value={q}
+              onChange={(e) => onSearch(e.target.value)}
+              placeholder="Search Ref. No., client, subject…"
+              aria-label="Search offers"
+              className="h-full w-full bg-transparent text-ui-13 text-jce-ink outline-none placeholder:text-jce-ink-2"
+            />
+          </div>
+          {!readOnly ? (
+            <Button onClick={openCreate} className="min-h-11 w-full sm:w-auto">
+              <PlusIcon aria-hidden /> New offer
+            </Button>
+          ) : null}
+        </div>
+        <Segmented
+          aria-label="Entity stream"
+          options={[
+            { value: "JCEPSI", label: "JCEPSI" },
+            { value: "JICA", label: "JICA" },
+          ]}
+          value={entity}
+          onValueChange={onEntity}
+        />
+      </div>
 
       {filtered.length === 0 ? (
         <div className="glass rounded-(--r-glass) p-6">
@@ -345,39 +392,37 @@ export function OffersList() {
             }
             className="max-h-[calc(100dvh-22rem)]"
           />
-          {totalPages > 1 ? (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-ui-12 text-jce-ink-2">
-                Page {safePage} of {totalPages} · {filtered.length} offers
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="focus-ring-jce min-h-11"
-                  disabled={safePage <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                >
-                  <ChevronLeftIcon aria-hidden /> Prev
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="focus-ring-jce min-h-11"
-                  disabled={safePage >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                >
-                  Next <ChevronRightIcon aria-hidden />
-                </Button>
-              </div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-ui-12 text-jce-ink-2">
+              Page {safePage} of {totalPages} · {filtered.length} offers
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="focus-ring-jce min-h-11"
+                disabled={safePage <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                <ChevronLeftIcon aria-hidden /> Prev
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="focus-ring-jce min-h-11"
+                disabled={safePage >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                Next <ChevronRightIcon aria-hidden />
+              </Button>
             </div>
-          ) : null}
+          </div>
         </>
       )}
 
       {/* New-offer dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>New offer</DialogTitle>
             <DialogDescription>
