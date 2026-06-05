@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/jce/skeleton";
 // prefers-reduced-motion.
 export default function Loading() {
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <div className="glass rounded-(--r-glass) px-5 py-4">
         <Skeleton className="h-3 w-24" />
         <Skeleton className="mt-2 h-6 w-40" />
@@ -28,7 +28,7 @@ export default function Loading() {
         <Skeleton className="h-9 w-72 max-w-full rounded-[10px]" />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[360px_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[360px_1fr] 2xl:grid-cols-[420px_1fr]">
         <div className="solid divide-y divide-jce-line overflow-hidden rounded-(--r-solid) p-0">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex flex-col gap-2 p-4">

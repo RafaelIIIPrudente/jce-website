@@ -33,7 +33,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           onMenuClick={() => setMobileOpen(true)}
           mobileOpen={mobileOpen}
         />
-        <main className="flex-1 overflow-auto p-5">{children}</main>
+        <main className="flex-1 overflow-auto p-5 2xl:p-8">{children}</main>
       </div>
       <IdleModal />
     </div>

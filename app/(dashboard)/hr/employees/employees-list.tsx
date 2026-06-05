@@ -235,7 +235,7 @@ export function EmployeesList() {
   ];
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <PageHeader
         kicker="HR · H1 · Employee Management"
         title="Employees"

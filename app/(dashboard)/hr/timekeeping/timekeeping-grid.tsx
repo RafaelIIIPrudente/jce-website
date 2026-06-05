@@ -121,7 +121,7 @@ export function TimekeepingGrid() {
   if (!emp) return null;
 
   return (
-    <div className="mx-auto flex w-full max-w-275 flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-app flex-col gap-5">
       {/* context bar */}
       <div className="glass flex flex-wrap items-end justify-between gap-4 rounded-(--r-glass) px-5 py-4">
         <div>

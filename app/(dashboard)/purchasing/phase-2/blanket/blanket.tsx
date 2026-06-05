@@ -33,7 +33,7 @@ export function BlanketPos() {
 
 function BlanketList({ onOpen }: { onOpen: (b: Blanket) => void }) {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
+    <div className="mx-auto flex w-full max-w-app flex-col gap-4">
       <PageHeader kicker="Purchasing · U24 · Phase 2" title="Blanket POs" />
       <div className="solid overflow-auto rounded-(--r-solid) p-0">
         <table className="jtable">

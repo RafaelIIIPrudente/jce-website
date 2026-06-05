@@ -34,7 +34,7 @@ export function DashboardHome() {
   const r = ROLES[role];
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       {/* Greeting — on the backdrop (not glass) */}
       <div>
         <h1 className="text-ui-28 font-bold tracking-tight text-jce-ink">

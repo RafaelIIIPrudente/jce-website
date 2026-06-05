@@ -24,7 +24,7 @@ export function Catalog() {
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
+    <div className="mx-auto flex w-full max-w-app flex-col gap-4">
       <PageHeader
         kicker="Purchasing · U17 · Phase 2"
         title="Item / material catalog"
@@ -41,7 +41,7 @@ export function Catalog() {
           ) : null
         }
       />
-      <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[220px_1fr] 2xl:grid-cols-[260px_1fr]">
         <nav className="glass-nav flex flex-col gap-0.5 rounded-(--r-glass) p-2">
           <div className="kicker px-2 py-1">Taxonomy</div>
           {CATALOG_TREE.map((t) => (

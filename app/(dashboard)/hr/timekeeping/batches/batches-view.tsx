@@ -75,7 +75,7 @@ export function BatchesView() {
     const verified = sel.status === "Verified";
     const tr = getTimeRows();
     return (
-      <div className="mx-auto flex w-full max-w-275 flex-col gap-5">
+      <div className="mx-auto flex w-full max-w-app flex-col gap-5">
         <button
           type="button"
           onClick={() => setSelId(null)}
@@ -284,7 +284,7 @@ export function BatchesView() {
   ];
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <PageHeader
         kicker="HR · H6 · Timekeeping"
         title="Verification batches"

@@ -24,7 +24,7 @@ export default function PmgDashboardPage() {
   );
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <div>
         <h1 className="text-ui-28 font-bold tracking-tight text-jce-ink">
           Project Management

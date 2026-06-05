@@ -50,7 +50,7 @@ function JvDetail({ jv, onBack }: { jv: Jv; onBack: () => void }) {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-275 flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-app flex-col gap-5">
       <button
         type="button"
         onClick={onBack}
@@ -230,7 +230,7 @@ export function JournalVouchers() {
   ];
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <PageHeader
         kicker="Accounting · A16"
         title="Journal Vouchers"

@@ -148,7 +148,7 @@ export function InquiriesInbox() {
   const showDetail = mobileDetail && selected != null;
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+    <div className="mx-auto flex max-w-app flex-col gap-5">
       <PageHeader
         kicker="BDD · B10"
         title="Inquiries"
@@ -206,7 +206,7 @@ export function InquiriesInbox() {
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[360px_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[360px_1fr] 2xl:grid-cols-[420px_1fr]">
         {/* Master list */}
         <div
           className={cn(
