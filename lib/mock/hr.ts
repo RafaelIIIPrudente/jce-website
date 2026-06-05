@@ -25,6 +25,24 @@ export const HR_TODAY = "2026-06-03";
 
 const MS_DAY = 1000 * 60 * 60 * 24;
 
+/**
+ * Add n calendar months to a YYYY-MM-DD date (n may be negative), clamping the
+ * day to the target month's last day on overflow (2026-01-31 +1 → 2026-02-28).
+ * Deterministic — no Date.now in the path; the contract-renewal computation.
+ */
+export function addMonths(date: string, n: number): string {
+  const parts = date.split("-");
+  const y = Number(parts[0] ?? "0");
+  const m0 = Number(parts[1] ?? "1") - 1; // 0-based source month
+  const d = Number(parts[2] ?? "1");
+  const total = m0 + n;
+  const ty = y + Math.floor(total / 12);
+  const tm = ((total % 12) + 12) % 12; // 0-based target month
+  const lastDay = new Date(Date.UTC(ty, tm + 1, 0)).getUTCDate();
+  const td = Math.min(d, lastDay);
+  return `${ty}-${String(tm + 1).padStart(2, "0")}-${String(td).padStart(2, "0")}`;
+}
+
 // ---- Employees -------------------------------------------------------------
 export type SalaryCategory = "Daily" | "Weekly" | "Monthly";
 export type EmployeeType = "Regular" | "Contractual";
@@ -62,7 +80,15 @@ export type Employee = {
   tin: string;
   emName: string;
   emNum: string;
+  /** enrolled status ("Yes" / "No") */
   insurance: string;
+  /** insurance enrollment detail — present when insurance === "Yes" */
+  insProvider?: string;
+  insPolicyNo?: string;
+  /** YYYY-MM-DD */
+  insEnrolled?: string;
+  /** YYYY-MM-DD */
+  insExpiry?: string;
   vaccinated: string;
   atm: string;
   atmExp: string;
@@ -722,11 +748,47 @@ function generateEmployees(): Employee[] {
   return out;
 }
 
-/** Full roster — the 12 hand-authored employees first, then the generated fill. */
-export const EMPLOYEES: readonly Employee[] = [
+// Seed insurance-enrollment detail for any enrolled employee (insurance ===
+// "Yes") that doesn't already carry it — deterministic from the roster index so
+// dates stay stable across builds. A deterministic minority land expiring/expired
+// to exercise the status Chip; "No" employees keep no provider/dates (graceful —).
+const INS_PROVIDERS = [
+  "MediCard",
+  "Maxicare",
+  "PhilCare",
+  "Intellicare",
+  "ValuCare",
+] as const;
+
+function seedInsurance(e: Employee, i: number): Employee {
+  if (e.insurance !== "Yes" || e.insProvider) return e;
+  const insExpiry =
+    i % 9 === 0
+      ? addMonths(HR_TODAY, -2) // lapsed
+      : i % 9 === 4
+        ? addMonths(HR_TODAY, 2) // expiring < 3 months
+        : addMonths(HR_TODAY, 10 + (i % 3)); // active, 10–12 months out
+  return {
+    ...e,
+    insProvider: INS_PROVIDERS[i % INS_PROVIDERS.length] ?? "MediCard",
+    insPolicyNo: `POL-${String(100000 + i).padStart(6, "0")}`,
+    insEnrolled: addMonths(HR_TODAY, -(2 + (i % 10))),
+    insExpiry,
+  };
+}
+
+// In-session MUTABLE employee store (mirrors lib/mock/inquiries.ts): the 12
+// hand-authored employees first, then the generated fill, each seeded with
+// insurance detail. renewContract() updates `contractEnd` here in place so the
+// expiry flags + the HR dashboard KPI recompute live; the frozen base seed
+// (EMPLOYEES_BASE) stays intact.
+const employeeStore: Employee[] = [
   ...EMPLOYEES_BASE,
   ...generateEmployees(),
-];
+].map((e, i) => seedInsurance(e, i));
+
+/** Full roster — the in-session store (renewals update `contractEnd` in place). */
+export const EMPLOYEES: readonly Employee[] = employeeStore;
 
 /** The three Salary Rate Categories, in H1 stack order. */
 export const SALARY_CATEGORIES: readonly SalaryCategory[] = [
@@ -1510,4 +1572,103 @@ export function dailyTotal(c: Compensation): number | null {
 
 export function findEmployee(id: number): Employee | undefined {
   return EMPLOYEES.find((e) => e.id === id);
+}
+
+// ---- Insurance enrollment status -------------------------------------------
+export type InsuranceStatus = "active" | "expiring" | "expired" | "none";
+
+export const INS_STATUS_TONE: Record<InsuranceStatus, Tone> = {
+  active: "success",
+  expiring: "pending",
+  expired: "danger",
+  none: "neutral",
+};
+
+/** Insurance status for the (non-color-only) Chip. "expiring" = < 3 months out. */
+export function insuranceStatus(
+  e: Pick<Employee, "insurance" | "insExpiry">,
+): InsuranceStatus {
+  if (e.insurance !== "Yes") return "none";
+  const m = monthsLeft(e.insExpiry);
+  if (m == null) return "active"; // enrolled, no expiry on file
+  if (m < 0) return "expired";
+  if (m < 3) return "expiring";
+  return "active";
+}
+
+// ---- Contract extensions (append-only history + renew action) --------------
+export type ContractExtension = {
+  id: string;
+  empNo: string;
+  /** YYYY-MM-DD the renewal was recorded */
+  renewedOn: string;
+  term: 3 | 6;
+  previousEnd?: string;
+  newEnd: string;
+  by: string;
+};
+
+// In-session append-only extension log, seeded with a couple of examples for
+// existing contractual employees so the demo history isn't empty.
+const contractExtStore: ContractExtension[] = [
+  {
+    id: "CE-0001",
+    empNo: "JCE 00094", // Allan G. Tolentino (Contractual)
+    renewedOn: "2026-01-10",
+    term: 6,
+    previousEnd: "2026-01-10",
+    newEnd: "2026-07-10",
+    by: "M. Santos (HR Head)",
+  },
+  {
+    id: "CE-0002",
+    empNo: "JCE 00081", // Roberto S. Villanueva (Contractual)
+    renewedOn: "2026-03-03",
+    term: 6,
+    previousEnd: "2026-03-03",
+    newEnd: "2026-09-03",
+    by: "M. Santos (HR Head)",
+  },
+];
+
+let contractExtSeq = contractExtStore.length;
+
+/** Contract extensions for an employee, newest-first. */
+export function getContractExtensions(
+  empNo: string,
+): readonly ContractExtension[] {
+  return contractExtStore.filter((x) => x.empNo === empNo).reverse();
+}
+
+/**
+ * Renew a contractual employee's contract by `term` months FROM the renewal date
+ * (newEnd = addMonths(on, term)), regardless of the old end. Captures the
+ * previous end, updates the employee's contractEnd in the store (so expiry flags
+ * + the dashboard KPI recompute), appends the extension and returns it.
+ * In-session only.
+ */
+export function renewContract(input: {
+  empNo: string;
+  term: 3 | 6;
+  by: string;
+  on?: string;
+}): ContractExtension {
+  const on = input.on ?? HR_TODAY;
+  const i = employeeStore.findIndex((e) => e.no === input.empNo);
+  const cur = employeeStore[i];
+  const previousEnd = cur?.contractEnd;
+  const newEnd = addMonths(on, input.term);
+  if (cur) employeeStore[i] = { ...cur, contractEnd: newEnd };
+  contractExtSeq += 1;
+  const ext: ContractExtension = {
+    id: `CE-${String(contractExtSeq).padStart(4, "0")}`,
+    empNo: input.empNo,
+    renewedOn: on,
+    term: input.term,
+    ...(previousEnd ? { previousEnd } : {}),
+    newEnd,
+    by: input.by,
+  };
+  contractExtStore.push(ext);
+  return ext;
 }
