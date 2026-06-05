@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/select";
 import { Chip } from "@/components/jce/chip";
 import { DocChip } from "@/components/jce/doc-chip";
+import { MetricCard } from "@/components/jce/metric-card";
 import {
   ComparisonMatrix,
   type MatrixColumn,
@@ -62,6 +63,9 @@ import { EmptyState } from "@/components/jce/empty-state";
 // the responded/invited counts and the winner all derive from those logged rows.
 // The request header is immutable; a logged quote can be edited in-session (each
 // supplier is logged once). Select Winner fires a sensitive-change notification.
+// Premium tier: glass hero header (best/winning quote) + derived MetricCard strip
+// + the ComparisonMatrix as the centerpiece (NO Meter — no part-of-a-whole
+// headline). See CLAUDE.md "Dashboard UI Standard".
 
 const DONE_STATUS = "Done (Quote Received)";
 const MATRIX_PAGE_SIZE = 4; // supplier columns per matrix page
@@ -243,6 +247,19 @@ function QuotationDetailBody({ quotation }: { quotation: Quotation }) {
 
   const counts = quotationCounts(quotation);
   const lowest = lowestPrice(quotes);
+
+  // Hero metric — the winning supplier's price if a winner is selected, else the
+  // lowest logged price, else nothing. All derived from the logged quotes.
+  const winnerQuote = winner
+    ? (quotes.find((qq) => qq.supplier === winner) ?? null)
+    : null;
+  const heroValue = winnerQuote?.price ?? lowest;
+  const heroLabel =
+    winnerQuote?.price != null
+      ? "Winning quote"
+      : lowest != null
+        ? "Best quote so far"
+        : "Best quote";
 
   const submitQuote = () => {
     const next: Partial<Record<keyof LogForm, string>> = {};
@@ -431,27 +448,85 @@ function QuotationDetailBody({ quotation }: { quotation: Quotation }) {
         <ChevronLeftIcon className="size-4" aria-hidden /> Quotations
       </Link>
 
-      {/* Immutable request header (glass) */}
+      {/* Header card (glass) — identity + hero best/winning quote */}
       <div className="glass rounded-(--r-glass) p-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <DocChip code={quotation.ref} />
-          <Chip tone="neutral">{quotation.cat}</Chip>
-          {quotation.offer ? <DocChip code={quotation.offer} /> : null}
-          {quotation.so && quotation.so !== "WORKSHOP" ? (
-            <DocChip code={quotation.so} />
-          ) : null}
-          <span className="ml-auto rounded bg-(--st-locked-bg) px-2 py-0.5 text-[10px] font-semibold text-(--st-locked-ink)">
-            Immutable request
-          </span>
+        <div className="flex flex-wrap items-start justify-between gap-5">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <DocChip code={quotation.ref} />
+              <Chip tone="neutral">{quotation.cat}</Chip>
+              {quotation.offer ? <DocChip code={quotation.offer} /> : null}
+              {quotation.so && quotation.so !== "WORKSHOP" ? (
+                <DocChip code={quotation.so} />
+              ) : null}
+              <span className="rounded bg-(--st-locked-bg) px-2 py-0.5 text-[10px] font-semibold text-(--st-locked-ink)">
+                Immutable request
+              </span>
+            </div>
+            <h1 className="mt-2 text-ui-22 font-bold tracking-tight text-jce-ink">
+              {quotation.item}
+            </h1>
+            <p className="mt-1 text-ui-13 text-jce-ink">{quotation.client}</p>
+            <p className="mt-0.5 text-ui-13 text-jce-ink-2">
+              requested {quotation.date} · {counts.responded}/{counts.invited}{" "}
+              quotes logged
+            </p>
+          </div>
+
+          {/* Hero metric — winning / best logged quote */}
+          <div className="flex shrink-0 flex-col gap-1 sm:items-end">
+            <span className="kicker">{heroLabel}</span>
+            <div className="text-ui-22 leading-none font-bold tracking-tight tabular-nums text-jce-ink sm:text-ui-28">
+              {heroValue != null ? peso(heroValue) : "—"}
+            </div>
+            {winner ? (
+              <span className="text-ui-12 font-semibold text-(--st-success)">
+                {winner}
+              </span>
+            ) : null}
+          </div>
         </div>
-        <h1 className="mt-2 text-ui-22 font-bold tracking-tight text-jce-ink">
-          {quotation.item}
-        </h1>
-        <p className="mt-1 text-ui-13 text-jce-ink-2">
-          {quotation.client} · requested {quotation.date} · {counts.responded}/
-          {counts.invited} quotes logged
-        </p>
       </div>
+
+      {/* Derived quote summary — MetricCards (computed from logged quotes, never typed) */}
+      <section className="flex flex-col gap-3">
+        <h2 className="kicker text-jce-green-600">
+          Quote summary · derived (read-only)
+        </h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <MetricCard
+            label="Quotes logged"
+            value={`${counts.responded}/${counts.invited}`}
+            hint="priced / logged"
+            derived
+          />
+          <MetricCard
+            label="Lowest price"
+            value={
+              lowest != null ? (
+                peso(lowest)
+              ) : (
+                <span className="text-ui-16 text-jce-ink-2">—</span>
+              )
+            }
+            derived
+          />
+          <MetricCard
+            label="Winner"
+            value={
+              winner ? (
+                <Chip tone="success">{winner}</Chip>
+              ) : (
+                <span className="text-ui-16 text-jce-ink-2">Not selected</span>
+              )
+            }
+            derived
+          />
+        </div>
+        <p className="text-ui-12 text-jce-ink-2">
+          Derived from logged supplier quotes — never typed on the request.
+        </p>
+      </section>
 
       {quotes.length === 0 ? (
         <div className="glass rounded-(--r-glass) p-6">
@@ -470,82 +545,109 @@ function QuotationDetailBody({ quotation }: { quotation: Quotation }) {
         </div>
       ) : (
         <>
-          {!readOnly ? (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-ui-12 text-jce-ink-2">
-                {counts.responded} of {counts.invited} logged supplier
-                {counts.invited === 1 ? "" : "s"} quoted a price.
-              </p>
-              <Button size="sm" className="min-h-11" onClick={openLog}>
-                <PlusIcon aria-hidden /> Log supplier quote
-              </Button>
-            </div>
-          ) : null}
-
-          <ComparisonMatrix
-            rowHeader="Criterion"
-            columns={columns}
-            rows={rows}
-          />
-
-          {matrixTotalPages > 1 ? (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-ui-12 text-jce-ink-2">
-                Suppliers {matrixStart + 1}–{matrixStart + pagedQuotes.length}{" "}
-                of {quotes.length}
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="focus-ring-jce min-h-11"
-                  disabled={matrixSafePage <= 1}
-                  onClick={() => setMatrixPage((p) => Math.max(1, p - 1))}
-                >
-                  <ChevronLeftIcon aria-hidden /> Prev
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="focus-ring-jce min-h-11"
-                  disabled={matrixSafePage >= matrixTotalPages}
-                  onClick={() =>
-                    setMatrixPage((p) => Math.min(matrixTotalPages, p + 1))
-                  }
-                >
-                  Next <ChevronRightIcon aria-hidden />
-                </Button>
+          {/* Supplier comparison — the record's centerpiece visualization */}
+          <section className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h2 className="text-ui-16 font-semibold text-jce-ink">
+                  Supplier comparison
+                </h2>
+                <p className="mt-0.5 text-ui-12 text-jce-ink-2">
+                  {counts.responded} of {counts.invited} logged supplier
+                  {counts.invited === 1 ? "" : "s"} quoted a price · lowest
+                  highlighted BEST
+                  {winner ? ` · winner ${winner}` : ""}.
+                </p>
               </div>
-            </div>
-          ) : null}
-
-          {!readOnly ? (
-            <div className="solid flex flex-wrap items-center gap-2 rounded-(--r-solid) p-4">
-              <span className="mr-1 text-ui-12 font-semibold text-jce-ink-2">
-                Select winner:
-              </span>
-              {quotes.map((q) => (
-                <Button
-                  key={q.supplier}
-                  size="sm"
-                  className="min-h-11"
-                  variant={winner === q.supplier ? "approve" : "outline"}
-                  disabled={q.price == null}
-                  onClick={() => selectWinner(q.supplier)}
-                >
-                  {winner === q.supplier
-                    ? `Winner · ${q.supplier}`
-                    : q.supplier}
+              {!readOnly ? (
+                <Button onClick={openLog} className="min-h-11 w-full sm:w-auto">
+                  <PlusIcon aria-hidden /> Log supplier quote
                 </Button>
-              ))}
+              ) : null}
             </div>
-          ) : null}
 
-          <div className="solid rounded-(--r-solid) p-5">
-            <h2 className="mb-4 text-ui-16 font-semibold text-jce-ink">
-              Event stream
-            </h2>
-            <Timeline events={tlEvents} />
+            <ComparisonMatrix
+              rowHeader="Criterion"
+              columns={columns}
+              rows={rows}
+            />
+
+            {matrixTotalPages > 1 ? (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-ui-12 text-jce-ink-2">
+                  Suppliers {matrixStart + 1}–{matrixStart + pagedQuotes.length}{" "}
+                  of {quotes.length}
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="focus-ring-jce min-h-11"
+                    disabled={matrixSafePage <= 1}
+                    onClick={() => setMatrixPage((p) => Math.max(1, p - 1))}
+                  >
+                    <ChevronLeftIcon aria-hidden /> Prev
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="focus-ring-jce min-h-11"
+                    disabled={matrixSafePage >= matrixTotalPages}
+                    onClick={() =>
+                      setMatrixPage((p) => Math.min(matrixTotalPages, p + 1))
+                    }
+                  >
+                    Next <ChevronRightIcon aria-hidden />
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+
+            {!readOnly ? (
+              <div className="solid flex flex-wrap items-center gap-2 rounded-(--r-solid) p-4">
+                <span className="mr-1 text-ui-12 font-semibold text-jce-ink-2">
+                  Select winner:
+                </span>
+                {quotes.map((q) => (
+                  <Button
+                    key={q.supplier}
+                    size="sm"
+                    className="min-h-11"
+                    variant={winner === q.supplier ? "approve" : "outline"}
+                    disabled={q.price == null}
+                    onClick={() => selectWinner(q.supplier)}
+                  >
+                    {winner === q.supplier
+                      ? `Winner · ${q.supplier}`
+                      : q.supplier}
+                  </Button>
+                ))}
+              </div>
+            ) : null}
+          </section>
+
+          {/* Event stream (solid) */}
+          <section className="solid rounded-(--r-solid) p-5">
+            <div className="mb-4">
+              <h2 className="text-ui-16 font-semibold text-jce-ink">
+                Event stream
+              </h2>
+              <p className="mt-0.5 text-ui-12 text-jce-ink-2">
+                Append-only · {events.length} event
+                {events.length === 1 ? "" : "s"} (price logs + winner
+                selection).
+              </p>
+            </div>
+            {events.length === 0 ? (
+              <div className="rounded-(--r-input) border border-dashed border-jce-line p-5 text-center">
+                <p className="text-ui-13 text-jce-ink-2">
+                  No priced events yet — log a quote with a price to start the
+                  stream.
+                </p>
+              </div>
+            ) : (
+              <Timeline events={tlEvents} />
+            )}
             {eventsTotalPages > 1 ? (
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-jce-line pt-4">
                 <p className="text-ui-12 text-jce-ink-2">
@@ -576,13 +678,13 @@ function QuotationDetailBody({ quotation }: { quotation: Quotation }) {
                 </div>
               </div>
             ) : null}
-          </div>
+          </section>
         </>
       )}
 
       {/* Log-supplier-quote dialog */}
       <Dialog open={logOpen} onOpenChange={setLogOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>
               {mode === "edit" ? "Edit supplier quote" : "Log supplier quote"}

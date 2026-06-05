@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/jce/page-header";
+import { KpiTile } from "@/components/jce/kpi-tile";
 import { Chip } from "@/components/jce/chip";
 import { EmptyState } from "@/components/jce/empty-state";
 import {
@@ -146,7 +147,7 @@ function StatusControl({
   if (readOnly) return <Chip tone={WEB_STATUS_TONE[status]}>{status}</Chip>;
   return (
     <Select value={status} onValueChange={(v) => onChange(v as WebStatus)}>
-      <SelectTrigger className="min-h-11 w-36" aria-label="Status">
+      <SelectTrigger className="min-h-11 w-full sm:w-40" aria-label="Status">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -303,6 +304,18 @@ export function WebsiteCms() {
       .sort((a, b) => a.sort - b.sort),
   })).filter((g) => g.items.length > 0);
 
+  // Publish-state KPI strip — derived live from all three stores combined so it
+  // tracks every created / edited / status-toggled record across content types.
+  const statuses: readonly WebStatus[] = [
+    ...projects.map((r) => r.status),
+    ...services.map((r) => r.status),
+    ...products.map((r) => r.status),
+  ];
+  const liveCount = statuses.filter((s) => s === "Published").length;
+  const draftCount = statuses.filter((s) => s === "Draft").length;
+  const hiddenCount = statuses.filter((s) => s === "Hidden").length;
+  const totalCount = statuses.length;
+
   const clearSearch = () => setQ("");
   const onTab = (v: string) => {
     setTab(v as RecordKind);
@@ -315,49 +328,73 @@ export function WebsiteCms() {
         kicker="BDD · B7–B9"
         title="Website content"
         description="BDD manages the public site's Projects, Services & Products — Published records appear on the live site (SRS §9.2). Edits persist in-session; live write-back to the site is mocked / PROPOSED."
-        actions={
-          <>
-            <div className="flex h-9 w-56 items-center gap-2 rounded-[8px] border border-jce-line bg-white/70 px-2.5">
-              <SearchIcon
-                className="size-4 shrink-0 text-jce-ink-2"
-                aria-hidden
-              />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder={`Search ${KIND_LABEL[tab]}s by name…`}
-                aria-label="Search website content by name"
-                className="w-full bg-transparent text-ui-13 text-jce-ink outline-none placeholder:text-jce-ink-2"
-              />
-            </div>
-            {!readOnly ? (
-              <Button
-                size="sm"
-                className="min-h-11"
-                onClick={() => setDrawer({ mode: "add", kind: tab })}
-              >
-                <PlusIcon aria-hidden /> Add {KIND_LABEL[tab]}
-              </Button>
-            ) : null}
-          </>
-        }
       />
 
+      {/* Publish-state KPI strip — live across projects + services + products */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <KpiTile
+          label="Live on site"
+          value={liveCount}
+          delta="published & visible"
+          tone="success"
+        />
+        <KpiTile
+          label="Drafts"
+          value={draftCount}
+          delta="not yet live"
+          tone="pending"
+        />
+        <KpiTile
+          label="Hidden"
+          value={hiddenCount}
+          delta="withheld from site"
+          tone="neutral"
+        />
+        <KpiTile
+          label="Total records"
+          value={totalCount}
+          delta={`${projects.length} projects · ${services.length} services · ${products.length} products`}
+          tone="info"
+        />
+      </div>
+
+      {/* Toolbar — search + tab-aware primary action (44px control heights) */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex h-11 w-full max-w-sm items-center gap-2 rounded-(--r-input) border border-jce-line bg-white/70 px-3 transition-colors focus-within:border-jce-green-600 focus-within:shadow-(--focus-ring)">
+          <SearchIcon className="size-4 shrink-0 text-jce-ink-2" aria-hidden />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={`Search ${KIND_LABEL[tab]}s by name…`}
+            aria-label="Search website content by name"
+            className="h-full w-full bg-transparent text-ui-13 text-jce-ink outline-none placeholder:text-jce-ink-2"
+          />
+        </div>
+        {!readOnly ? (
+          <Button
+            onClick={() => setDrawer({ mode: "add", kind: tab })}
+            className="min-h-11 w-full sm:w-auto"
+          >
+            <PlusIcon aria-hidden /> Add {KIND_LABEL[tab]}
+          </Button>
+        ) : null}
+      </div>
+
       <p className="text-ui-12 text-jce-ink-2">
-        <Chip tone="success">Published</Chip> appears on the public site ·{" "}
+        <Chip tone="success">Published</Chip> shows on the public site ·{" "}
         <Chip tone="pending">Draft</Chip> and <Chip tone="neutral">Hidden</Chip>{" "}
-        do not. The seed icon is shown but not editable.
+        stay off it. The seed icon is shown but not editable.
       </p>
 
       <Tabs value={tab} onValueChange={onTab} className="gap-4">
-        <TabsList>
-          <TabsTrigger value="project">
+        <TabsList className="h-auto w-full sm:w-fit">
+          <TabsTrigger value="project" className="min-h-11">
             Projects ({projects.length})
           </TabsTrigger>
-          <TabsTrigger value="service">
+          <TabsTrigger value="service" className="min-h-11">
             Services ({services.length})
           </TabsTrigger>
-          <TabsTrigger value="product">
+          <TabsTrigger value="product" className="min-h-11">
             Products ({products.length})
           </TabsTrigger>
         </TabsList>
@@ -483,30 +520,49 @@ function SearchEmpty({ onClear }: { onClear: () => void }) {
 }
 
 // ---- rows ------------------------------------------------------------------
+// Premium .solid card row. Mobile-first: identity (thumb + name/meta) stacks above
+// the controls block, which itself stacks then goes inline at sm; at lg the whole
+// row is one line with controls right-aligned. No control is a fixed width that
+// clips at ~360px (the Status select is w-full → sm:w-40).
 function RowShell({
-  children,
   thumb,
+  body,
+  controls,
 }: {
-  children: React.ReactNode;
   thumb: React.ReactNode;
+  body: React.ReactNode;
+  controls: React.ReactNode;
 }) {
   return (
-    <div className="solid flex flex-wrap items-center gap-3 rounded-(--r-solid) p-4">
-      {thumb}
-      {children}
+    <div className="solid flex flex-col gap-3 rounded-(--r-solid) p-4 transition-shadow hover:shadow-(--shadow-elevated) lg:flex-row lg:items-center">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        {thumb}
+        <div className="min-w-0 flex-1">{body}</div>
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:shrink-0 lg:justify-end">
+        {controls}
+      </div>
     </div>
   );
 }
 
 function CoverThumb({ count }: { count: number }) {
   return (
-    <div className="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-[8px] border border-jce-line bg-[linear-gradient(135deg,var(--jce-green-50),var(--jce-orange-100))] text-jce-green-700">
+    <div className="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-(--r-input) border border-jce-line bg-[linear-gradient(135deg,var(--jce-green-50),var(--jce-orange-100))] text-jce-green-700">
       <ImageIcon className="size-5" aria-hidden />
       {count > 0 ? (
         <span className="absolute -right-1 -bottom-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-jce-green-700 px-1 text-[9px] font-bold text-white">
           {count}
         </span>
       ) : null}
+    </div>
+  );
+}
+
+function IconThumb({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="grid size-12 shrink-0 place-items-center rounded-(--r-input) border border-jce-line bg-jce-green-50 text-jce-green-700">
+      {children}
     </div>
   );
 }
@@ -528,46 +584,53 @@ function ProjectRow({
   const photoCount = p.gallery.length;
   const meta = [p.location, cap, p.voltage].filter(Boolean).join(" · ");
   return (
-    <RowShell thumb={<CoverThumb count={photoCount} />}>
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-medium text-jce-ink">{p.name}</span>
-          <Chip tone="info">{CATEGORY_LABEL[p.category]}</Chip>
-        </div>
-        <div className="text-ui-12 text-jce-ink-2">
-          {meta}
-          {" · "}
-          {p.showClient ? (
-            <span>{p.client ?? "—"}</span>
+    <RowShell
+      thumb={<CoverThumb count={photoCount} />}
+      body={
+        <>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-medium text-jce-ink">{p.name}</span>
+            <Chip tone="info">{CATEGORY_LABEL[p.category]}</Chip>
+          </div>
+          <div className="mt-0.5 text-ui-12 text-jce-ink-2">
+            {meta}
+            {" · "}
+            {p.showClient ? (
+              <span>{p.client ?? "—"}</span>
+            ) : (
+              <span className="text-jce-ink-2 italic">Confidential client</span>
+            )}
+            {" · "}
+            {photoCount} photo{photoCount === 1 ? "" : "s"}
+          </div>
+        </>
+      }
+      controls={
+        <>
+          {readOnly ? (
+            <span className="text-ui-12 text-jce-ink-2">
+              {p.showClient ? "Client shown" : "Client hidden"}
+            </span>
           ) : (
-            <span className="text-jce-ink-2 italic">Confidential client</span>
+            <label className="flex min-h-11 cursor-pointer items-center gap-2 text-ui-12 text-jce-ink-2">
+              <input
+                type="checkbox"
+                checked={p.showClient}
+                onChange={() => onToggleClient(p)}
+                className="size-4 accent-jce-green-700"
+              />
+              Show client
+            </label>
           )}
-          {" · "}
-          {photoCount} photo{photoCount === 1 ? "" : "s"}
-        </div>
-      </div>
-      {readOnly ? (
-        <span className="text-ui-12 text-jce-ink-2">
-          {p.showClient ? "Client shown" : "Client hidden"}
-        </span>
-      ) : (
-        <label className="flex min-h-11 cursor-pointer items-center gap-2 text-ui-12 text-jce-ink-2">
-          <input
-            type="checkbox"
-            checked={p.showClient}
-            onChange={() => onToggleClient(p)}
-            className="size-4 accent-jce-green-700"
+          <StatusControl
+            status={p.status}
+            readOnly={readOnly}
+            onChange={(s) => onStatus(p, s)}
           />
-          Show client
-        </label>
-      )}
-      <StatusControl
-        status={p.status}
-        readOnly={readOnly}
-        onChange={(s) => onStatus(p, s)}
-      />
-      <RowActions onEdit={onEdit} readOnly={readOnly} />
-    </RowShell>
+          <RowActions onEdit={onEdit} readOnly={readOnly} />
+        </>
+      }
+    />
   );
 }
 
@@ -586,24 +649,29 @@ function ServiceRow({
   return (
     <RowShell
       thumb={
-        <div className="grid size-12 shrink-0 place-items-center rounded-[8px] border border-jce-line bg-jce-green-50 text-jce-green-700">
+        <IconThumb>
           <Icon className="size-5" aria-hidden />
-        </div>
+        </IconThumb>
       }
-    >
-      <div className="min-w-0 flex-1">
-        <div className="font-medium text-jce-ink">{s.name}</div>
-        <div className="text-ui-12 text-jce-ink-2">
-          <span className="font-medium">{s.spec}</span> · {s.desc}
-        </div>
-      </div>
-      <StatusControl
-        status={s.status}
-        readOnly={readOnly}
-        onChange={(status) => onStatus(s, status)}
-      />
-      <RowActions onEdit={onEdit} readOnly={readOnly} />
-    </RowShell>
+      body={
+        <>
+          <div className="font-medium text-jce-ink">{s.name}</div>
+          <div className="mt-0.5 text-ui-12 text-jce-ink-2">
+            <span className="font-medium">{s.spec}</span> · {s.desc}
+          </div>
+        </>
+      }
+      controls={
+        <>
+          <StatusControl
+            status={s.status}
+            readOnly={readOnly}
+            onChange={(status) => onStatus(s, status)}
+          />
+          <RowActions onEdit={onEdit} readOnly={readOnly} />
+        </>
+      }
+    />
   );
 }
 
@@ -622,25 +690,30 @@ function ProductRow({
   return (
     <RowShell
       thumb={
-        <div className="grid size-12 shrink-0 place-items-center rounded-[8px] border border-jce-line bg-jce-green-50 text-jce-green-700">
+        <IconThumb>
           <Icon className="size-5" aria-hidden />
-        </div>
+        </IconThumb>
       }
-    >
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-medium text-jce-ink">{p.name}</span>
-          <Chip tone="neutral">{p.tag}</Chip>
-        </div>
-        <div className="text-ui-12 text-jce-ink-2">{p.spec}</div>
-      </div>
-      <StatusControl
-        status={p.status}
-        readOnly={readOnly}
-        onChange={(status) => onStatus(p, status)}
-      />
-      <RowActions onEdit={onEdit} readOnly={readOnly} />
-    </RowShell>
+      body={
+        <>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-medium text-jce-ink">{p.name}</span>
+            <Chip tone="neutral">{p.tag}</Chip>
+          </div>
+          <div className="mt-0.5 text-ui-12 text-jce-ink-2">{p.spec}</div>
+        </>
+      }
+      controls={
+        <>
+          <StatusControl
+            status={p.status}
+            readOnly={readOnly}
+            onChange={(status) => onStatus(p, status)}
+          />
+          <RowActions onEdit={onEdit} readOnly={readOnly} />
+        </>
+      }
+    />
   );
 }
 
@@ -652,18 +725,23 @@ function RowActions({
   readOnly: boolean;
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex gap-2">
       <Button
         variant="outline"
         size="sm"
-        className="min-h-11"
+        className="min-h-11 flex-1 sm:flex-none"
         onClick={onEdit}
         aria-label="Photos"
         title="Photos"
       >
         <ImageIcon data-icon="inline-start" /> Photos
       </Button>
-      <Button variant="outline" size="sm" className="min-h-11" onClick={onEdit}>
+      <Button
+        variant="outline"
+        size="sm"
+        className="min-h-11 flex-1 sm:flex-none"
+        onClick={onEdit}
+      >
         {readOnly ? "View" : "Edit"}
       </Button>
     </div>
@@ -1027,10 +1105,23 @@ function RecordDrawer({
 
   return (
     <>
-      <SheetHeader className="border-b border-jce-line pb-4">
-        <SheetTitle className="text-ui-16">
+      <SheetHeader className="border-b border-jce-line pb-4 pr-8">
+        <div className="kicker text-jce-green-600">
           {verb} {noun}
+        </div>
+        <SheetTitle className="text-ui-18">
+          {draft.name.trim() || `New ${noun}`}
         </SheetTitle>
+        <div className="flex flex-wrap items-center gap-2">
+          <Chip tone={WEB_STATUS_TONE[draft.status]}>{draft.status}</Chip>
+          <span className="text-ui-12 text-jce-ink-2">
+            {draft.status === "Published"
+              ? "Live on the public site"
+              : draft.status === "Draft"
+                ? "Draft — not yet live"
+                : "Hidden — off the site"}
+          </span>
+        </div>
         <SheetDescription>
           {readOnly
             ? "Read-only — your role cannot edit website content."
@@ -1137,7 +1228,7 @@ function RecordDrawer({
                 />
                 Show client on the public site
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Field
                   label="Capacity"
                   htmlFor="cms-cap-value"
@@ -1184,7 +1275,7 @@ function RecordDrawer({
                   </Select>
                 </Field>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Field label="Voltage" htmlFor="cms-voltage">
                   <input
                     id="cms-voltage"
@@ -1317,7 +1408,7 @@ function RecordDrawer({
 
           {/* Publishing */}
           <FormGroup title="Publishing">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="Status" htmlFor="cms-status">
                 <Select
                   value={draft.status}

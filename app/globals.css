@@ -610,6 +610,33 @@
     font-feature-settings: "tnum" 1;
     font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
   }
+  /* Opt-in sticky first column (B11 audit log) — freezes the leading column while
+     the row scrolls horizontally on narrow viewports. Each cell keeps an opaque
+     token background per zebra parity so scrolled content never bleeds through;
+     the hairline shadow is the frozen-edge affordance. Scoped to the modifier
+     class, so the other .jtable consumers are unaffected. */
+  .jtable-sticky-first thead th {
+    z-index: 2;
+  }
+  .jtable-sticky-first thead th:first-child,
+  .jtable-sticky-first tbody td:first-child {
+    position: sticky;
+    left: 0;
+    box-shadow: 1px 0 0 var(--jce-line);
+  }
+  .jtable-sticky-first thead th:first-child {
+    z-index: 3;
+  }
+  .jtable-sticky-first tbody td:first-child {
+    z-index: 1;
+    background: var(--solid-surface);
+  }
+  .jtable-sticky-first tbody tr:nth-child(even) td:first-child {
+    background: var(--table-zebra);
+  }
+  .jtable-sticky-first tbody tr:hover td:first-child {
+    background: var(--table-focus);
+  }
 
   /* ---- Masked sensitive field (compensation, ATM) -------------------------- */
   .masked {

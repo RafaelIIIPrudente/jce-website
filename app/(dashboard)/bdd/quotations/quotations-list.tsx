@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PageHeader } from "@/components/jce/page-header";
+import { KpiTile } from "@/components/jce/kpi-tile";
 import { Segmented } from "@/components/jce/segmented";
 import { Chip } from "@/components/jce/chip";
 import { DocChip } from "@/components/jce/doc-chip";
@@ -147,6 +148,16 @@ export function QuotationsList() {
 
   const [rows, setRows] = useState<readonly Quotation[]>(() => getQuotations());
   const refresh = () => setRows(getQuotations());
+
+  // KPI summary — derived from ALL categories (not the category/search-filtered
+  // view) so the strip summarises the whole request book and tracks a created
+  // request. Counts only (no headline money figure for Quotations).
+  const winnerCount = rows.filter((r) => r.winner).length;
+  const awaiting = rows.filter((r) => !r.winner).length;
+  const quotesReceived = rows.reduce(
+    (n, r) => n + quotationCounts(r).responded,
+    0,
+  );
 
   // Search + pagination.
   const [q, setQ] = useState("");
@@ -313,39 +324,70 @@ export function QuotationsList() {
         kicker="BDD · B5"
         title="Quotations"
         description="Supplier quote requests by category. Log each quote you receive, then compare prices and pick a winner."
-        actions={
-          <>
-            <div className="flex h-9 w-56 items-center gap-2 rounded-[8px] border border-jce-line bg-white/70 px-2.5">
-              <SearchIcon
-                className="size-4 shrink-0 text-jce-ink-2"
-                aria-hidden
-              />
-              <input
-                value={q}
-                onChange={(e) => onSearch(e.target.value)}
-                placeholder="Search Ref. No., item, client…"
-                aria-label="Search quotation requests"
-                className="w-full bg-transparent text-ui-13 text-jce-ink outline-none placeholder:text-jce-ink-2"
-              />
-            </div>
-            {!readOnly ? (
-              <Button size="sm" onClick={openCreate}>
-                <PlusIcon aria-hidden /> New request
-              </Button>
-            ) : null}
-          </>
-        }
       />
-      <Segmented
-        aria-label="Category"
-        options={[
-          { value: "EC", label: "EC" },
-          { value: "Workshop", label: "Workshop" },
-          { value: "Solar", label: "Solar" },
-        ]}
-        value={cat}
-        onValueChange={onCat}
-      />
+
+      {/* KPI summary strip — derived live across all categories (tracks created requests) */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <KpiTile
+          label="Total requests"
+          value={rows.length}
+          delta="all categories"
+          tone="neutral"
+        />
+        <KpiTile
+          label="Winner selected"
+          value={winnerCount}
+          delta="awarded"
+          tone="success"
+        />
+        <KpiTile
+          label="Awaiting decision"
+          value={awaiting}
+          delta="no winner yet"
+          tone="pending"
+        />
+        <KpiTile
+          label="Quotes received"
+          value={quotesReceived}
+          delta="across requests"
+          tone="info"
+        />
+      </div>
+
+      {/* Toolbar — search + category filter + primary action (≥44px controls;
+          stacks full-width on phones) */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="flex h-11 w-full items-center gap-2 rounded-(--r-input) border border-jce-line bg-white/70 px-3 transition-colors focus-within:border-jce-green-600 focus-within:shadow-(--focus-ring) sm:max-w-sm">
+            <SearchIcon
+              className="size-4 shrink-0 text-jce-ink-2"
+              aria-hidden
+            />
+            <input
+              value={q}
+              onChange={(e) => onSearch(e.target.value)}
+              placeholder="Search Ref. No., item, client…"
+              aria-label="Search quotation requests"
+              className="h-full w-full bg-transparent text-ui-13 text-jce-ink outline-none placeholder:text-jce-ink-2"
+            />
+          </div>
+          {!readOnly ? (
+            <Button onClick={openCreate} className="min-h-11 w-full sm:w-auto">
+              <PlusIcon aria-hidden /> New request
+            </Button>
+          ) : null}
+        </div>
+        <Segmented
+          aria-label="Category"
+          options={[
+            { value: "EC", label: "EC" },
+            { value: "Workshop", label: "Workshop" },
+            { value: "Solar", label: "Solar" },
+          ]}
+          value={cat}
+          onValueChange={onCat}
+        />
+      </div>
 
       {filtered.length === 0 ? (
         <div className="glass rounded-(--r-glass) p-6">
@@ -373,39 +415,37 @@ export function QuotationsList() {
             }
             className="max-h-[calc(100dvh-22rem)]"
           />
-          {totalPages > 1 ? (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-ui-12 text-jce-ink-2">
-                Page {safePage} of {totalPages} · {filtered.length} requests
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="focus-ring-jce min-h-11"
-                  disabled={safePage <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                >
-                  <ChevronLeftIcon aria-hidden /> Prev
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="focus-ring-jce min-h-11"
-                  disabled={safePage >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                >
-                  Next <ChevronRightIcon aria-hidden />
-                </Button>
-              </div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-ui-12 text-jce-ink-2">
+              Page {safePage} of {totalPages} · {filtered.length} requests
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="focus-ring-jce min-h-11"
+                disabled={safePage <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                <ChevronLeftIcon aria-hidden /> Prev
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="focus-ring-jce min-h-11"
+                disabled={safePage >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                Next <ChevronRightIcon aria-hidden />
+              </Button>
             </div>
-          ) : null}
+          </div>
         </>
       )}
 
       {/* New-request dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>New quotation request</DialogTitle>
             <DialogDescription>
