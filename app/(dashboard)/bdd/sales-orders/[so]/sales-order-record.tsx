@@ -52,45 +52,19 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Chip } from "@/components/jce/chip";
 import { DocChip } from "@/components/jce/doc-chip";
-import { FieldComputed } from "@/components/jce/field-computed";
 import { EmptyState } from "@/components/jce/empty-state";
+import { Meter } from "@/components/jce/meter";
+import { MetricCard } from "@/components/jce/metric-card";
 
 // B2 · Sales Order record (bdd-core.jsx:26-50, brief:1028-1034). Edit-with-audit
 // (NOT an immutable event stream — OQ#16). Derived progress-billing values are
-// read-only (.computed hatch). Status/Remarks/Contract-Amount edits persist to
-// the shared in-session store AND append a live BDD audit entry; editing Contract
-// Amount additionally fires a sensitive-change notification (bell + X4 reflect it).
+// read-only (MetricCard `derived` hatch). Status/Remarks/Contract-Amount edits
+// persist to the shared in-session store AND append a live BDD audit entry;
+// editing Contract Amount additionally fires a sensitive-change notification
+// (bell + X4 reflect it). Premium tier: glass hero header + billed-vs-contract
+// Meter + derived MetricCard strip — see CLAUDE.md "Dashboard UI Standard".
 
 const HISTORY_PAGE_SIZE = 5;
-
-function Row({
-  label,
-  sensitive,
-  action,
-  children,
-}: {
-  label: string;
-  sensitive?: boolean;
-  action?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <dt className="flex items-center gap-1.5 text-jce-ink-2">
-        {label}
-        {sensitive ? (
-          <span className="rounded bg-(--st-danger-bg) px-1.5 py-0.5 text-[9px] font-bold text-(--st-danger-ink)">
-            SENSITIVE
-          </span>
-        ) : null}
-      </dt>
-      <dd className="flex items-center gap-2">
-        {children}
-        {action}
-      </dd>
-    </div>
-  );
-}
 
 function LinkedGroup({
   title,
@@ -178,6 +152,8 @@ function SalesOrderDetail({ order }: { order: SalesOrder }) {
   const [histPage, setHistPage] = useState(1);
 
   const d = soDerived({ amount, cumBilled: order.cumBilled });
+  const pctBilled =
+    amount > 0 ? ((d.cumBilled / amount) * 100).toFixed(2) : "0.00";
   const relatedOffers = OFFERS.filter((o) => o.client === order.client);
   const linked = getSoLinked(order.so);
 
@@ -251,9 +227,9 @@ function SalesOrderDetail({ order }: { order: SalesOrder }) {
         <ChevronLeftIcon className="size-4" aria-hidden /> Sales Orders
       </Link>
 
-      {/* Header card (glass) */}
+      {/* Header card (glass) — identity + hero contract amount + controls */}
       <div className="glass rounded-(--r-glass) p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-5">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <DocChip code={`SO# ${order.so}`} />
@@ -270,10 +246,42 @@ function SalesOrderDetail({ order }: { order: SalesOrder }) {
               {order.client} · requested by {order.by} · {order.date}
             </p>
           </div>
-          {!readOnly ? (
-            <div className="flex flex-wrap items-center gap-2">
+
+          {/* Hero metric — Contract Amount (sensitive, editable) */}
+          <div className="flex shrink-0 flex-col gap-1 sm:items-end">
+            <div className="flex items-center gap-1.5">
+              <span className="kicker">Contract Amount</span>
+              <span className="rounded bg-(--st-danger-bg) px-1.5 py-0.5 text-[9px] font-bold text-(--st-danger-ink)">
+                SENSITIVE
+              </span>
+            </div>
+            <div className="text-ui-28 leading-none font-bold tracking-tight tabular-nums text-jce-ink">
+              {peso(amount)}
+            </div>
+            {!readOnly ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setDraftAmount(String(amount));
+                  setEditOpen(true);
+                }}
+                className="focus-ring-jce mt-1 inline-flex items-center gap-1 rounded text-ui-12 font-semibold text-jce-green-700 hover:underline"
+              >
+                <PencilIcon className="size-3" aria-hidden /> Edit amount
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Controls — status / remarks (edit-with-audit) */}
+        {!readOnly ? (
+          <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-jce-line pt-4">
+            <div className="flex items-center gap-2">
+              <span className="text-ui-12 font-semibold text-jce-ink-2">
+                Status
+              </span>
               <Select value={status} onValueChange={onStatusChange}>
-                <SelectTrigger className="h-9 w-44">
+                <SelectTrigger aria-label="Status" className="min-h-11 w-44">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -284,8 +292,13 @@ function SalesOrderDetail({ order }: { order: SalesOrder }) {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-ui-12 font-semibold text-jce-ink-2">
+                Remarks
+              </span>
               <Select value={remarks} onValueChange={onRemarksChange}>
-                <SelectTrigger className="h-9 w-40">
+                <SelectTrigger aria-label="Remarks" className="min-h-11 w-40">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -297,8 +310,9 @@ function SalesOrderDetail({ order }: { order: SalesOrder }) {
                 </SelectContent>
               </Select>
             </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
+
         <p className="mt-3 text-ui-12 text-jce-ink-2">
           Status transitions are free (any → any) and audited. Sales Orders are
           edit-with-audit — distinct from Offers/Quotations, which are immutable
@@ -306,64 +320,72 @@ function SalesOrderDetail({ order }: { order: SalesOrder }) {
         </p>
       </div>
 
-      {/* Commercial + derived billing */}
-      <div className="grid gap-5 lg:grid-cols-2">
+      {/* Progress billing — derived visualization + metric cards (read-only) */}
+      <section className="flex flex-col gap-3">
+        <h2 className="kicker text-jce-green-600">
+          Progress billing · derived (read-only)
+        </h2>
+
+        {/* Billed-vs-contract meter */}
         <div className="solid rounded-(--r-solid) p-5">
-          <h2 className="kicker text-jce-green-600">Commercial</h2>
-          <dl className="mt-3 flex flex-col gap-3 text-ui-13">
-            <Row
-              label="Contract Amount"
-              sensitive
-              action={
-                !readOnly ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDraftAmount(String(amount));
-                      setEditOpen(true);
-                    }}
-                    className="focus-ring-jce inline-flex items-center gap-1 rounded text-ui-12 font-semibold text-jce-green-700 hover:underline"
-                  >
-                    <PencilIcon className="size-3" aria-hidden /> Edit
-                  </button>
-                ) : null
-              }
-            >
-              <span className="font-mono font-semibold tabular-nums text-jce-ink">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <span className="text-ui-13 font-medium text-jce-ink">
+              Cumulative billed vs contract
+            </span>
+            <span className="text-ui-22 leading-none font-bold tabular-nums text-jce-ink">
+              {pctBilled}%
+            </span>
+          </div>
+          <Meter
+            value={d.cumBilled}
+            max={amount}
+            label={`Cumulative billed: ${pctBilled}% of contract`}
+            className="mt-3"
+          />
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-ui-12 text-jce-ink-2">
+            <span>
+              Billed{" "}
+              <span className="font-mono tabular-nums text-jce-ink">
+                {peso(d.cumBilled)}
+              </span>
+            </span>
+            <span>
+              Contract{" "}
+              <span className="font-mono tabular-nums text-jce-ink">
                 {peso(amount)}
               </span>
-            </Row>
-            <Row label="Down Payment %">{(DP_PCT * 100).toFixed(0)}%</Row>
-            <Row label="Retention %">{(RETENTION_PCT * 100).toFixed(0)}%</Row>
-            <Row label="DP Recoupment %">
-              {(DP_RECOUP_PCT * 100).toFixed(0)}%
-            </Row>
-          </dl>
+            </span>
+          </div>
         </div>
 
-        <div className="solid rounded-(--r-solid) p-5">
-          <h2 className="kicker text-jce-green-600">
-            Progress billing · derived (read-only)
-          </h2>
-          <dl className="mt-3 flex flex-col gap-3 text-ui-13">
-            <Row label="Down Payment Amount">
-              <FieldComputed>{peso(d.dpAmt)}</FieldComputed>
-            </Row>
-            <Row label="Cumulative Billed to Date">
-              <FieldComputed>{peso(d.cumBilled)}</FieldComputed>
-            </Row>
-            <Row label="Cumulative Retention Held">
-              <FieldComputed>{peso(d.retentionHeld)}</FieldComputed>
-            </Row>
-            <Row label="Cumulative DP Recouped">
-              <FieldComputed>{peso(d.dpRecouped)}</FieldComputed>
-            </Row>
-            <Row label="Remaining Contract Balance">
-              <FieldComputed>{peso(d.remaining)}</FieldComputed>
-            </Row>
-          </dl>
+        {/* Derived figures */}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <MetricCard
+            label="Down Payment Amount"
+            value={peso(d.dpAmt)}
+            hint={`Down payment · ${(DP_PCT * 100).toFixed(0)}% of contract`}
+            derived
+          />
+          <MetricCard
+            label="Cumulative Retention Held"
+            value={peso(d.retentionHeld)}
+            hint={`Retention · ${(RETENTION_PCT * 100).toFixed(0)}% of billed`}
+            derived
+          />
+          <MetricCard
+            label="Cumulative DP Recouped"
+            value={peso(d.dpRecouped)}
+            hint={`DP recoupment · ${(DP_RECOUP_PCT * 100).toFixed(0)}% of billed`}
+            derived
+          />
+          <MetricCard
+            label="Remaining Contract Balance"
+            value={peso(d.remaining)}
+            hint="Contract − cumulative billed"
+            derived
+          />
         </div>
-      </div>
+      </section>
 
       {/* Linked records / History */}
       <Tabs defaultValue="linked" className="gap-3">

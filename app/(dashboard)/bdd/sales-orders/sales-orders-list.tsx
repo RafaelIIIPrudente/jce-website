@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PageHeader } from "@/components/jce/page-header";
+import { KpiTile } from "@/components/jce/kpi-tile";
 import { Chip } from "@/components/jce/chip";
 import { DocChip } from "@/components/jce/doc-chip";
 import { EmptyState } from "@/components/jce/empty-state";
@@ -137,6 +138,15 @@ export function SalesOrdersList() {
     getSalesOrders(),
   );
   const refresh = () => setRows(getSalesOrders());
+
+  // KPI summary — derived from the full store (not the search-filtered view) so
+  // the strip always summarises the whole register and tracks a newly-created SO.
+  const totalValue = rows.reduce((sum, o) => sum + o.amount, 0);
+  const ongoing = rows.filter((o) => o.status === "Ongoing Project").length;
+  const onHold = rows.filter((o) => o.status === "On Hold").length;
+  const completed = rows.filter(
+    (o) => o.turned || o.status === "Project Completed",
+  ).length;
 
   // Search + pagination.
   const [q, setQ] = useState("");
@@ -278,29 +288,49 @@ export function SalesOrdersList() {
         kicker="BDD · B1"
         title="Sales Orders"
         description="The canonical SO# registry — every operational module keys off these numbers."
-        actions={
-          <>
-            <div className="flex h-9 w-56 items-center gap-2 rounded-[8px] border border-jce-line bg-white/70 px-2.5">
-              <SearchIcon
-                className="size-4 shrink-0 text-jce-ink-2"
-                aria-hidden
-              />
-              <input
-                value={q}
-                onChange={(e) => onSearch(e.target.value)}
-                placeholder="Search SO#, client, project, scope…"
-                aria-label="Search sales orders"
-                className="w-full bg-transparent text-ui-13 text-jce-ink outline-none placeholder:text-jce-ink-2"
-              />
-            </div>
-            {!readOnly ? (
-              <Button size="sm" onClick={openCreate}>
-                <PlusIcon aria-hidden /> New SO
-              </Button>
-            ) : null}
-          </>
-        }
       />
+
+      {/* KPI summary strip — derived live from the store (tracks created SOs) */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <KpiTile
+          label="Total contract value"
+          value={<span className="text-ui-22">{peso(totalValue)}</span>}
+          delta={`${rows.length} sales order${rows.length === 1 ? "" : "s"}`}
+          tone="neutral"
+        />
+        <KpiTile
+          label="Ongoing"
+          value={ongoing}
+          delta="in progress"
+          tone="info"
+        />
+        <KpiTile label="On hold" value={onHold} delta="paused" tone="pending" />
+        <KpiTile
+          label="Completed"
+          value={completed}
+          delta="turned over"
+          tone="success"
+        />
+      </div>
+
+      {/* Toolbar — search + primary action (consistent 44px control heights) */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex h-11 w-full max-w-sm items-center gap-2 rounded-(--r-input) border border-jce-line bg-white/70 px-3 transition-colors focus-within:border-jce-green-600 focus-within:shadow-(--focus-ring)">
+          <SearchIcon className="size-4 shrink-0 text-jce-ink-2" aria-hidden />
+          <input
+            value={q}
+            onChange={(e) => onSearch(e.target.value)}
+            placeholder="Search SO#, client, project, scope…"
+            aria-label="Search sales orders"
+            className="h-full w-full bg-transparent text-ui-13 text-jce-ink outline-none placeholder:text-jce-ink-2"
+          />
+        </div>
+        {!readOnly ? (
+          <Button onClick={openCreate} className="min-h-11">
+            <PlusIcon aria-hidden /> New SO
+          </Button>
+        ) : null}
+      </div>
 
       {filtered.length === 0 ? (
         <div className="glass rounded-(--r-glass) p-6">
