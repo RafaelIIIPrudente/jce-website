@@ -18,7 +18,7 @@ const MAPS_HREF = `https://www.google.com/maps/search/?api=1&query=${QUERY}`;
 export function MapEmbed() {
   return (
     <section className="bg-jce-green-50/40 px-5 py-16 sm:py-20 md:py-24">
-      <Reveal className="mx-auto grid w-full max-w-6xl gap-8 md:grid-cols-12 md:items-center">
+      <Reveal className="mx-auto grid w-full max-w-site gap-8 md:grid-cols-12 md:items-center">
         <div className="md:col-span-5">
           <p className="kicker text-jce-green-600">Visit us</p>
           <h2 className="mt-2 text-[clamp(24px,3.6vw,38px)] leading-[1.1] font-bold tracking-[-0.02em] text-balance text-jce-ink">

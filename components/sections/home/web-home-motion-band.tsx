@@ -25,7 +25,7 @@ export function HomeMotionBand() {
         className="absolute inset-0 -z-10 bg-linear-to-r from-jce-dark via-jce-dark/85 to-jce-dark/55"
       />
 
-      <div className="mx-auto grid w-full max-w-6xl items-center gap-8 md:grid-cols-2 md:gap-12">
+      <div className="mx-auto grid w-full max-w-site items-center gap-8 md:grid-cols-2 md:gap-12">
         <div>
           <CircuitReveal lineClassName="text-jce-cyan">
             <p className="kicker text-jce-cyan-bright">On site, after dark</p>

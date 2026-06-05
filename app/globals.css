@@ -137,6 +137,11 @@
      record/detail/forms keep their narrower reading widths. Tune here, once. */
   --container-app: 110rem;
 
+  /* Public marketing content width — a moderate, contained premium cap. Generates
+     `max-w-site` (80rem/1280px). Non-hero section containers / card grids grow to
+     it; heroes and `max-w-3xl`/ch reading columns keep their art-directed widths. */
+  --container-site: 80rem;
+
   /* Radius scale (kept from baseline; --radius is re-pointed to --r-solid in :root,
      so derived steps land on the JCE chip/input radii) */
   --radius-sm: calc(var(--radius) * 0.6);

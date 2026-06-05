@@ -39,7 +39,7 @@ function parseStat(v: string): ParsedStat {
 export function AboutStatBand() {
   return (
     <section className="dark-section circuit-field relative isolate overflow-hidden px-5 py-16 sm:py-20 md:py-24">
-      <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="mx-auto grid w-full max-w-site grid-cols-2 gap-3 md:grid-cols-4">
         {STATS.map((s) => {
           const p = parseStat(s.v);
           return (

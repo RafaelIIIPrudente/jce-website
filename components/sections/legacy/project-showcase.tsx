@@ -23,7 +23,7 @@ export function ProjectShowcase({
 
   return (
     <section className="border-b border-border bg-muted/40">
-      <div className="mx-auto w-full max-w-6xl px-6 py-section md:px-10">
+      <div className="mx-auto w-full max-w-site px-6 py-section md:px-10">
         <header className="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div className="max-w-3xl">
             {eyebrow && (

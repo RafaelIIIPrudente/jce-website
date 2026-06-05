@@ -21,7 +21,7 @@ export default function ContactPage() {
       <ContactHero />
 
       <section className="px-5 py-16 sm:py-20 md:py-24">
-        <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-6 min-[900px]:grid-cols-12">
+        <div className="mx-auto grid w-full max-w-site grid-cols-1 gap-6 min-[900px]:grid-cols-12">
           <Reveal className="min-[900px]:col-span-5">
             <ContactAside />
           </Reveal>

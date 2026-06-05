@@ -55,7 +55,7 @@ export async function AboutVideos() {
 
   return (
     <section className="dark-section circuit-field relative isolate overflow-hidden px-5 py-16 sm:py-20 md:py-24">
-      <div className="mx-auto w-full max-w-6xl">
+      <div className="mx-auto w-full max-w-site">
         <CircuitReveal
           lineClassName="text-jce-cyan"
           className="mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-3 md:mb-10"

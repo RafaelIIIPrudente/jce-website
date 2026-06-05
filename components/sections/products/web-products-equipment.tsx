@@ -15,7 +15,7 @@ import { PRODUCT_EQUIPMENT } from "@/lib/content/website";
 export function ProductsEquipment() {
   return (
     <section className="dark-section circuit-field relative isolate overflow-hidden px-5 py-16 sm:py-20 md:py-24">
-      <div className="mx-auto w-full max-w-6xl">
+      <div className="mx-auto w-full max-w-site">
         <CircuitReveal
           lineClassName="text-jce-cyan"
           className="mb-8 max-w-[56ch] md:mb-10"
