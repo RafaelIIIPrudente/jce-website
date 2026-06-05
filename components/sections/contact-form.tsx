@@ -5,6 +5,9 @@ import { CheckIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { VoltageTag } from "@/components/sections/web-voltage-tag";
+import { ElectrifiedDivider } from "@/components/sections/web-electrified-divider";
+import { OmegaMark } from "@/components/sections/web-omega-mark";
 import {
   INQ_BUDGET,
   INQ_HEARD,
@@ -115,7 +118,18 @@ export function ContactForm() {
 
   if (sent) {
     return (
-      <div className="glass flex flex-col items-center rounded-(--r-glass) p-8 text-center">
+      <div className="circuit-card glass relative isolate flex flex-col items-center rounded-(--r-glass) p-8 text-center">
+        {/* Faint pulsing Ω — decorative, behind content, clipped; frozen under
+            prefers-reduced-motion. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-(--r-glass)"
+        >
+          <OmegaMark
+            pulse
+            className="absolute -top-10 -right-10 size-44 text-jce-cyan/5"
+          />
+        </div>
         <span className="grid size-14 place-items-center rounded-full bg-jce-green-50 text-jce-green-700">
           <CheckIcon className="size-7" strokeWidth={2.25} aria-hidden />
         </span>
@@ -153,7 +167,7 @@ export function ContactForm() {
     <form
       onSubmit={onSubmit}
       noValidate
-      className="solid flex flex-col gap-5 rounded-(--r-solid) p-5 sm:p-6"
+      className="circuit-card solid flex flex-col gap-6 rounded-(--r-glass) p-6 sm:p-7"
     >
       {/* Contact */}
       <FormSection title="Contact" />
@@ -217,7 +231,7 @@ export function ContactForm() {
       </div>
 
       {/* Inquiry details */}
-      <FormSection title="Inquiry details" />
+      <FormSection title="Inquiry details" divider />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label="Inquiry Type" required error={errors.type} full>
           <select
@@ -277,7 +291,7 @@ export function ContactForm() {
       </div>
 
       {/* Qualifiers */}
-      <FormSection title="Qualifiers" optional />
+      <FormSection title="Qualifiers" optional divider />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label="Budget Range (PHP)">
           <select
@@ -339,16 +353,21 @@ export function ContactForm() {
 function FormSection({
   title,
   optional,
+  divider,
 }: {
   title: string;
   optional?: boolean;
+  divider?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-2 text-ui-12 font-semibold tracking-wide text-jce-green-700 uppercase">
-      {title}
-      {optional ? (
-        <span className="font-normal text-jce-ink-2 normal-case">optional</span>
-      ) : null}
+    <div>
+      {divider ? <ElectrifiedDivider className="mb-6" /> : null}
+      <div className="flex items-center gap-2">
+        <VoltageTag>{title}</VoltageTag>
+        {optional ? (
+          <span className="text-ui-12 text-jce-ink-2">optional</span>
+        ) : null}
+      </div>
     </div>
   );
 }

@@ -3,16 +3,17 @@ import { MapPinIcon } from "lucide-react";
 import { SITE } from "@/lib/content/site";
 import { Reveal } from "@/components/sections/web-reveal";
 
-// Contact "Visit us" band — electrified re-skin of the legacy map block. A text
-// column + a decorative (aria-hidden) map placeholder built from the kit: a
-// photo-poster green gradient under the faint circuit-field blueprint grid, with
-// the green pin motif. The "Open in Maps" deep link stays a real external link.
-// Map embed is client-input per SRS §11.9, so the visual is a placeholder, not a
-// live iframe.
+// Contact "Visit us" band — a text column beside a LIVE Google Maps embed pinned
+// to the exact office NAP (SITE.address). Keyless `output=embed` (no Maps API key
+// in this project); lazy-loaded inside a fixed 16:10 electrified circuit-card
+// frame so there's no layout shift. A non-interactive brand caption carries the
+// identity; the "Open in Maps" deep link opens the same location in full Maps.
 
 const QUERY = encodeURIComponent(
-  `${SITE.address.line1}, ${SITE.address.line2}`,
+  `${SITE.address.line1}, ${SITE.address.line2}, ${SITE.address.country}`,
 );
+const EMBED_SRC = `https://www.google.com/maps?q=${QUERY}&z=16&output=embed`;
+const MAPS_HREF = `https://www.google.com/maps/search/?api=1&query=${QUERY}`;
 
 export function MapEmbed() {
   return (
@@ -27,7 +28,7 @@ export function MapEmbed() {
             {SITE.address.line1}, {SITE.address.line2}, {SITE.address.country}.
           </p>
           <a
-            href={`https://www.google.com/maps/search/?api=1&query=${QUERY}`}
+            href={MAPS_HREF}
             target="_blank"
             rel="noopener noreferrer"
             className="focus-ring-jce mt-6 inline-flex min-h-11 items-center gap-2 rounded-(--r-solid) border border-jce-green-700 px-4 text-ui-14 font-semibold text-jce-green-700 transition-colors hover:bg-jce-green-50"
@@ -37,14 +38,17 @@ export function MapEmbed() {
           </a>
         </div>
         <div className="md:col-span-7">
-          <div
-            aria-hidden="true"
-            className="circuit-field photo-poster relative isolate aspect-[16/10] w-full overflow-hidden rounded-(--r-solid) border border-jce-line"
-          >
-            <div className="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-2">
-              <span className="inline-flex size-10 items-center justify-center rounded-full bg-jce-green-700 text-white shadow-(--solid-shadow)">
-                <MapPinIcon className="size-4" strokeWidth={1.75} />
-              </span>
+          <div className="circuit-card relative aspect-[16/10] w-full overflow-hidden rounded-(--r-glass) border border-jce-line bg-jce-green-50">
+            <iframe
+              src={EMBED_SRC}
+              title={`Map showing the ${SITE.brand} office at ${SITE.address.line1}, ${SITE.address.line2}`}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+              className="absolute inset-0 h-full w-full border-0"
+            />
+            {/* Brand caption — non-interactive so the map stays fully usable. */}
+            <div className="pointer-events-none absolute bottom-3 left-3 z-10 rounded-(--r-solid) bg-white/90 px-3 py-2 shadow-(--solid-shadow) backdrop-blur-sm">
               <p className="text-ui-12 font-semibold text-jce-ink">
                 JC Electrofields Power System
               </p>
