@@ -74,6 +74,10 @@ import {
 
 type RecordKind = "project" | "service" | "product";
 
+// A just-saved record's identity (slug for project/service, name for product),
+// so the list can page to it after the drawer closes.
+type SavedRef = { kind: RecordKind; key: string };
+
 const KIND_LABEL: Record<RecordKind, string> = {
   project: "project",
   service: "service",
@@ -367,10 +371,18 @@ export function WebsiteCms() {
   const hiddenCount = statuses.filter((s) => s === "Hidden").length;
   const totalCount = statuses.length;
 
-  const clearSearch = () => setQ("");
+  const onSearch = (v: string) => {
+    setQ(v);
+    setPage(1);
+  };
+  const clearSearch = () => {
+    setQ("");
+    setPage(1);
+  };
   const onTab = (v: string) => {
     setTab(v as RecordKind);
     setQ("");
+    setPage(1);
   };
 
   return (
@@ -415,7 +427,7 @@ export function WebsiteCms() {
           <SearchIcon className="size-4 shrink-0 text-jce-ink-2" aria-hidden />
           <input
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={(e) => onSearch(e.target.value)}
             placeholder={`Search ${KIND_LABEL[tab]}s by name…`}
             aria-label="Search website content by name"
             className="h-full w-full bg-transparent text-ui-13 text-jce-ink outline-none placeholder:text-jce-ink-2"
@@ -460,7 +472,9 @@ export function WebsiteCms() {
                 <section key={g.cat} className="flex flex-col gap-3">
                   <h2 className="text-ui-13 font-semibold text-jce-ink">
                     {CATEGORY_LABEL[g.cat]}{" "}
-                    <span className="text-jce-ink-2">({g.items.length})</span>
+                    <span className="text-jce-ink-2">
+                      ({fProjects.filter((p) => p.category === g.cat).length})
+                    </span>
                   </h2>
                   {g.items.map((p) => (
                     <ProjectRow
@@ -486,7 +500,7 @@ export function WebsiteCms() {
             <SearchEmpty onClear={clearSearch} />
           ) : (
             <div className="flex flex-col gap-3">
-              {fServices.map((s) => (
+              {pageServices.map((s) => (
                 <ServiceRow
                   key={s.slug}
                   s={s}
@@ -507,7 +521,7 @@ export function WebsiteCms() {
             <SearchEmpty onClear={clearSearch} />
           ) : (
             <div className="flex flex-col gap-3">
-              {fProducts.map((p) => (
+              {pageProducts.map((p) => (
                 <ProductRow
                   key={p.name}
                   p={p}
@@ -522,6 +536,36 @@ export function WebsiteCms() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Pagination footer — standard register pager (Page X of N · N items) */}
+      {activeCount > 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-ui-12 text-jce-ink-2">
+            Page {safePage} of {totalPages} · {activeCount} {KIND_LABEL[tab]}
+            {activeCount === 1 ? "" : "s"}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="focus-ring-jce min-h-11"
+              disabled={safePage <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              <ChevronLeftIcon aria-hidden /> Prev
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="focus-ring-jce min-h-11"
+              disabled={safePage >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Next <ChevronRightIcon aria-hidden />
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       <Sheet open={drawer != null} onOpenChange={(o) => !o && setDrawer(null)}>
         <SheetContent
@@ -541,9 +585,14 @@ export function WebsiteCms() {
               readOnly={readOnly}
               role={role}
               onClose={() => setDrawer(null)}
-              onSaved={() => {
+              onSaved={(saved) => {
                 refreshAll();
                 setDrawer(null);
+                // Surface the saved record: switch to its tab, clear any search
+                // filter, and jump to the page it lands on.
+                setTab(saved.kind);
+                setQ("");
+                setPage(pageForRecord(saved.kind, saved.key));
               }}
             />
           ) : null}
@@ -920,7 +969,7 @@ function RecordDrawer({
   readOnly: boolean;
   role: RoleId;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (saved: SavedRef) => void;
 }) {
   const { kind, mode } = state;
   const [draft, setDraft] = useState<Draft>(() => draftFrom(state));
@@ -1015,6 +1064,9 @@ function RecordDrawer({
     }
     const { photos, coverIndex } = fromManaged(draft.photos);
     const name = draft.name.trim();
+    // Identity the list pages to after save (project/service key on slug; product on name).
+    const savedKey =
+      kind === "product" ? name : slugify(draft.slug || draft.name);
 
     if (kind === "project") {
       const slug = slugify(draft.slug || draft.name);
@@ -1148,7 +1200,7 @@ function RecordDrawer({
         toast.success(`Product “${name}” saved.`);
       }
     }
-    onSaved();
+    onSaved({ kind, key: savedKey });
   };
 
   const verb = mode === "add" ? "Add" : readOnly ? "View" : "Edit";

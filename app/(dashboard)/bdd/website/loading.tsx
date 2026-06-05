@@ -44,6 +44,14 @@ export default function Loading() {
           </div>
         ))}
       </div>
+
+      <div className="flex items-center justify-between gap-3">
+        <Skeleton className="h-3 w-40" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-11 w-20 rounded-(--r-solid)" />
+          <Skeleton className="h-11 w-20 rounded-(--r-solid)" />
+        </div>
+      </div>
     </div>
   );
 }
