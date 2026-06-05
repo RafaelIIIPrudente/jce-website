@@ -50,7 +50,7 @@ function Field({ label, value }: { label: string; value?: string }) {
   return (
     <div>
       <dt className="kicker">{label}</dt>
-      <dd className="mt-0.5 text-ui-13 break-words text-jce-ink">
+      <dd className="mt-0.5 text-ui-13 wrap-break-word text-jce-ink">
         {value && value !== "—" ? (
           value
         ) : (
