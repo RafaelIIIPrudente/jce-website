@@ -38,7 +38,7 @@ export function MapEmbed() {
           </a>
         </div>
         <div className="md:col-span-7">
-          <div className="circuit-card relative aspect-[16/10] w-full overflow-hidden rounded-(--r-glass) border border-jce-line bg-jce-green-50">
+          <div className="circuit-card relative aspect-16/10 w-full overflow-hidden rounded-(--r-glass) border border-jce-line bg-jce-green-50">
             <iframe
               src={EMBED_SRC}
               title={`Map showing the ${SITE.brand} office at ${SITE.address.line1}, ${SITE.address.line2}`}
