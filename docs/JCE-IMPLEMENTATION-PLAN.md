@@ -226,6 +226,8 @@ X1 shell · X2 login · X3 home · X4 notifications · X5 admin users · X6 admi
 **Part 4 — HR (H1–H14)** · `hr-*.jsx`
 **H1** list · H2 record · H3 add/edit · H4 archived · **H5** timekeeping · H6 batches · H7 requests register · H8–H11 request forms (OB/OT/RFL/LOA) · H12 My HR · H13 chooser · H14 audit
 
+> **SRS §4 conformance tightening (2026-06-05).** Functional-fidelity pass — no restyle, SRS untouched. (1) §4.4 #4 — request lifecycle now fires bell notifications on submit (Pending) + on terminal (Approved/Recorded) via `addNotification`. (2) §4.2 — the Working-Project list is now STATUS-derived from the live `SALES_ORDERS` (status ∈ `SO_STATUS_OPTIONS`, "not Archived" automatic) instead of a hardcoded SO# subset (`HR_SO_REFS` removed); lists all qualifying SOs. (3) §4.2 step 5 — `computeManhours` now deducts the 60-min night meal (02:00–03:00) from the Night-Differential count when fully spanned. (4) §4.3.3 — an after-the-fact Request for Leave now requires a second proof/evidence upload that gates advance. Vitest wired (`vitest.config.ts` + `lib/mock/hr.test.ts` + `pnpm test`) covering computeManhours / rowDistribution / weekTotals incl. the SRS worked-example regression.
+
 **Part 5 — Accounting (A1–A19)** · `acc-*.jsx`
 A1 settings · A2 CoA · A3 loans · A4 payroll list · **A5** payroll workspace · A6 payslip · A7 billing reg · **A8** issue SI · **A9** issue SOA · A10 collections reg · A11/A12 issue CR/AR · A13/A14 PV reg+form · A15 disbursement · A16 JV · A17 cash advances · A18 reporting · A19 clients
 

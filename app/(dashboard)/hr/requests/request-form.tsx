@@ -71,7 +71,7 @@ export function RequestForm({
   record?: RequestRecord;
   onBack?: () => void;
 }) {
-  const { role } = useJce();
+  const { role, addNotification } = useJce();
   const selfMode = role === "employee";
   const canManage = role === "hrhead" || role === "owner";
   const readOnly = !selfMode && !canManage;
@@ -86,11 +86,39 @@ export function RequestForm({
   const [scanAttached, setScanAttached] = useState(record?.scan ?? false);
   const onScan = useCallback((n: number) => setScanAttached(n > 0), []);
 
+  // GAP 4 (SRS §4.3.3) — an after-the-fact Request for Leave must attach
+  // proof/evidence (medical cert / supporting docs). The Request Type select is
+  // controlled so the extra uploader + advance gate react to it. RFL-only.
+  const isRFL = type === "Request for Leave";
+  const [requestType, setRequestType] = useState("Pre-approved");
+  const afterTheFact = isRFL && requestType.startsWith("After-the-fact");
+  const [proofAttached, setProofAttached] = useState(false);
+  const onProof = useCallback((n: number) => setProofAttached(n > 0), []);
+
+  // GAP 1 — form# for the lifecycle bell items. The placeholder stands in for an
+  // unsaved number in the message; `doc` is the real ref only when editing.
+  const formNo = record?.no ?? FORM_PLACEHOLDER[type];
+  const formDoc = record?.no ?? null;
+
   if (!def) return null;
   const terminal = def.terminal;
 
+  // Advance gate: the signed scan is always required; an after-the-fact RFL also
+  // requires the proof upload before it can reach its terminal status.
+  const canAdvance = scanAttached && (!afterTheFact || proofAttached);
+
   const fileRequest = () => {
     setFiled(true);
+    // SRS §4.4 #4 — approver notified on submission.
+    addNotification({
+      mod: "HR",
+      type: "Request",
+      tone: "pending",
+      unread: true,
+      msg: `${type} ${formNo} filed — awaiting signed scan`,
+      time: "just now",
+      doc: formDoc,
+    });
     if (def.autoLeave) {
       const ref = nextLeaveRef(type);
       addLeaveRow({
@@ -109,8 +137,18 @@ export function RequestForm({
   };
 
   const advance = () => {
-    if (!scanAttached) return;
+    if (!canAdvance) return;
     setStatus(terminal);
+    // SRS §4.4 #4 — employee notified on approval / HR on record.
+    addNotification({
+      mod: "HR",
+      type: "Approval",
+      tone: "success",
+      unread: true,
+      msg: `${type} ${formNo} — ${terminal}`,
+      time: "just now",
+      doc: formDoc,
+    });
     toast.success(`Signed scan recorded — status ${terminal}.`);
   };
 
@@ -171,7 +209,7 @@ export function RequestForm({
                 {selfMode ? "Submit → Pending" : "Save Pending"}
               </Button>
             ) : status === "Pending" && canManage ? (
-              <Button size="sm" onClick={advance} disabled={!scanAttached}>
+              <Button size="sm" onClick={advance} disabled={!canAdvance}>
                 Mark as {terminal}
               </Button>
             ) : null}
@@ -318,7 +356,11 @@ export function RequestForm({
                   </div>
                 </Field>
                 <Field label="Request Type">
-                  <select className="field">
+                  <select
+                    className="field"
+                    value={requestType}
+                    onChange={(e) => setRequestType(e.target.value)}
+                  >
                     <option>Pre-approved</option>
                     <option>After-the-fact (needs proof)</option>
                   </select>
@@ -445,6 +487,33 @@ export function RequestForm({
             )}
           </div>
         )}
+
+        {/* GAP 4 — after-the-fact RFL: required proof / evidence (SRS §4.3.3) */}
+        {afterTheFact ? (
+          !readOnly ? (
+            <div>
+              <h2 className="text-ui-14 font-semibold text-jce-ink">
+                Proof / evidence
+              </h2>
+              <FileUploader
+                className="mt-3"
+                required
+                requiredLabel="Proof / evidence — REQUIRED for after-the-fact"
+                accept="application/pdf,image/jpeg,image/png"
+                onFilesChange={onProof}
+              />
+            </div>
+          ) : (
+            <div className="text-ui-13 text-jce-ink-2">
+              Proof / evidence:{" "}
+              {proofAttached ? (
+                <Chip tone="success">attached</Chip>
+              ) : (
+                <Chip tone="pending">required</Chip>
+              )}
+            </div>
+          )
+        ) : null}
 
         <div>
           <h2 className="flex flex-wrap items-center gap-2 text-ui-14 font-semibold text-jce-ink">

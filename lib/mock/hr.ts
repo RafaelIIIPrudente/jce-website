@@ -13,7 +13,7 @@
 // cost-centres (Workshop / Motorpool). UI/UX mock only — no backend.
 // ============================================================================
 
-import { SALES_ORDERS, type Tone } from "@/lib/mock/bdd";
+import { SALES_ORDERS, SO_STATUS_OPTIONS, type Tone } from "@/lib/mock/bdd";
 
 // Compensation is sensitive — masked for every role except Payroll + Owner.
 // Single source of truth lives in rbac; re-exported so HR screens import locally.
@@ -593,18 +593,21 @@ export const ARCHIVED: readonly ArchivedEmployee[] = [
 // ---- Working projects (ALIGNED to canonical SALES_ORDERS) -------------------
 export type WorkingProject = { so: string; label: string; status: string };
 
-/** SO#s referenced by HR — must exist in the canonical registry (lib/mock/bdd). */
-const HR_SO_REFS = ["26-05-378", "26-04-355", "25-11-290"] as const;
-
 function projStatus(soStatus: string): string {
   if (soStatus === "On Hold") return "On Hold";
   if (soStatus.toLowerCase().includes("completed")) return "Completed";
   return "Ongoing";
 }
 
+// The Working-Project list is DERIVED from the live Sales Orders by STATUS (SRS
+// §4.2 — "Sourced from the Sales Orders list (Ongoing/On Hold/Completed, not
+// Archived)"): keep every SO whose status is a current registry status
+// (SO_STATUS_OPTIONS); SalesOrder has no archived flag, so "not Archived" is
+// satisfied automatically. No hardcoded SO# subset — the list tracks the BDD
+// registry. Plus the two internal cost-centres (Workshop / Motorpool).
 export const PROJECTS: readonly WorkingProject[] = [
   ...SALES_ORDERS.filter((o) =>
-    (HR_SO_REFS as readonly string[]).includes(o.so),
+    (SO_STATUS_OPTIONS as readonly string[]).includes(o.status),
   ).map((o) => ({ so: o.so, label: o.name, status: projStatus(o.status) })),
   { so: "WORKSHOP", label: "Internal — Workshop", status: "Ongoing" },
   { so: "MOTORPOOL", label: "Internal — Motorpool", status: "Ongoing" },
@@ -838,7 +841,18 @@ export function computeManhours(
     const ne = 30 * 60 + off; // 6 AM next day
     ndMin += Math.max(0, Math.min(b, ne) - Math.max(a, ns));
   }
-  const nd = ndMin / 60;
+  // SRS §4.2 step 5: subtract the 60-min night meal break (02:00–03:00) from the
+  // Night-Differential count when the worked window fully spans it. The night
+  // meal lies inside the 23:00–06:00 ND window by definition, so a fully-spanned
+  // break always falls within the overlap. Mirrors the break-offset loop above;
+  // this is a SEPARATE deduction from the net-worked break deduction.
+  let nightMealMin = 0;
+  for (const off of [0, 1440]) {
+    const ms = 2 * 60 + off; // 02:00
+    const me = 3 * 60 + off; // 03:00
+    if (a <= ms && b >= me) nightMealMin = 60;
+  }
+  const nd = Math.max(0, ndMin - nightMealMin) / 60;
 
   const gross = (b - a) / 60;
   const abs = dayType.startsWith("Rest") ? 0 : Math.max(0, 8 - gross);
