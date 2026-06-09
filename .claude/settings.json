@@ -28,5 +28,9 @@
         ]
       }
     ]
+  },
+  "env": {
+    "CLAUDE_FLOW_DISABLE_AUTOCOMMIT": "1",
+    "AUTO_PUSH": "false"
   }
 }
