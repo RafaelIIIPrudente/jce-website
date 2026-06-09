@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CheckIcon } from "lucide-react";
+import { BadgeCheckIcon, CheckIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { WebSection } from "@/components/sections/kit/web-section";
@@ -12,6 +12,9 @@ import { ElectrifiedDivider } from "@/components/sections/kit/web-electrified-di
 import { OmegaMark } from "@/components/sections/kit/web-omega-mark";
 import { MagneticButton } from "@/components/sections/kit/web-magnetic-button";
 import { AboutHero } from "@/components/sections/about/web-about-hero";
+import { AboutHQ } from "@/components/sections/about/web-about-hq";
+import { AboutFilm } from "@/components/sections/about/web-about-film";
+import { AboutPeople } from "@/components/sections/about/web-about-people";
 import { AboutStatBand } from "@/components/sections/about/web-about-stat-band";
 import { AboutVideos } from "@/components/sections/about/web-about-videos";
 import { ABOUT } from "@/lib/content/website";
@@ -21,65 +24,41 @@ export const metadata: Metadata = {
   title: "About Us",
   description:
     "JC Electrofields Power System, Inc. — a Filipino power-engineering firm founded in 1997, building substations and transmission lines up to 230 KV nationwide. Exclusive Philippine distributor of Shenda Electric.",
+  alternates: { canonical: "/about-us" },
 };
 
-// S2 · About (web-pages-a.jsx:145-185, extended per brief:1131) — re-skinned into
-// the "electrified" idiom: electrified dark hero, circuit-card mission/vision/
-// values, dark EnergizedCounter stat band, photo-backed history, voltage-tag
-// accreditations, plain canonical facts, and an Ω closing CTA. Mobile-first
-// throughout; one <h1> (the hero) and a sensible h2 order beneath it.
+// S2 · About — the company-story page: photography-led + editorially restrained.
+// Order: photo hero → who-we-are / HQ (muted aerial loop) → brand film (click-to-
+// play, audio) → history (real field imagery) → mission & commitment (work image +
+// the three commitments) → our people (crew band) → stat band → watch (YouTube
+// showcase) → licenses (RE-SKIN ONLY; §9-SAFE content unchanged) → canonical facts
+// → Ω CTA. Server-first; client motion lives in kit leaves. One <h1> (the hero) +
+// an ordered set of h2s. Lenis smooth-scroll + scroll-progress + the condensing
+// header are wired in the marketing layout / site header and self-gate under
+// reduced motion. Mobile-first throughout.
 export default function AboutPage() {
   return (
     <>
-      <AboutHero />
+      <AboutHero
+        imageSrc="/home/office-hq-exterior.jpg"
+        imageAlt="The JC Electrofields headquarters building in Valenzuela City"
+        priority
+      />
 
-      {/* Mission / Vision / Values — circuit-card surfaces, cyan (orange) accent */}
-      <WebSection>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Reveal>
-            <div className="circuit-card solid h-full rounded-(--r-glass) p-6 sm:p-7">
-              <p className="kicker text-jce-cyan-deep">Mission</p>
-              <p className="mt-2.5 text-ui-18 text-pretty text-jce-ink">
-                {ABOUT.mission}
-              </p>
-            </div>
-          </Reveal>
-          <Reveal delay={0.08}>
-            <div className="circuit-card solid h-full rounded-(--r-glass) p-6 sm:p-7">
-              <p className="kicker text-jce-cyan-deep">Vision</p>
-              <p className="mt-2.5 text-ui-18 text-pretty text-jce-ink">
-                {ABOUT.vision}
-              </p>
-            </div>
-          </Reveal>
-        </div>
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {ABOUT.values.map((v, i) => (
-            <Reveal key={v.title} delay={i * 0.06}>
-              <div className="circuit-card solid h-full rounded-(--r-glass) p-5 sm:p-6">
-                <div className="text-ui-16 font-semibold text-jce-green-900">
-                  {v.title}
-                </div>
-                <p className="mt-1.5 text-ui-13 text-pretty text-jce-ink-2">
-                  {v.body}
-                </p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </WebSection>
+      {/* Who we are / our HQ — the established, substantial beat */}
+      <AboutHQ />
 
-      {/* Stat band — EnergizedCounters on a dark section (contrast, matches Home) */}
-      <AboutStatBand />
+      {/* Brand film — the Ω reveal, click-to-play with the spoken tagline */}
+      <AboutFilm />
 
-      {/* History + leadership — editorial two-column with a photographed project */}
+      {/* History — paraphrase-of-§2 narrative (preserved) + real field photography */}
       <WebSection>
         <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2 md:gap-12">
           <div>
             <CircuitReveal lineClassName="text-jce-cyan">
               <p className="kicker text-jce-cyan-deep">Since 1997</p>
               <h2 className="mt-2 text-[clamp(24px,3.6vw,38px)] leading-[1.1] font-bold tracking-[-0.02em] text-balance text-jce-ink">
-                From northern Luzon to the national grid.
+                From repair &amp; fabrication to the national grid.
               </h2>
             </CircuitReveal>
             <Reveal delay={0.12}>
@@ -103,36 +82,101 @@ export default function AboutPage() {
               </div>
             </Reveal>
           </div>
+          {/* Real JCE field/project photos alongside the existing control-room
+              shot. Stacks on phones, 2-up at sm, back to a vertical pair from md. */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-1">
+            {ABOUT.historyImages.map((p, i) => {
+              const tag = "tag" in p ? p.tag : undefined;
+              return (
+                <Reveal key={p.img} delay={0.1 + i * 0.08}>
+                  <PhotoCard
+                    src={p.img}
+                    alt={p.alt}
+                    aspect="aspect-[4/3]"
+                    sizes="(min-width: 768px) 44vw, (min-width: 640px) 48vw, 100vw"
+                  >
+                    {tag ? (
+                      <VoltageTag tone="dark" className="mb-2 self-start">
+                        {tag}
+                      </VoltageTag>
+                    ) : null}
+                    <div className="text-ui-14 font-semibold text-jce-dark-ink">
+                      {p.cap}
+                    </div>
+                    <div className="mt-1 text-ui-12 text-jce-dark-ink-2">
+                      {p.loc}
+                    </div>
+                  </PhotoCard>
+                </Reveal>
+              );
+            })}
+          </div>
+        </div>
+      </WebSection>
+
+      {/* Mission & commitment — the §5 commitments (preserved) + work imagery */}
+      <WebSection alt>
+        <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-12">
+          <div>
+            <CircuitReveal lineClassName="text-jce-cyan">
+              <p className="kicker text-jce-cyan-deep">
+                Mission &amp; commitment
+              </p>
+              <h2 className="mt-2 text-[clamp(22px,3.2vw,34px)] leading-[1.12] font-bold tracking-[-0.02em] text-balance text-jce-ink">
+                {ABOUT.mission}
+              </h2>
+            </CircuitReveal>
+            <Reveal delay={0.12}>
+              <p className="mt-4 text-ui-16 text-pretty text-jce-ink-2">
+                {ABOUT.vision}
+              </p>
+            </Reveal>
+          </div>
           <Reveal delay={0.1}>
             <PhotoCard
-              src="/projects/controlroom-cnp.webp"
-              alt="JC Electrofields-built SCADA control room for the Cebu–Negros–Panay 230 kV grid backbone"
+              src={ABOUT.missionImage.img}
+              alt={ABOUT.missionImage.alt}
               aspect="aspect-[4/3]"
               sizes="(min-width: 768px) 48vw, 100vw"
             >
               <VoltageTag tone="dark" className="mb-2 self-start">
-                230 kV
+                Shenda Electric
               </VoltageTag>
               <div className="text-ui-14 font-semibold text-jce-dark-ink">
-                Cebu–Negros–Panay Grid Backbone
-              </div>
-              <div className="mt-1 text-ui-12 text-jce-dark-ink-2">
-                Barotac Viejo, Iloilo
+                Exclusive Philippine distributor
               </div>
             </PhotoCard>
           </Reveal>
         </div>
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3 md:mt-10">
+          {ABOUT.values.map((v, i) => (
+            <Reveal key={v.title} delay={i * 0.06}>
+              <div className="circuit-card solid h-full rounded-(--r-glass) p-5 sm:p-6">
+                <div className="text-ui-16 font-semibold text-jce-green-900">
+                  {v.title}
+                </div>
+                <p className="mt-1.5 text-ui-13 text-pretty text-jce-ink-2">
+                  {v.body}
+                </p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
       </WebSection>
 
-      {/* Watch — curated videos + a live, de-duped "latest from our channel" strip */}
+      {/* Our people — the human layer */}
+      <AboutPeople />
+
+      {/* Stat band — EnergizedCounters on a dark section */}
+      <AboutStatBand />
+
+      {/* Watch — curated YouTube showcase + live, de-duped channel strip */}
       <AboutVideos />
 
-      {/* Licenses & Accreditations — the full §9-SAFE list: issuer · acronym ·
-          license number where verifiable · validity dates. Optional fields
-          (DOE/ERC carry no number or dates; PhilGEPS/NGCP no number) render with
-          no dangling separators. Stacked on mobile → 2-col from md; each row is a
-          circuit-card with a VoltageTag for the acronym/number and the amber
-          (cyan-deep) accent on the light surface. */}
+      {/* Licenses & accreditations — RE-SKIN ONLY. The §9-SAFE list (issuer ·
+          acronym · public license number where verifiable · validity dates) and
+          the closing line are UNCHANGED; only the card presentation is polished.
+          No document scans, no withheld items. */}
       <WebSection alt>
         <CircuitReveal className="mb-8 max-w-[44ch] md:mb-10">
           <p className="kicker text-jce-cyan-deep">Credentials</p>
@@ -149,11 +193,17 @@ export default function AboutPage() {
             return (
               <Reveal key={lic.acronym} delay={Math.min(i * 0.05, 0.2)}>
                 <div className="circuit-card solid flex h-full flex-col gap-3 rounded-(--r-glass) p-5 sm:p-6">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <VoltageTag>{lic.acronym}</VoltageTag>
-                    {lic.licenseNo ? (
-                      <VoltageTag>No. {lic.licenseNo}</VoltageTag>
-                    ) : null}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <VoltageTag>{lic.acronym}</VoltageTag>
+                      {lic.licenseNo ? (
+                        <VoltageTag>No. {lic.licenseNo}</VoltageTag>
+                      ) : null}
+                    </div>
+                    <BadgeCheckIcon
+                      className="size-5 shrink-0 text-jce-cyan-deep/70"
+                      aria-hidden
+                    />
                   </div>
                   <div className="text-ui-16 font-semibold text-pretty text-jce-ink">
                     {lic.issuer}
@@ -164,7 +214,11 @@ export default function AboutPage() {
                     </div>
                   ) : null}
                   {validity.length ? (
-                    <div className="mt-auto pt-1 text-ui-12 font-medium text-jce-cyan-deep">
+                    <div className="mt-auto flex items-center gap-2 pt-1 text-ui-12 font-medium text-jce-cyan-deep">
+                      <span
+                        aria-hidden
+                        className="size-1.5 shrink-0 rounded-full bg-jce-cyan"
+                      />
                       {validity.join(" · ")}
                     </div>
                   ) : null}

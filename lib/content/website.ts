@@ -480,44 +480,150 @@ export type CapabilityCard = {
   href: string;
 };
 
+// Refreshed with the 2026 real-photography set (public/home/*) — strongest
+// real aerials/field shots, one per capability (next/image optimizes JPG→webp
+// at serve). Distinct from the HOME_PROOF scrub set below to avoid repetition.
 export const HOME_CAPABILITIES: readonly CapabilityCard[] = [
   {
     name: "Substations to 230 kV",
     spec: "Design–build EPC",
-    img: "/projects/switchyard-sancarlos.webp",
+    img: "/home/substation-transformer-mountains.jpg",
     href: "/services",
   },
   {
-    name: "Transmission Lines",
-    spec: "Switchyard & towers",
-    img: "/projects/switchyard-bauang.webp",
+    name: "Transmission & Distribution Lines",
+    spec: "Switchyard & line work",
+    img: "/home/distribution-line-bucket-truck-aerial.jpg",
     href: "/services",
   },
   {
     name: "Solar PV / Renewables",
     spec: "Utility & C&I scale",
-    img: "/projects/solar-alaminos.webp",
+    img: "/home/solar-farm-rows-aerial.jpg",
     href: "/services",
   },
   {
     name: "Testing & Commissioning",
     spec: "Energization-ready",
-    img: "/projects/capacitors-mexico.webp",
+    img: "/home/substation-shenda-transformer-engineer.jpg",
     href: "/services",
   },
   {
     name: "Switchgear HVSG/MVSG/LVSG",
     spec: "Supply & integration",
-    img: "/projects/transformer-balayan.webp",
+    img: "/home/substation-topdown-aerial.jpg",
     href: "/products",
   },
   {
     name: "NGCP Direct Connection",
     spec: "Application → energization",
-    img: "/projects/controlroom-cnp.webp",
+    img: "/home/substation-ricefield-aerial.jpg",
     href: "/services",
   },
 ] as const;
+
+// ---- S1 home hero photo (2026 real photography) ----------------------------
+// Strongest aerial — coastal solar farm + substation switchyard. Drives the
+// priority LCP <Image> in HomeHero. nsec-hero.jpg is the alternate.
+export const HOME_HERO = {
+  img: "/home/solar-farm-substation-coast-hero.jpg",
+  alt: "Aerial of a coastal solar farm and substation switchyard built by JC Electrofields, the sea on the horizon",
+} as const;
+
+// ---- S1 "Proof at scale" — pinned scrollytelling centerpiece ---------------
+// Aerials scrub as the section is scrolled; verified corporate figures count
+// up; a current-trace draws along. Figures are §9-SAFE corporate facts — no
+// invented MW/km totals (reframed from STATS + the NGCP 300 MVA / 230 kV note).
+export type ProofImage = { img: string; alt: string };
+export type ProofStat = {
+  value: number;
+  suffix?: string;
+  /** false → no thousands separator (years). */
+  grouping?: boolean;
+  label: string;
+  sub: string;
+};
+
+export const HOME_PROOF = {
+  eyebrow: "Proof at scale",
+  heading: "Built across the archipelago — energized on schedule.",
+  intro:
+    "From utility-scale solar to 230 kV transmission substations, the current we engineer reaches the grid across Luzon, Visayas and Mindanao.",
+  images: [
+    {
+      img: "/home/solar-farm-coast-aerial.jpg",
+      alt: "Aerial of a coastal solar farm, panels reaching toward the shoreline",
+    },
+    {
+      img: "/home/solar-farm-nsec-hero.jpg",
+      alt: "Aerial of the Nuevo Solar Energy Corp. (NSEC) facility — a vast solar panel field by the sea",
+    },
+    {
+      img: "/home/substation-solar-panorama-aerial.jpg",
+      alt: "Panoramic aerial of a substation switchyard with a solar farm behind it under a clear sky",
+    },
+    {
+      img: "/home/distribution-line-bucket-truck-aerial.jpg",
+      alt: "Aerial of a bucket truck servicing a distribution line over green fields",
+    },
+  ] satisfies readonly ProofImage[],
+  stats: [
+    {
+      value: 230,
+      suffix: " kV",
+      label: "Transmission class",
+      sub: "Substations & lines built to 230 kV",
+    },
+    {
+      value: 300,
+      suffix: " MVA",
+      label: "Largest substation",
+      sub: "NGCP 230 kV substation work",
+    },
+    {
+      value: 45,
+      suffix: "+",
+      label: "Projects nationwide",
+      sub: "Luzon · Visayas · Mindanao",
+    },
+    {
+      value: 1997,
+      grouping: false,
+      label: "Energizing since",
+      sub: "Power engineering for the grid",
+    },
+  ] satisfies readonly ProofStat[],
+} as const;
+
+// ---- S1 "From the ground" — crew / people band -----------------------------
+// The missing human layer: our own directly-employed crews. Portraits are
+// 1200×1600 (3:4) — design for that aspect, don't force full-bleed. The team
+// group shot is 16:9.
+export type CrewPortrait = { img: string; alt: string };
+
+export const HOME_CREW = {
+  eyebrow: "From the ground",
+  heading: "Executed by our own crews.",
+  body: "No subcontracted shortcuts. Our directly-employed engineers, linemen and technicians build, test and energize every project — the same hands from foundation to handover.",
+  portraits: [
+    {
+      img: "/home/crew-rebar-cage-trench-portrait.jpg",
+      alt: "JC Electrofields worker tying a steel rebar cage inside a deep foundation trench",
+    },
+    {
+      img: "/home/crew-rebar-column-portrait.jpg",
+      alt: "JC Electrofields crew member at a rebar column in an excavated foundation trench",
+    },
+    {
+      img: "/home/crew-team-hauling-buckets-portrait.jpg",
+      alt: "JC Electrofields crew hauling buckets in line, the company logo on their uniforms",
+    },
+  ] satisfies readonly CrewPortrait[],
+  team: {
+    img: "/home/team-group-substation.jpg",
+    alt: "The JC Electrofields team in a group photo in front of an energized substation",
+  },
+} as const;
 
 // ---- S6 News ---------------------------------------------------------------
 export type NewsArticle = {
@@ -757,6 +863,84 @@ export const ABOUT = {
     "JCE is BIR-registered and tax-compliant, holding a current Tax Clearance Certificate.",
     "JCE is led by its President, Engr. Jimwel C. Capillo.",
   ],
+  // ---- "Who we are / our HQ" band ---------------------------------------------
+  // The established-and-substantial beat. Every fact is the §9-SAFE set already on
+  // the page — no new claims. The HQ still is the page hero (priority LCP, single
+  // next/image instance → no src collision); this band shows the same building
+  // from the air via a muted decorative aerial loop (static poster under reduced
+  // motion). Copy is drawn only from the existing safe facts.
+  hq: {
+    eyebrow: "Our home base",
+    heading: "An established Filipino power-engineering firm.",
+    body: "Since 1997, JC Electrofields has grown from repair-and-fabrication work into a major contractor and supplier to the energy sector. From our headquarters in Valenzuela City, our engineers run projects nationwide — across Luzon, Visayas and Mindanao.",
+    facts: ["Established 1997", "Valenzuela City HQ", "Projects nationwide"],
+    video: {
+      src: "/home/office-aerial.mp4",
+      poster: "/home/office-aerial-poster.jpg",
+    },
+  },
+  // ---- Brand film (self-hosted, click-to-play WITH audio) ---------------------
+  // The Ω reveal where the spoken tagline is heard intentionally. Self-hosted (not
+  // YouTube) — the curated YouTube showcase lives separately in AboutVideos.
+  film: {
+    eyebrow: "Brand film",
+    heading: "Hear what drives us.",
+    body: "A short brand film — the Ω that marks every project we energize, in our own words.",
+    src: "/home/jce-omega-reveal.mp4",
+    poster: "/home/jce-omega-reveal-poster.jpg",
+    title: "JC Electrofields — brand film",
+  },
+  // ---- "Our people" band (real crew photography) ------------------------------
+  // The human layer: directly-employed crews. Portraits are 1200×1600 (3:4) — the
+  // band designs for that aspect. "About 124" matches the existing headcount fact
+  // (no new claim). Team shot is the 16:9 aerial group (distinct from the home band).
+  people: {
+    eyebrow: "Our people",
+    heading: "The hands behind the current.",
+    body: "No subcontracted shortcuts. Our directly-employed engineers, linemen and technicians — about 124 strong — build, test and energize every project, from foundation to handover.",
+    portraits: [
+      {
+        img: "/home/crew-carrying-materials-portrait.jpg",
+        alt: "A JC Electrofields worker carrying materials on-site past substation equipment",
+      },
+      {
+        img: "/home/crew-rebar-cage-trench-portrait.jpg",
+        alt: "A JC Electrofields worker tying a steel rebar cage inside a deep foundation trench",
+      },
+      {
+        img: "/home/crew-hauling-bucket-portrait.jpg",
+        alt: "A JC Electrofields worker hauling a bucket of material across a sunlit construction site",
+      },
+    ],
+    team: {
+      img: "/home/team-group-substation-aerial.jpg",
+      alt: "The JC Electrofields team gathered together inside a completed substation switchyard",
+    },
+  },
+  // ---- History-section imagery (real JCE field/project photos; no new claims) --
+  // The Sagada still has its baked-in geotag caption cropped off (1800×1260); no
+  // voltage is asserted for it (none is verifiable). The control-room photo keeps
+  // its verified 230 kV tag.
+  historyImages: [
+    {
+      img: "/home/transformer-install-sagada.jpg",
+      alt: "JC Electrofields crew installing a large power transformer at a mountain substation in Sagada",
+      cap: "Power-transformer installation",
+      loc: "Sagada, Cordillera",
+    },
+    {
+      img: "/projects/controlroom-cnp.webp",
+      alt: "JC Electrofields-built SCADA control room for the Cebu–Negros–Panay 230 kV grid backbone",
+      cap: "Cebu–Negros–Panay grid backbone",
+      loc: "Barotac Viejo, Iloilo",
+      tag: "230 kV",
+    },
+  ],
+  // ---- Mission-section imagery (ties to the §9-SAFE Shenda distributorship) ----
+  missionImage: {
+    img: "/home/substation-shenda-transformer-engineer.jpg",
+    alt: "A JC Electrofields engineer beside a Shenda Electric power transformer at a substation, rice fields behind",
+  },
 } as const;
 
 // ---- S2 About — YouTube channel + curated video showcase -------------------

@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { ChevronDownIcon, MenuIcon, XIcon } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
+import { cn } from "@/lib/utils";
 import { FOOTER_LINKS, NAV_LINKS, SITE } from "@/lib/content/site";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +33,18 @@ export function SiteHeader() {
   const burgerRef = React.useRef<HTMLButtonElement>(null);
   const panelRef = React.useRef<HTMLElement>(null);
   const wasOpen = React.useRef(false);
+
+  // Condense + elevate the glass island once the page is scrolled (reads the
+  // real, Lenis-smoothed scroll position via the native scroll event). Subtle —
+  // tighter padding + a lifted shadow; the transition collapses to instant under
+  // prefers-reduced-motion via the global reduce block.
+  const [scrolled, setScrolled] = React.useState(false);
+  React.useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // While the menu is open: lock body scroll, dismiss on Escape, dismiss when the
   // viewport grows past the desktop breakpoint, and move focus into the panel.
@@ -74,7 +87,14 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40">
       <div className="relative z-10 mx-auto mt-3 w-full max-w-6xl px-4 sm:px-6">
-        <div className="glass-nav relative isolate flex items-center gap-3 rounded-(--r-glass) px-3 py-2.5 shadow-(--glass-shadow)">
+        <div
+          className={cn(
+            "glass-nav relative isolate flex items-center gap-3 rounded-(--r-glass) px-3 transition-[padding,box-shadow] duration-300",
+            scrolled
+              ? "py-2 shadow-(--shadow-elevated)"
+              : "py-2.5 shadow-(--glass-shadow)",
+          )}
+        >
           {/* Faint circuit texture inside the glass — decorative, clipped to its
               own rounded layer so it never clips the items' focus rings. */}
           <span

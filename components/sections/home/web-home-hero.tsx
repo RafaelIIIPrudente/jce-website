@@ -6,24 +6,32 @@ import { MagneticButton } from "@/components/sections/kit/web-magnetic-button";
 import { CurrentTrace } from "@/components/sections/kit/web-current-trace";
 import { HeroParallax } from "@/components/sections/kit/web-hero-parallax";
 import { EnergizedCounter } from "@/components/sections/kit/web-energized-counter";
-import { HERO_STATS, TAGLINE } from "@/lib/content/website";
+import { HomeOmegaReveal } from "@/components/sections/home/web-home-omega-reveal";
+import { HERO_STATS, HOME_HERO, TAGLINE } from "@/lib/content/website";
 
-// S1 home hero — the dark, full-bleed showpiece. A darkened Alaminos solar-farm
-// poster (LCP: next/image priority + fill over a height-reserved container → no
-// CLS) sits under an ambient circuit field and a CurrentTrace that rises
-// solar → transformer → grid toward the headline. The verbatim tagline is the
-// sub; an EnergizedCounter stat strip settles once on view. Heavy motion is the
-// client leaves (trace + counters); under reduced-motion they render static.
+// S1 home hero — the dark, full-bleed showpiece. A darkened real aerial of the
+// coastal solar farm + substation (LCP: next/image priority + fill over a
+// height-reserved container → no CLS) sits under an ambient circuit field and a
+// CurrentTrace that rises solar → transformer → grid toward the headline. The
+// verbatim tagline is the sub; an EnergizedCounter stat strip settles once on
+// view. A one-time Ω brand reveal paints over the photo (client-only, gated, never
+// the LCP). Heavy motion is the client leaves; under reduced-motion all static.
 
-export function HomeHero() {
+export function HomeHero({
+  image = HOME_HERO.img,
+  imageAlt = HOME_HERO.alt,
+}: {
+  image?: string;
+  imageAlt?: string;
+} = {}) {
   return (
     <section className="dark-section circuit-field relative isolate flex min-h-[calc(100svh-4rem)] items-center overflow-hidden">
       {/* Darkened poster — priority LCP image; container reserves height (no CLS).
-          Dedicated hero file (distinct from the card reuses of solar-alaminos)
-          so the LCP src never collides with a lazy instance in next/image. */}
+          Dedicated hero src so the LCP image never collides with a lazy reuse in
+          next/image. */}
       <Image
-        src="/projects/solar-alaminos-hero.webp"
-        alt="Aerial view of the 120 MWp GigaSol Alaminos solar farm built by JC Electrofields"
+        src={image}
+        alt={imageAlt}
         fill
         priority
         sizes="100vw"
@@ -95,6 +103,10 @@ export function HomeHero() {
           ))}
         </div>
       </div>
+
+      {/* One-time Ω brand reveal painted over the photo — client-only, gated,
+          never the LCP. */}
+      <HomeOmegaReveal />
     </section>
   );
 }
