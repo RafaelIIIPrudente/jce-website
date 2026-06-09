@@ -47,6 +47,12 @@ Compressed AI-readable contract. Rationale and long-form discussion in [`BASEPLA
 
 > Quality bar beyond these rules — maintainability, performance, accessibility (WCAG 2.2 AA), SEO, and the canonical folder map — lives in [CLAUDE.md → Engineering Standards](./CLAUDE.md#engineering-standards--scalable--maintainable--production-ready).
 
+## Git & commits
+
+- **Never commit or push.** Make your changes and leave them in the working tree for the user's personal review — the only thing that commits is the user, or an explicit "commit this" instruction from them. This binds **every** agent, swarm, and executor session.
+- When work is done, surface a `git status` + `git diff` summary of what changed; do not create commits, tags, or checkpoint branches.
+- Enforced for ruflo / claude-flow by `CLAUDE_FLOW_DISABLE_AUTOCOMMIT=1` + `AUTO_PUSH=false` in `.claude/settings.json` (the auto-commit / checkpoint helper scripts honor this kill-switch). No auto-commit hook is wired.
+
 ## When-you-edit-X-also-update-Y
 
 - New protected route under `/dashboard` or `/settings` → add the prefix to `PROTECTED_PREFIXES` in `proxy.ts:7`.
