@@ -522,6 +522,109 @@ export const HOME_CAPABILITIES: readonly CapabilityCard[] = [
   },
 ] as const;
 
+// ---- S1 "What we do" — energy-core orbital capabilities ---------------------
+// The interactive showpiece: the Ω brand mark as the core, JCE's real EPC
+// capabilities orbiting it. Sourced from SERVICES (descriptions verbatim-derived)
+// + the HOME_CAPABILITIES set + the Shenda transformer distributorship; photos
+// from the 2026 public/home set. `related` cross-links node ids. No invented
+// metrics/status — capabilities only.
+export type CapabilityNode = {
+  id: string;
+  title: string;
+  /** Short, plain description (GEO-friendly) — drawn from SERVICES copy. */
+  blurb: string;
+  icon: LucideIcon;
+  /** Real services/products page this capability lives on. */
+  href: string;
+  /** ids of cross-linked capabilities (jump targets in the orbit). */
+  related: readonly string[];
+  /** Representative photo shown in the expanded card. */
+  img: string;
+  imgAlt: string;
+};
+
+export const HOME_CAPABILITY_CORE = {
+  eyebrow: "What we do",
+  heading: "Full-scope power engineering",
+  intro:
+    "Substations, transmission, switchgear and renewables — single-vendor EPC from study to energization, up to 230 kV.",
+  coreLabel: "Power systems EPC",
+} as const;
+
+export const HOME_CAPABILITY_NODES: readonly CapabilityNode[] = [
+  {
+    id: "substations",
+    title: "Substations to 230 kV",
+    blurb:
+      "Turnkey EPC for distribution and transmission substations — design, supply, civil, electromechanical, testing and commissioning, up to 230 kV.",
+    icon: TowerControlIcon,
+    href: "/services",
+    related: ["transmission", "testing", "ngcp"],
+    img: "/home/substation-transformer-mountains.jpg",
+    imgAlt:
+      "Substation with a power transformer and red-roofed control house against a green mountain backdrop",
+  },
+  {
+    id: "transmission",
+    title: "Transmission & Distribution Lines",
+    blurb:
+      "Overhead transmission and distribution lines — surveying, foundations, pole and tower erection, stringing and energization.",
+    icon: UtilityPoleIcon,
+    href: "/services",
+    related: ["substations", "ngcp"],
+    img: "/home/distribution-line-bucket-truck-aerial.jpg",
+    imgAlt:
+      "Aerial of a bucket truck servicing a distribution line over green fields",
+  },
+  {
+    id: "solar",
+    title: "Solar PV / Renewables",
+    blurb:
+      "Ground-mount and rooftop PV plants on an EPC basis — from feasibility through grid connection and performance handover.",
+    icon: SunIcon,
+    href: "/services",
+    related: ["substations", "testing"],
+    img: "/home/solar-farm-rows-aerial.jpg",
+    imgAlt:
+      "Aerial of dense rows of solar panels beside white control buildings",
+  },
+  {
+    id: "testing",
+    title: "Testing & Commissioning",
+    blurb:
+      "Energization-ready testing and commissioning of substations, lines and power equipment — the final proof before handover.",
+    icon: GaugeIcon,
+    href: "/services",
+    related: ["substations", "solar"],
+    img: "/home/substation-shenda-transformer-engineer.jpg",
+    imgAlt:
+      "Engineer standing beside a SHENDA power transformer at a substation, rice fields behind",
+  },
+  {
+    id: "switchgear",
+    title: "Switchgear & Transformers",
+    blurb:
+      "HV/MV/LV switchgear designed, fabricated and assembled in-house, with power transformers from 15 kV to 230 kV — JCE is the exclusive Philippine distributor of Shenda Electric.",
+    icon: ServerIcon,
+    href: "/products",
+    related: ["substations", "ngcp"],
+    img: "/home/substation-topdown-aerial.jpg",
+    imgAlt: "Top-down aerial of a substation showing the equipment layout",
+  },
+  {
+    id: "ngcp",
+    title: "NGCP Direct Connection",
+    blurb:
+      "End-to-end facilitation of NGCP direct-connection projects via 69 kV — from application through to energization.",
+    icon: PlugZapIcon,
+    href: "/services",
+    related: ["substations", "transmission"],
+    img: "/home/substation-ricefield-aerial.jpg",
+    imgAlt:
+      "Aerial of a substation beside bright green rice paddies and rural houses",
+  },
+] as const;
+
 // ---- S1 home hero photo (2026 real photography) ----------------------------
 // Strongest aerial — coastal solar farm + substation switchyard. Drives the
 // priority LCP <Image> in HomeHero. nsec-hero.jpg is the alternate.
@@ -878,17 +981,6 @@ export const ABOUT = {
       src: "/home/office-aerial.mp4",
       poster: "/home/office-aerial-poster.jpg",
     },
-  },
-  // ---- Brand film (self-hosted, click-to-play WITH audio) ---------------------
-  // The Ω reveal where the spoken tagline is heard intentionally. Self-hosted (not
-  // YouTube) — the curated YouTube showcase lives separately in AboutVideos.
-  film: {
-    eyebrow: "Brand film",
-    heading: "Hear what drives us.",
-    body: "A short brand film — the Ω that marks every project we energize, in our own words.",
-    src: "/home/jce-omega-reveal.mp4",
-    poster: "/home/jce-omega-reveal-poster.jpg",
-    title: "JC Electrofields — brand film",
   },
   // ---- "Our people" band (real crew photography) ------------------------------
   // The human layer: directly-employed crews. Portraits are 1200×1600 (3:4) — the

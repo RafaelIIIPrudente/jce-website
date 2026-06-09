@@ -13,7 +13,6 @@ import { OmegaMark } from "@/components/sections/kit/web-omega-mark";
 import { MagneticButton } from "@/components/sections/kit/web-magnetic-button";
 import { AboutHero } from "@/components/sections/about/web-about-hero";
 import { AboutHQ } from "@/components/sections/about/web-about-hq";
-import { AboutFilm } from "@/components/sections/about/web-about-film";
 import { AboutPeople } from "@/components/sections/about/web-about-people";
 import { AboutStatBand } from "@/components/sections/about/web-about-stat-band";
 import { AboutVideos } from "@/components/sections/about/web-about-videos";
@@ -28,8 +27,8 @@ export const metadata: Metadata = {
 };
 
 // S2 · About — the company-story page: photography-led + editorially restrained.
-// Order: photo hero → who-we-are / HQ (muted aerial loop) → brand film (click-to-
-// play, audio) → history (real field imagery) → mission & commitment (work image +
+// Order: photo hero → who-we-are / HQ (muted aerial loop) → history (real field
+// imagery) → mission & commitment (work image +
 // the three commitments) → our people (crew band) → stat band → watch (YouTube
 // showcase) → licenses (RE-SKIN ONLY; §9-SAFE content unchanged) → canonical facts
 // → Ω CTA. Server-first; client motion lives in kit leaves. One <h1> (the hero) +
@@ -47,9 +46,6 @@ export default function AboutPage() {
 
       {/* Who we are / our HQ — the established, substantial beat */}
       <AboutHQ />
-
-      {/* Brand film — the Ω reveal, click-to-play with the spoken tagline */}
-      <AboutFilm />
 
       {/* History — paraphrase-of-§2 narrative (preserved) + real field photography */}
       <WebSection>
