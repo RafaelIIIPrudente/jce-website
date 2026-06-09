@@ -15,11 +15,11 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs,cjs}": [
-      "eslint --fix",
-      "prettier --write"
+      "eslint --fix --no-warn-ignored",
+      "prettier --write --ignore-unknown"
     ],
     "*.{json,md,mdx,css,yml,yaml}": [
-      "prettier --write"
+      "prettier --write --ignore-unknown"
     ]
   },
   "dependencies": {

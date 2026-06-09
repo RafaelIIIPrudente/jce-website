@@ -43,3 +43,30 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ── ruflo / claude-flow pollution (added 2026-06-09) ──────────────────────────
+# Machine-local runtime state + generated scaffolding written by ruflo into this
+# repo. Kept on disk so ruflo still works; just never tracked. Your real project
+# Claude config (root-level commands, the 6 skills, settings, hooks) stays tracked.
+.claude-flow/
+.swarm/
+.hive-mind/
+ruvector.db
+.mcp.json
+
+# ruflo's generated agent library + hook helpers (entirely machine-generated)
+.claude/agents/
+.claude/helpers/
+
+# ruflo command packs live in SUBDIRS; your root-level project commands stay tracked
+.claude/commands/*/
+.claude/commands/claude-flow-*.md
+
+# ruflo skill packs; your project skills are protected below
+.claude/skills/*/
+!.claude/skills/drizzle-patterns/
+!.claude/skills/error-handling-patterns/
+!.claude/skills/marketing-site-patterns/
+!.claude/skills/nextjs-app-router-conventions/
+!.claude/skills/shadcn-and-tailwind-v4/
+!.claude/skills/supabase-patterns/
