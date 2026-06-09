@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { MagneticButton } from "@/components/sections/kit/web-magnetic-button";
 import { CurrentTrace } from "@/components/sections/kit/web-current-trace";
+import { HeroParallax } from "@/components/sections/kit/web-hero-parallax";
 import { EnergizedCounter } from "@/components/sections/kit/web-energized-counter";
 import { HERO_STATS, TAGLINE } from "@/lib/content/website";
 
@@ -33,14 +34,18 @@ export function HomeHero() {
         className="absolute inset-0 -z-10 bg-linear-to-t from-jce-dark via-jce-dark/80 to-jce-dark/85"
       />
 
-      {/* Rising current-trace — decorative, draws on view */}
-      <CurrentTrace
-        d="M30 540 H300 a18 18 0 0 0 18 -18 V370 H560 a18 18 0 0 1 18 -18 V215 H900 a18 18 0 0 0 18 -18 V95 H1170"
-        viewBox="0 0 1200 600"
-        duration={2200}
-        strokeWidth={2.5}
-        className="absolute inset-0 -z-10 h-full w-full opacity-70"
-      />
+      {/* Rising current-trace — decorative, draws on view; drifts subtly as the
+          hero scrolls away (parallax wraps only this layer, never the LCP poster
+          / heading). */}
+      <HeroParallax className="absolute inset-0 -z-10" distance="9%">
+        <CurrentTrace
+          d="M30 540 H300 a18 18 0 0 0 18 -18 V370 H560 a18 18 0 0 1 18 -18 V215 H900 a18 18 0 0 0 18 -18 V95 H1170"
+          viewBox="0 0 1200 600"
+          duration={2200}
+          strokeWidth={2.5}
+          className="h-full w-full opacity-70"
+        />
+      </HeroParallax>
 
       <div className="mx-auto w-full max-w-6xl px-5 py-20 text-center sm:py-24">
         <p className="kicker text-jce-cyan-bright">
