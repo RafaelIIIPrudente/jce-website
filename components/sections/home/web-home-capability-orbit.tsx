@@ -37,7 +37,7 @@ function byId(id: string): CapabilityNode | undefined {
 // Shared shell for the centred card — reused by the pinned modal and the
 // non-modal hover/focus preview so they stay visually identical.
 const CARD_SHELL =
-  "absolute top-1/2 left-1/2 w-72 max-w-[calc(100%-1.5rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-(--r-glass) border border-jce-cyan/30 bg-jce-dark-2 shadow-(--current-glow)";
+  "absolute top-1/2 left-1/2 w-96 max-w-[calc(100%-1.5rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-(--r-glass) border border-jce-cyan/30 bg-jce-dark-2 shadow-(--current-glow)";
 
 // :focus-visible test, guarded so an engine without support can't throw inside
 // the onFocus handler (keyboard focus opens a preview; pointer focus does not).
@@ -235,7 +235,7 @@ function OrbitView({
   return (
     <div
       ref={containerRef}
-      className="relative mx-auto aspect-square w-full max-w-[34rem]"
+      className="relative mx-auto aspect-square w-full max-w-136"
     >
       {/* Decorative orbit path. */}
       <div
@@ -423,7 +423,7 @@ function OrbitCardBody({
           src={node.img}
           alt={node.imgAlt}
           fill
-          sizes="(min-width: 768px) 18rem, 80vw"
+          sizes="(min-width: 768px) 24rem, 80vw"
           className="object-cover"
         />
         <div
