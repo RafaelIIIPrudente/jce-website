@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { CurrentTrace } from "@/components/sections/kit/web-current-trace";
 import { OmegaMark } from "@/components/sections/kit/web-omega-mark";
+import { HeroParallax } from "@/components/sections/kit/web-hero-parallax";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -37,18 +38,30 @@ export function WebProjectCategoryHero({
   subtitle: string;
 }) {
   return (
-    <section className="dark-section circuit-field relative isolate overflow-hidden">
-      {/* Large faint Ω brand watermark — decorative, behind content, clipped. */}
-      <OmegaMark className="pointer-events-none absolute top-1/2 -right-12 -z-10 size-[clamp(220px,42vw,440px)] -translate-y-1/2 text-jce-cyan/10" />
+    <section
+      data-nav-overlay
+      className="dark-section circuit-field relative isolate overflow-hidden"
+    >
+      {/* Large faint Ω brand watermark — decorative, behind content, clipped;
+          drifts furthest for a layered depth cue as the hero scrolls away. */}
+      <HeroParallax
+        className="pointer-events-none absolute inset-0 -z-10"
+        distance="18%"
+      >
+        <OmegaMark className="absolute top-1/2 -right-12 size-[clamp(220px,42vw,440px)] -translate-y-1/2 text-jce-cyan/10" />
+      </HeroParallax>
 
-      {/* Rising current-trace — draws on view; fully drawn + still under reduced-motion. */}
-      <CurrentTrace
-        d="M30 360 H240 a16 16 0 0 0 16 -16 V210 H520 a16 16 0 0 1 16 -16 V96 H1170"
-        viewBox="0 0 1200 400"
-        duration={2000}
-        strokeWidth={2.5}
-        className="absolute inset-0 -z-10 h-full w-full opacity-60"
-      />
+      {/* Rising current-trace — draws on view; fully drawn + still under
+          reduced-motion. Drifts less than the watermark (parallax layering). */}
+      <HeroParallax className="absolute inset-0 -z-10" distance="9%">
+        <CurrentTrace
+          d="M30 360 H240 a16 16 0 0 0 16 -16 V210 H520 a16 16 0 0 1 16 -16 V96 H1170"
+          viewBox="0 0 1200 400"
+          duration={2000}
+          strokeWidth={2.5}
+          className="h-full w-full opacity-60"
+        />
+      </HeroParallax>
 
       <div className="mx-auto w-full max-w-6xl px-5 py-24 sm:py-28 md:py-32">
         {/* Breadcrumb — real nav/ordered list, toned for the dark surface. */}

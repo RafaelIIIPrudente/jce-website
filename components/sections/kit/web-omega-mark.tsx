@@ -9,7 +9,9 @@ import { cn } from "@/lib/utils";
 // faint watermark behind section heads, a CTA accent, and a loader. Colour comes
 // from `currentColor` (set text-* where used). Optional subtle breathing pulse
 // via anime.js (client-only, dynamically imported); frozen to a static mark under
-// prefers-reduced-motion. Decorative — aria-hidden.
+// prefers-reduced-motion, and PAUSED whenever the mark scrolls off-screen
+// (IntersectionObserver) so it never burns frames out of view. Decorative —
+// aria-hidden.
 
 export function OmegaMark({
   className,
@@ -22,11 +24,28 @@ export function OmegaMark({
 }) {
   const reduce = useReducedMotion();
   const ref = useRef<SVGPathElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     if (!pulse || reduce) return;
     let cancelled = false;
-    let stop: (() => void) | undefined;
+    let anim: { play: () => void; pause: () => void } | undefined;
+    let visible = false;
+
+    // Pause the breathing loop while the mark is off-screen; resume on re-entry.
+    const io = new IntersectionObserver(
+      (entries) => {
+        visible = entries.some((e) => e.isIntersecting);
+        if (anim) {
+          if (visible) anim.play();
+          else anim.pause();
+        }
+      },
+      { threshold: 0 },
+    );
+    const svg = svgRef.current;
+    if (svg) io.observe(svg);
+
     void import("animejs").then(({ animate }) => {
       const el = ref.current;
       if (cancelled || !el) return;
@@ -38,16 +57,20 @@ export function OmegaMark({
         loop: true,
         alternate: true,
       });
-      stop = () => a.pause();
+      anim = a;
+      if (!visible) a.pause();
     });
+
     return () => {
       cancelled = true;
-      stop?.();
+      io.disconnect();
+      anim?.pause();
     };
   }, [pulse, reduce]);
 
   return (
     <svg
+      ref={svgRef}
       viewBox="0 0 100 96"
       className={cn(className)}
       fill="none"

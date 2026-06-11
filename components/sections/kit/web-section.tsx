@@ -50,7 +50,7 @@ export function SectionHead({
         {eyebrow ? (
           <div className="kicker text-jce-green-600">{eyebrow}</div>
         ) : null}
-        <h2 className="mt-2 text-[clamp(24px,3.6vw,38px)] leading-[1.1] font-bold tracking-[-0.02em] text-balance text-jce-ink">
+        <h2 className="mt-2 text-heading-section font-bold tracking-[-0.02em] text-balance text-jce-ink">
           {heading}
         </h2>
         {sub ? (

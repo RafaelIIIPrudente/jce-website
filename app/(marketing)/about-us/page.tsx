@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CheckIcon } from "lucide-react";
+import { BadgeCheckIcon, CheckIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { WebSection } from "@/components/sections/kit/web-section";
@@ -12,74 +12,101 @@ import { ElectrifiedDivider } from "@/components/sections/kit/web-electrified-di
 import { OmegaMark } from "@/components/sections/kit/web-omega-mark";
 import { MagneticButton } from "@/components/sections/kit/web-magnetic-button";
 import { AboutHero } from "@/components/sections/about/web-about-hero";
-import { AboutStatBand } from "@/components/sections/about/web-about-stat-band";
+import { AboutHQ } from "@/components/sections/about/web-about-hq";
+import { AboutPeople } from "@/components/sections/about/web-about-people";
 import { AboutVideos } from "@/components/sections/about/web-about-videos";
-import { ABOUT } from "@/lib/content/website";
+import { ABOUT, CONTACT_CTA } from "@/lib/content/website";
 import { LICENSES } from "@/lib/content/accreditations";
+import { SITE } from "@/lib/content/site";
 
 export const metadata: Metadata = {
   title: "About Us",
   description:
     "JC Electrofields Power System, Inc. — a Filipino power-engineering firm founded in 1997, building substations and transmission lines up to 230 KV nationwide. Exclusive Philippine distributor of Shenda Electric.",
+  alternates: { canonical: "/about-us" },
 };
 
-// S2 · About (web-pages-a.jsx:145-185, extended per brief:1131) — re-skinned into
-// the "electrified" idiom: electrified dark hero, circuit-card mission/vision/
-// values, dark EnergizedCounter stat band, photo-backed history, voltage-tag
-// accreditations, plain canonical facts, and an Ω closing CTA. Mobile-first
-// throughout; one <h1> (the hero) and a sensible h2 order beneath it.
+// AboutPage + Organization/LocalBusiness structured data (schema.org, FR-WEB-09).
+// Reuses the home page's Organization node (same @id, sourced from SITE) and adds
+// the AboutPage node. The LocalBusiness `address` is the contact NAP — NOT the SEC
+// registered office, which is published only in the Licenses block. Static content
+// (no user input) → safe to inline as JSON-LD; pattern proven in faq/page.tsx.
+const ORG_ID = "https://jcepower.com/#organization";
+const ABOUT_JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "AboutPage",
+      "@id": "https://jcepower.com/about-us#webpage",
+      url: "https://jcepower.com/about-us",
+      name: "About JC Electrofields Power System, Inc.",
+      description:
+        "JC Electrofields Power System, Inc. — a Filipino power-engineering firm founded in 1997, building substations and transmission lines up to 230 KV nationwide. Exclusive Philippine distributor of Shenda Electric.",
+      about: { "@id": ORG_ID },
+      inLanguage: "en-PH",
+    },
+    {
+      "@type": ["Organization", "LocalBusiness"],
+      "@id": ORG_ID,
+      name: SITE.brand,
+      alternateName: SITE.shortBrand,
+      url: "https://jcepower.com/",
+      logo: "https://jcepower.com/jce-logo.jpg",
+      image: "https://jcepower.com/jce-logo.jpg",
+      description:
+        "Electrical power-systems EPC in the Philippines since 1997 — substations and transmission to 230 kV, NGCP direct connection, switchgear, and renewable-energy consultancy.",
+      foundingDate: "1997",
+      telephone: SITE.phone,
+      email: SITE.email,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "3074 F. Bautista St., Ugong",
+        addressLocality: "Valenzuela City",
+        addressRegion: "Metro Manila",
+        addressCountry: "PH",
+      },
+      areaServed: { "@type": "Country", name: "Philippines" },
+      sameAs: [SITE.social.facebook, SITE.social.youtube],
+    },
+  ],
+};
+
+// S2 · About — the company-story page: photography-led + editorially restrained.
+// Order: photo hero → who-we-are / HQ (muted aerial loop) → history (real field
+// imagery) → mission & commitment (work image +
+// the three commitments) → our people (crew band) → watch (YouTube
+// showcase) → licenses (RE-SKIN ONLY; §9-SAFE content unchanged) → canonical facts
+// → Ω CTA. Server-first; client motion lives in kit leaves. One <h1> (the hero) +
+// an ordered set of h2s. Lenis smooth-scroll + scroll-progress + the condensing
+// header are wired in the marketing layout / site header and self-gate under
+// reduced motion. Mobile-first throughout.
 export default function AboutPage() {
   return (
     <>
-      <AboutHero />
+      <script
+        type="application/ld+json"
+        // Static structured data (no user input) — see ABOUT_JSON_LD above.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ABOUT_JSON_LD) }}
+      />
+      <AboutHero
+        imageSrc="/home/office-hq-exterior.webp"
+        imageAlt="The JC Electrofields headquarters building in Valenzuela City"
+        priority
+      />
 
-      {/* Mission / Vision / Values — circuit-card surfaces, cyan (orange) accent */}
-      <WebSection>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Reveal>
-            <div className="circuit-card solid h-full rounded-(--r-glass) p-6 sm:p-7">
-              <p className="kicker text-jce-cyan-deep">Mission</p>
-              <p className="mt-2.5 text-ui-18 text-pretty text-jce-ink">
-                {ABOUT.mission}
-              </p>
-            </div>
-          </Reveal>
-          <Reveal delay={0.08}>
-            <div className="circuit-card solid h-full rounded-(--r-glass) p-6 sm:p-7">
-              <p className="kicker text-jce-cyan-deep">Vision</p>
-              <p className="mt-2.5 text-ui-18 text-pretty text-jce-ink">
-                {ABOUT.vision}
-              </p>
-            </div>
-          </Reveal>
-        </div>
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {ABOUT.values.map((v, i) => (
-            <Reveal key={v.title} delay={i * 0.06}>
-              <div className="circuit-card solid h-full rounded-(--r-glass) p-5 sm:p-6">
-                <div className="text-ui-16 font-semibold text-jce-green-900">
-                  {v.title}
-                </div>
-                <p className="mt-1.5 text-ui-13 text-pretty text-jce-ink-2">
-                  {v.body}
-                </p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </WebSection>
+      {/* Who we are / our HQ — the established, substantial beat */}
+      <AboutHQ />
 
-      {/* Stat band — EnergizedCounters on a dark section (contrast, matches Home) */}
-      <AboutStatBand />
-
-      {/* History + leadership — editorial two-column with a photographed project */}
+      {/* History — paraphrase-of-§2 narrative (preserved) + real field photography */}
       <WebSection>
         <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2 md:gap-12">
           <div>
             <CircuitReveal lineClassName="text-jce-cyan">
-              <p className="kicker text-jce-cyan-deep">Since 1997</p>
-              <h2 className="mt-2 text-[clamp(24px,3.6vw,38px)] leading-[1.1] font-bold tracking-[-0.02em] text-balance text-jce-ink">
-                From northern Luzon to the national grid.
+              <p className="kicker text-jce-cyan-deep">
+                {ABOUT.headers.history.eyebrow}
+              </p>
+              <h2 className="mt-2 text-heading-section font-bold tracking-[-0.02em] text-balance text-jce-ink">
+                {ABOUT.headers.history.heading}
               </h2>
             </CircuitReveal>
             <Reveal delay={0.12}>
@@ -103,41 +130,97 @@ export default function AboutPage() {
               </div>
             </Reveal>
           </div>
+          {/* Real JCE field photo — full width of its column; stacks above the
+              text on phones, sits beside it from md. */}
+          <div className="grid grid-cols-1 gap-4">
+            {ABOUT.historyImages.map((p, i) => (
+              <Reveal key={p.img} delay={0.1 + i * 0.08}>
+                <PhotoCard
+                  src={p.img}
+                  alt={p.alt}
+                  aspect="aspect-4/3"
+                  sizes="(min-width: 768px) 44vw, 100vw"
+                >
+                  <div className="text-ui-14 font-semibold text-jce-dark-ink">
+                    {p.cap}
+                  </div>
+                  <div className="mt-1 text-ui-12 text-jce-dark-ink-2">
+                    {p.loc}
+                  </div>
+                </PhotoCard>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </WebSection>
+
+      {/* Mission & commitment — the §5 commitments (preserved) + work imagery */}
+      <WebSection alt>
+        <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-12">
+          <div>
+            <CircuitReveal lineClassName="text-jce-cyan">
+              <p className="kicker text-jce-cyan-deep">
+                {ABOUT.headers.mission.eyebrow}
+              </p>
+              <h2 className="mt-2 text-heading-statement font-bold tracking-[-0.02em] text-balance text-jce-ink">
+                {ABOUT.mission}
+              </h2>
+            </CircuitReveal>
+            <Reveal delay={0.12}>
+              <p className="mt-4 text-ui-16 text-pretty text-jce-ink-2">
+                {ABOUT.vision}
+              </p>
+            </Reveal>
+          </div>
           <Reveal delay={0.1}>
             <PhotoCard
-              src="/projects/controlroom-cnp.webp"
-              alt="JC Electrofields-built SCADA control room for the Cebu–Negros–Panay 230 kV grid backbone"
-              aspect="aspect-[4/3]"
+              src={ABOUT.missionImage.img}
+              alt={ABOUT.missionImage.alt}
+              aspect="aspect-4/3"
               sizes="(min-width: 768px) 48vw, 100vw"
             >
               <VoltageTag tone="dark" className="mb-2 self-start">
-                230 kV
+                {ABOUT.missionImage.tag}
               </VoltageTag>
               <div className="text-ui-14 font-semibold text-jce-dark-ink">
-                Cebu–Negros–Panay Grid Backbone
-              </div>
-              <div className="mt-1 text-ui-12 text-jce-dark-ink-2">
-                Barotac Viejo, Iloilo
+                {ABOUT.missionImage.caption}
               </div>
             </PhotoCard>
           </Reveal>
         </div>
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3 md:mt-10">
+          {ABOUT.values.map((v, i) => (
+            <Reveal key={v.title} delay={i * 0.06}>
+              <div className="circuit-card solid h-full rounded-(--r-glass) p-5 sm:p-6">
+                <div className="text-ui-16 font-semibold text-jce-green-900">
+                  {v.title}
+                </div>
+                <p className="mt-1.5 text-ui-13 text-pretty text-jce-ink-2">
+                  {v.body}
+                </p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
       </WebSection>
 
-      {/* Watch — curated videos + a live, de-duped "latest from our channel" strip */}
+      {/* Our people — the human layer */}
+      <AboutPeople />
+
+      {/* Watch — curated YouTube showcase + live, de-duped channel strip */}
       <AboutVideos />
 
-      {/* Licenses & Accreditations — the full §9-SAFE list: issuer · acronym ·
-          license number where verifiable · validity dates. Optional fields
-          (DOE/ERC carry no number or dates; PhilGEPS/NGCP no number) render with
-          no dangling separators. Stacked on mobile → 2-col from md; each row is a
-          circuit-card with a VoltageTag for the acronym/number and the amber
-          (cyan-deep) accent on the light surface. */}
+      {/* Licenses & accreditations — RE-SKIN ONLY. The §9-SAFE list (issuer ·
+          acronym · public license number where verifiable · validity dates) and
+          the closing line are UNCHANGED; only the card presentation is polished.
+          No document scans, no withheld items. */}
       <WebSection alt>
         <CircuitReveal className="mb-8 max-w-[44ch] md:mb-10">
-          <p className="kicker text-jce-cyan-deep">Credentials</p>
-          <h2 className="mt-2 text-[clamp(24px,3.6vw,38px)] leading-[1.1] font-bold tracking-[-0.02em] text-balance text-jce-ink">
-            Licenses &amp; accreditations
+          <p className="kicker text-jce-cyan-deep">
+            {ABOUT.headers.licenses.eyebrow}
+          </p>
+          <h2 className="mt-2 text-heading-section font-bold tracking-[-0.02em] text-balance text-jce-ink">
+            {ABOUT.headers.licenses.heading}
           </h2>
         </CircuitReveal>
         <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
@@ -149,11 +232,17 @@ export default function AboutPage() {
             return (
               <Reveal key={lic.acronym} delay={Math.min(i * 0.05, 0.2)}>
                 <div className="circuit-card solid flex h-full flex-col gap-3 rounded-(--r-glass) p-5 sm:p-6">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <VoltageTag>{lic.acronym}</VoltageTag>
-                    {lic.licenseNo ? (
-                      <VoltageTag>No. {lic.licenseNo}</VoltageTag>
-                    ) : null}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <VoltageTag>{lic.acronym}</VoltageTag>
+                      {lic.licenseNo ? (
+                        <VoltageTag>No. {lic.licenseNo}</VoltageTag>
+                      ) : null}
+                    </div>
+                    <BadgeCheckIcon
+                      className="size-5 shrink-0 text-jce-cyan-deep/70"
+                      aria-hidden
+                    />
                   </div>
                   <div className="text-ui-16 font-semibold text-pretty text-jce-ink">
                     {lic.issuer}
@@ -163,8 +252,20 @@ export default function AboutPage() {
                       {lic.detail}
                     </div>
                   ) : null}
+                  {lic.address ? (
+                    <div className="text-ui-13 text-pretty text-jce-ink-2">
+                      <span className="font-medium text-jce-ink">
+                        Registered office:
+                      </span>{" "}
+                      {lic.address}
+                    </div>
+                  ) : null}
                   {validity.length ? (
-                    <div className="mt-auto pt-1 text-ui-12 font-medium text-jce-cyan-deep">
+                    <div className="mt-auto flex items-center gap-2 pt-1 text-ui-12 font-medium text-jce-cyan-deep">
+                      <span
+                        aria-hidden
+                        className="size-1.5 shrink-0 rounded-full bg-jce-cyan"
+                      />
                       {validity.join(" · ")}
                     </div>
                   ) : null}
@@ -175,8 +276,7 @@ export default function AboutPage() {
         </div>
         <Reveal>
           <p className="mt-6 max-w-[60ch] text-ui-13 text-pretty text-jce-ink-2">
-            Complete documentation available upon request for bidding and
-            accreditation purposes.
+            {ABOUT.headers.licenses.note}
           </p>
         </Reveal>
       </WebSection>
@@ -184,9 +284,11 @@ export default function AboutPage() {
       {/* Canonical facts (FR-WEB-16 — plain, extractable sentences for GEO) */}
       <WebSection>
         <CircuitReveal className="mb-8 max-w-[44ch] md:mb-10">
-          <p className="kicker text-jce-cyan-deep">The facts</p>
-          <h2 className="mt-2 text-[clamp(24px,3.6vw,38px)] leading-[1.1] font-bold tracking-[-0.02em] text-balance text-jce-ink">
-            JCE at a glance
+          <p className="kicker text-jce-cyan-deep">
+            {ABOUT.headers.facts.eyebrow}
+          </p>
+          <h2 className="mt-2 text-heading-section font-bold tracking-[-0.02em] text-balance text-jce-ink">
+            {ABOUT.headers.facts.heading}
           </h2>
         </CircuitReveal>
         <Reveal>
@@ -219,13 +321,12 @@ export default function AboutPage() {
         />
         <div className="relative mx-auto w-full max-w-3xl px-5 py-20 text-center sm:py-24 md:py-28">
           <Reveal>
-            <p className="kicker text-jce-cyan-deep">Get in touch</p>
-            <h2 className="mt-3 text-[clamp(26px,4vw,42px)] leading-[1.05] font-bold tracking-[-0.02em] text-balance text-jce-ink">
-              Talk to the engineers behind the work.
+            <p className="kicker text-jce-cyan-deep">{CONTACT_CTA.eyebrow}</p>
+            <h2 className="mt-3 text-heading-cta font-bold tracking-[-0.02em] text-balance text-jce-ink">
+              {CONTACT_CTA.heading}
             </h2>
             <p className="mx-auto mt-4 max-w-[52ch] text-ui-16 text-pretty text-jce-ink-2 sm:text-ui-18">
-              Send a project brief — utility, developer, or industrial — and
-              we&rsquo;ll respond inside one business day.
+              {CONTACT_CTA.body}
             </p>
             <div className="mt-7 flex justify-center">
               <MagneticButton className="w-full sm:w-auto">

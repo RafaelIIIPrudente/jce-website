@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLenis } from "lenis/react";
 import { CheckIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -72,6 +73,8 @@ const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const FIELD = "field min-h-11";
 
 export function ContactForm() {
+  // Lenis instance when smooth-scroll is active; undefined under reduced motion.
+  const lenis = useLenis();
   const [form, setForm] = useState<FormState>(EMPTY);
   const [errors, setErrors] = useState<
     Partial<Record<keyof FormState, string>>
@@ -113,7 +116,10 @@ export function ContactForm() {
       heard: form.heard || undefined,
     });
     setSent(created);
-    window.scrollTo?.({ top: 0, behavior: "smooth" });
+    // Route the success scroll through Lenis when active; fall back to native
+    // smooth scroll when Lenis isn't mounted (reduced-motion path).
+    if (lenis) lenis.scrollTo(0);
+    else window.scrollTo?.({ top: 0, behavior: "smooth" });
   }
 
   if (sent) {
@@ -282,7 +288,7 @@ export function ContactForm() {
         </Field>
         <Field label="Message" required error={errors.message} full>
           <textarea
-            className="field min-h-[120px]"
+            className="field min-h-30"
             rows={4}
             value={form.message}
             onChange={(e) => set("message", e.target.value)}

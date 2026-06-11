@@ -63,7 +63,6 @@ export type HeroStat = {
 
 export const HERO_STATS: readonly HeroStat[] = [
   { value: 1997, label: "Engineering since", grouping: false },
-  { value: 124, suffix: "+", label: "Engineers & technicians" },
   { value: 230, suffix: " kV", label: "Capability class" },
   { value: 45, suffix: "+", label: "Projects nationwide" },
   { value: 1, prefix: "₱", suffix: "B", label: "Authorized capital" },
@@ -82,15 +81,14 @@ export const MARQUEE_CLIENTS: readonly string[] = [
   "BOHECO",
 ] as const;
 
-// ---- S3 Services (flat capability list — reconciled to the company profile) -
-// ONE flat list (no grouped sections). EPC capabilities + specialist services
-// (automation, control wiring/motor controls, power management, electrical
-// consulting) + maintenance (substation + plant electrical). The renewable-energy
-// FIT / NGCP-study / ERC consultancy AND the engineering-design consultancy (PV
-// plant, substation/transmission-line design, industrial-plant electrical) are
-// consolidated into the single Engineering Consultancy row — folded from the
-// former /professional-services page (maps to the INQ_TYPE "Engineering
-// Consultancy"). New rows' specs/descs are derived only from the source titles.
+// ---- S3 Services (faithful to the company profile pp.8–9 = NOTES §3) --------
+// All 14 source services, ordered Engineering & Construction (p.8, items 1–10)
+// then Professional / Consultancy (p.9, items 11–14). `spec` badges and `desc`
+// paraphrases are grounded ONLY in the source — no invented ratings/acronyms and
+// no turnkey-PV-EPC claim: renewables appear as CONSULTANCY (items 11–12) plus the
+// substation/grid-interconnection JCE actually delivers (portfolio §4), not as a
+// PV-plant EPC service. `slug` is a render key only (not routed); the four
+// consultancy rows map to the INQ_TYPE "Engineering Consultancy" bucket.
 export type Service = {
   slug: string;
   icon: LucideIcon;
@@ -100,89 +98,105 @@ export type Service = {
 };
 
 export const SERVICES: readonly Service[] = [
+  // ── Engineering & Construction (company profile p.8) ──
+  {
+    slug: "electrical-consulting-optimization",
+    icon: LineChartIcon,
+    name: "Electrical Consulting & Optimization",
+    spec: "Billing · upgrading",
+    desc: "Electrical consulting covering billing analysis, system upgrading and optimization.",
+  },
+  {
+    slug: "transmission-line-construction",
+    icon: CableIcon,
+    name: "Transmission Line Design & Construction",
+    spec: "Up to 230 KV",
+    desc: "Design and construction of transmission lines, including testing and commissioning, up to 230 KV.",
+  },
   {
     slug: "substation-design-construction",
     icon: TowerControlIcon,
     name: "Substation Design & Construction",
     spec: "Up to 230 KV",
-    desc: "Turnkey EPC for distribution and transmission substations — design, supply, civil, electromechanical, testing and commissioning.",
-  },
-  {
-    slug: "transmission-line-construction",
-    icon: CableIcon,
-    name: "Transmission Line Construction",
-    spec: "Up to 230 KV",
-    desc: "Overhead transmission and distribution lines: surveying, foundations, tower/pole erection, stringing and energization.",
-  },
-  {
-    slug: "solar-renewable-epc",
-    icon: SunIcon,
-    name: "Solar / Renewable Energy EPC",
-    spec: "Utility & C&I scale",
-    desc: "Ground-mount and rooftop PV plants from feasibility through grid connection and performance handover.",
-  },
-  {
-    slug: "switchgear-supply",
-    icon: GaugeIcon,
-    name: "Switchgear Supply",
-    spec: "HVSG · MVSG · LVSG",
-    desc: "High-, medium- and low-voltage switchgear — in-house design, fabrication and assembly, with integration into protection schemes.",
+    desc: "Design and construction of power substations, including testing and commissioning, up to 230 KV.",
   },
   {
     slug: "direct-connection-application",
     icon: ZapIcon,
     name: "Direct Connection Application",
     spec: "NGCP via 69 KV",
-    desc: "End-to-end facilitation of NGCP direct-connection projects, from application through energization.",
+    desc: "Direct-connection application for NGCP via 69 KV lines — facilitated from application through to connection.",
   },
   {
     slug: "automation-controls",
     icon: CpuIcon,
     name: "Automation & Controls",
-    spec: "SCADA · PLC",
-    desc: "SCADA, PLC, and protection-and-control panel engineering for substations and industrial plants.",
+    spec: "Controls engineering",
+    desc: "Automation and control-systems engineering for power and industrial facilities.",
   },
   {
     slug: "control-wiring-motor-controls",
     icon: Settings2Icon,
     name: "Control Wiring & Motor Controls",
-    spec: "Industrial process",
+    spec: "Motor controls",
     desc: "Control wiring and motor-control systems for industrial process electrical works.",
   },
   {
     slug: "power-management-system",
     icon: ActivityIcon,
     name: "Power Management Systems",
-    spec: "Monitoring & control",
-    desc: "Power management systems for the monitoring, control and load management of facility electrical networks.",
+    spec: "Facility networks",
+    desc: "Power management systems for the monitoring and control of facility electrical networks.",
   },
   {
-    slug: "electrical-consulting-optimization",
-    icon: LineChartIcon,
-    name: "Electrical Consulting & Optimization",
-    spec: "Billing · upgrading",
-    desc: "Electrical consulting covering billing analysis, system upgrading and optimization for plant electrical systems.",
+    slug: "switchgear-design-fabrication",
+    icon: ServerIcon,
+    name: "Switchgear — Design, Fabrication & Assembly",
+    spec: "HVSG · MVSG · LVSG",
+    desc: "In-house design, fabrication and assembly of high-, medium- and low-voltage switchgear (HVSG, MVSG, LVSG).",
   },
   {
     slug: "maintenance-servicing",
     icon: WrenchIcon,
     name: "Substation Maintenance & Servicing",
     spec: "Preventive · corrective",
-    desc: "Scheduled maintenance, testing, and emergency servicing for substations, lines and power equipment.",
+    desc: "Maintenance and servicing of substations and power equipment.",
   },
   {
     slug: "plant-electrical-maintenance",
     icon: FactoryIcon,
-    name: "Plant Electrical Maintenance",
-    spec: "Industrial sites",
+    name: "Plant Electrical Maintenance & Servicing",
+    spec: "Industrial plants",
     desc: "Preventive and corrective electrical maintenance and servicing for industrial plant sites.",
   },
+  // ── Professional / Consultancy services (company profile p.9) ──
   {
-    slug: "engineering-consultancy",
+    slug: "renewable-predevelopment-consultancy",
     icon: ClipboardListIcon,
-    name: "Engineering Consultancy",
-    spec: "Studies · FIT · ERC",
-    desc: "Pre-development and engineering consultancy — DOE Feed-in-Tariff, NGCP Systems Impact & Facility studies, and ERC point-to-point approval, plus engineering design for PV-solar plants, substations, transmission lines and industrial-plant electrical systems.",
+    name: "Renewable-Energy Pre-Development Consultancy",
+    spec: "DOE FIT · NGCP · ERC",
+    desc: "Pre-development consultancy for renewable-energy projects: DOE service-contract preparation for Feed-in-Tariff (FIT) availment; the NGCP System Impact Study and Facility Study Report, with coordination and technical-connection compliance; and ERC point-to-point approval.",
+  },
+  {
+    slug: "pv-solar-engineering-consultancy",
+    icon: SunIcon,
+    name: "PV-Solar & Renewables Engineering Consultancy",
+    spec: "PV & renewables",
+    desc: "Engineering consultancy for the construction of PV-solar and other renewable-energy generating plants.",
+  },
+  {
+    slug: "substation-transmission-design-consultancy",
+    icon: UtilityPoleIcon,
+    name: "Substation & Transmission-Line Design Consultancy",
+    spec: "Engineering design",
+    desc: "Consultancy in the engineering design of power substations and transmission lines.",
+  },
+  {
+    slug: "industrial-plant-electrical-consultancy",
+    icon: CircuitBoardIcon,
+    name: "Industrial-Plant Electrical Consultancy",
+    spec: "Industrial systems",
+    desc: "Consultancy in the electrical engineering of industrial-plant electrical systems.",
   },
 ] as const;
 
@@ -472,52 +486,227 @@ export const FEATURED_PROJECTS: readonly FeaturedProject[] = [
   },
 ] as const;
 
-// S1 capability band — six EPC capabilities backed by real cropped textures.
-export type CapabilityCard = {
-  name: string;
-  spec: string;
-  img: string;
+// NOTE: the former HOME_CAPABILITIES PhotoCard-grid set + its CapabilityCard
+// type were retired from the live content here and inlined into the quarantined
+// components/sections/legacy/web-home-capabilities.tsx (its only consumer), so
+// this file carries no orphaned export. The live "What we do" surface is the
+// orbital HOME_CAPABILITY_NODES below.
+
+// ---- S1 "What we do" — energy-core orbital capabilities ---------------------
+// The interactive showpiece: the Ω brand mark as the core, JCE's real EPC
+// capabilities orbiting it. Sourced from SERVICES (descriptions verbatim-derived)
+// + the Shenda transformer distributorship; photos
+// from the 2026 public/home set. `related` cross-links node ids. No invented
+// metrics/status — capabilities only.
+export type CapabilityNode = {
+  id: string;
+  title: string;
+  /** Short, plain description (GEO-friendly) — drawn from SERVICES copy. */
+  blurb: string;
+  icon: LucideIcon;
+  /** Real services/products page this capability lives on. */
   href: string;
+  /** ids of cross-linked capabilities (jump targets in the orbit). */
+  related: readonly string[];
+  /** Representative photo shown in the expanded card. */
+  img: string;
+  imgAlt: string;
 };
 
-export const HOME_CAPABILITIES: readonly CapabilityCard[] = [
+export const HOME_CAPABILITY_CORE = {
+  eyebrow: "What we do",
+  heading: "Full-scope power engineering",
+  intro:
+    "Substations and transmission lines to 230 kV, in-house switchgear, automation and maintenance — plus renewable-energy and engineering consultancy. Single-vendor, from study to energization.",
+  coreLabel: "Power systems EPC",
+} as const;
+
+export const HOME_CAPABILITY_NODES: readonly CapabilityNode[] = [
   {
-    name: "Substations to 230 kV",
-    spec: "Design–build EPC",
-    img: "/projects/switchyard-sancarlos.webp",
+    id: "substations",
+    title: "Substations to 230 kV",
+    blurb:
+      "Turnkey EPC for distribution and transmission substations — design, supply, civil, electromechanical, testing and commissioning, up to 230 kV.",
+    icon: TowerControlIcon,
     href: "/services",
+    related: ["transmission", "testing", "ngcp"],
+    img: "/home/substation-transformer-mountains.webp",
+    imgAlt:
+      "Substation with a power transformer and red-roofed control house against a green mountain backdrop",
   },
   {
-    name: "Transmission Lines",
-    spec: "Switchyard & towers",
-    img: "/projects/switchyard-bauang.webp",
+    id: "transmission",
+    title: "Transmission & Distribution Lines",
+    blurb:
+      "Overhead transmission and distribution lines — surveying, foundations, pole and tower erection, stringing and energization.",
+    icon: UtilityPoleIcon,
     href: "/services",
+    related: ["substations", "ngcp"],
+    img: "/home/distribution-line-bucket-truck-aerial.webp",
+    imgAlt:
+      "Aerial of a bucket truck servicing a distribution line over green fields",
   },
   {
-    name: "Solar PV / Renewables",
-    spec: "Utility & C&I scale",
-    img: "/projects/solar-alaminos.webp",
+    id: "solar",
+    title: "Solar PV / Renewables",
+    blurb:
+      "Renewable-energy consultancy and engineering design for PV-solar plants — pre-development studies (DOE FIT, NGCP System Impact & Facility, ERC approval) — plus the substations and grid-interconnection that tie solar farms into the network.",
+    icon: SunIcon,
     href: "/services",
+    related: ["substations", "testing"],
+    img: "/home/solar-farm-rows-aerial.webp",
+    imgAlt:
+      "Aerial of dense rows of solar panels beside white control buildings",
   },
   {
-    name: "Testing & Commissioning",
-    spec: "Energization-ready",
-    img: "/projects/capacitors-mexico.webp",
+    id: "testing",
+    title: "Testing & Commissioning",
+    blurb:
+      "Energization-ready testing and commissioning of substations, lines and power equipment — the final proof before handover.",
+    icon: GaugeIcon,
     href: "/services",
+    related: ["substations", "solar"],
+    img: "/home/substation-shenda-transformer-engineer.webp",
+    imgAlt:
+      "Engineer standing beside a SHENDA power transformer at a substation, rice fields behind",
   },
   {
-    name: "Switchgear HVSG/MVSG/LVSG",
-    spec: "Supply & integration",
-    img: "/projects/transformer-balayan.webp",
+    id: "switchgear",
+    title: "Switchgear & Transformers",
+    blurb:
+      "HV/MV/LV switchgear designed, fabricated and assembled in-house, with power transformers from 15 kV to 230 kV — JCE is the exclusive Philippine distributor of Shenda Electric.",
+    icon: ServerIcon,
     href: "/products",
+    related: ["substations", "ngcp"],
+    img: "/home/substation-topdown-aerial.webp",
+    imgAlt: "Top-down aerial of a substation showing the equipment layout",
   },
   {
-    name: "NGCP Direct Connection",
-    spec: "Application → energization",
-    img: "/projects/controlroom-cnp.webp",
+    id: "ngcp",
+    title: "NGCP Direct Connection",
+    blurb:
+      "Facilitation of NGCP direct-connection projects via 69 kV — from the application through to connection.",
+    icon: PlugZapIcon,
     href: "/services",
+    related: ["substations", "transmission"],
+    img: "/home/substation-ricefield-aerial.webp",
+    imgAlt:
+      "Aerial of a substation beside bright green rice paddies and rural houses",
   },
 ] as const;
+
+// ---- S1 home hero photo + copy (2026 real photography) ---------------------
+// Strongest aerial — coastal solar farm + substation switchyard. Drives the
+// priority LCP <Image> in HomeHero. Copy lives here (content-from-logic): the
+// kicker, the two-part headline, and a DISTINCT scope sub-line — the verbatim
+// TAGLINE is reserved for the closing CTA so it is never shown twice on the page.
+export const HOME_HERO = {
+  img: "/home/solar-farm-substation-coast-hero.webp",
+  alt: "Aerial of a coastal solar farm and substation switchyard built by JC Electrofields, the sea on the horizon",
+  kicker: "JC Electrofields Power System, Inc.",
+  headlineLead: "Power infrastructure,",
+  headlineAccent: "engineered to energize.",
+  sub: "Single-vendor EPC for substations, transmission and switchgear to 230 kV — plus automation, maintenance and renewable-energy consultancy, nationwide.",
+} as const;
+
+// ---- S1 "Proof at scale" — calm photography-led proof band -----------------
+// Four corporate aerials + a current-trace divider + figures that count up on
+// view. Figures are §9-SAFE delivered-scale facts, deliberately DISTINCT from
+// the hero stat strip (no duplicate 230 kV / 45+ / 1997 count-ups): largest
+// transformer, largest solar EPC, largest capacitor bank, regions energized.
+export type ProofImage = { img: string; alt: string };
+export type ProofStat = {
+  value: number;
+  suffix?: string;
+  /** false → no thousands separator (years). */
+  grouping?: boolean;
+  label: string;
+  sub: string;
+};
+
+export const HOME_PROOF = {
+  eyebrow: "Proof at scale",
+  heading: "Built across the archipelago — energized on schedule.",
+  intro:
+    "From 230 kV transmission substations to the grid-interconnection of utility-scale solar farms, the current we engineer reaches across Luzon, Visayas and Mindanao.",
+  images: [
+    {
+      img: "/home/solar-farm-coast-aerial.webp",
+      alt: "Aerial of a coastal solar farm, panels reaching toward the shoreline",
+    },
+    {
+      img: "/home/solar-farm-nsec-hero.webp",
+      alt: "Aerial of a vast utility-scale solar panel field stretching toward the horizon",
+    },
+    {
+      img: "/home/substation-solar-panorama-aerial.webp",
+      alt: "Panoramic aerial of a substation switchyard with a solar farm behind it under a clear sky",
+    },
+    {
+      img: "/home/distribution-line-bucket-truck-aerial.webp",
+      alt: "Aerial of a bucket truck servicing a distribution line over green fields",
+    },
+  ] satisfies readonly ProofImage[],
+  stats: [
+    {
+      value: 300,
+      suffix: " MVA",
+      label: "Largest transformer",
+      sub: "NGCP 230 kV substation, energized on schedule",
+    },
+    {
+      value: 120,
+      suffix: " MWp",
+      label: "Largest solar interconnection",
+      sub: "Grid-tie substation for a utility-scale PV farm",
+    },
+    {
+      value: 400,
+      suffix: " MVAr",
+      label: "Largest capacitor bank",
+      sub: "NGCP 230 kV shunt bank (4×100 MVAr)",
+    },
+    {
+      value: 3,
+      grouping: false,
+      label: "Regions energized",
+      sub: "Luzon · Visayas · Mindanao",
+    },
+  ] satisfies readonly ProofStat[],
+} as const;
+
+// ---- S1 trust bar copy -----------------------------------------------------
+// NGCP credentials split per the company profile (§4): the 300 MVA / 230 kV
+// figure is Luzon Grid Expansion I (Cabanatuan/Biñan); the Cebu–Negros–Panay
+// 230 kV backbone is a SEPARATE credential with no MVA rating — so the two are
+// stated as distinct claims, not joined. `headingAccent` is the highlighted figure.
+export const HOME_CLIENTS = {
+  eyebrow: "Trusted by",
+  headingLead: "Flagship NGCP credentials — ",
+  headingAccent: "300 MVA / 230 kV",
+  headingTail:
+    " Luzon Grid substations, and the Cebu–Negros–Panay 230 kV backbone.",
+  distributorLead: "Exclusive Philippine distributor of ",
+  distributorName: "Shenda Electric",
+  distributorTail: " power transformers.",
+} as const;
+
+// ---- S1 "engineering in motion" dark band copy -----------------------------
+export const HOME_MOTION_BAND = {
+  eyebrow: "On site, after dark",
+  heading: "Engineering in motion",
+  body1:
+    "Night transformer lifts. Live switchyard work. Crews mobilized across Luzon, Visayas and Mindanao — energizing on the dates we commit to.",
+  body2:
+    "Single-vendor accountability from study to handover, with 124+ engineers and technicians under one roof.",
+  tags: ["Up to 230 kV", "300 MVA", "Since 1997"],
+  photo: {
+    src: "/projects/switchyard-bauang.webp",
+    alt: "JC Electrofields crews performing live switchyard assembly at the Bauang 230/69 kV substation",
+    tag: "100 MVA · 230/69 kV",
+    caption: "Bauang Switchyard — Luzon Grid Expansion I",
+  },
+} as const;
 
 // ---- S6 News ---------------------------------------------------------------
 export type NewsArticle = {
@@ -750,13 +939,105 @@ export const ABOUT = {
     "JC Electrofields Power System, Inc. (JCE) was founded in 1997 and is headquartered in Valenzuela City, Metro Manila, Philippines.",
     "JCE designs and constructs power substations and transmission lines up to 230 KV nationwide.",
     "JCE is the exclusive Philippine distributor of Shenda Electric power transformers.",
-    "JCE builds utility-scale and commercial/industrial solar PV plants on an EPC basis.",
-    "JCE facilitates NGCP direct-connection projects via 69 KV, from application through to energization.",
+    "JCE supports solar and other renewable-energy projects through pre-development and engineering consultancy, and delivers the substation and grid-interconnection works that bring them online.",
+    "JCE facilitates NGCP direct-connection projects via 69 KV, from application through to connection.",
     "JCE employs approximately 124 engineers and technicians.",
     "JCE has an authorized capital stock of ₱1,000,000,000, reflecting its financial capacity for large-scale power projects.",
     "JCE is BIR-registered and tax-compliant, holding a current Tax Clearance Certificate.",
     "JCE is led by its President, Engr. Jimwel C. Capillo.",
   ],
+  // Section eyebrows + headings for the inline About blocks — relocated VERBATIM
+  // from page.tsx so copy lives with content (AB-HIST-01 / AB-MISS-02 / AB-LIC-03
+  // / AB-FACT-03). The section BODIES already live in ABOUT / LICENSES; these are
+  // only their headers. Wording unchanged (the JSX `&amp;` was entity-encoding —
+  // a literal `&` here renders identically).
+  headers: {
+    history: {
+      eyebrow: "Since 1997",
+      heading: "From repair & fabrication to the national grid.",
+    },
+    mission: { eyebrow: "Mission & commitment" },
+    licenses: {
+      eyebrow: "Credentials",
+      heading: "Licenses & accreditations",
+      note: "Complete documentation available upon request for bidding and accreditation purposes.",
+    },
+    facts: { eyebrow: "The facts", heading: "JCE at a glance" },
+  },
+  // ---- "Who we are / our HQ" band ---------------------------------------------
+  // The established-and-substantial beat. Every fact is the §9-SAFE set already on
+  // the page — no new claims. The HQ still is the page hero (priority LCP, single
+  // next/image instance → no src collision); this band shows the same building
+  // from the air via a muted decorative aerial loop (static poster under reduced
+  // motion). Copy is drawn only from the existing safe facts.
+  hq: {
+    eyebrow: "Our home base",
+    heading: "An established Filipino power-engineering firm.",
+    body: "Since 1997, JC Electrofields has grown from repair-and-fabrication work into a major contractor and supplier to the energy sector. From our headquarters in Valenzuela City, our engineers run projects nationwide — across Luzon, Visayas and Mindanao.",
+    facts: ["Established 1997", "Valenzuela City HQ", "Projects nationwide"],
+    video: {
+      src: "/home/office-aerial.mp4",
+      poster: "/home/office-aerial-poster.webp",
+    },
+  },
+  // ---- "Our people" band (real crew photography) ------------------------------
+  // The human layer: directly-employed crews. Portraits are 1200×1600 (3:4) — the
+  // band designs for that aspect. "About 124" matches the existing headcount fact
+  // (no new claim). Team shot is the 16:9 aerial group (distinct from the home band).
+  people: {
+    eyebrow: "Our people",
+    heading: "The hands behind the current.",
+    body: "No subcontracted shortcuts. Our directly-employed engineers, linemen and technicians — over 124 strong — build, test and energize every project, from foundation to handover.",
+    portraits: [
+      {
+        img: "/home/crew-carrying-materials-portrait.webp",
+        alt: "A JC Electrofields worker carrying materials on-site past substation equipment",
+      },
+      {
+        img: "/home/crew-rebar-cage-trench-portrait.webp",
+        alt: "A JC Electrofields worker tying a steel rebar cage inside a deep foundation trench",
+      },
+      {
+        img: "/home/crew-hauling-bucket-portrait.webp",
+        alt: "A JC Electrofields worker hauling a bucket of material across a sunlit construction site",
+      },
+    ],
+    team: {
+      img: "/home/team-group-substation-aerial.webp",
+      alt: "The JC Electrofields team gathered together inside a completed substation switchyard",
+    },
+  },
+  // ---- History-section imagery (real JCE field photo; no new claims) ----------
+  // The Sagada still has its baked-in geotag caption cropped off (1800×1260); no
+  // voltage is asserted for it (none is verifiable).
+  historyImages: [
+    {
+      img: "/home/transformer-install-sagada.jpg",
+      alt: "JC Electrofields crew installing a large power transformer at a mountain substation in Sagada",
+      cap: "Power-transformer installation",
+      loc: "Sagada, Cordillera",
+    },
+  ],
+  // ---- Mission-section imagery (ties to the §9-SAFE Shenda distributorship) ----
+  missionImage: {
+    img: "/home/substation-shenda-transformer-engineer.webp",
+    alt: "A JC Electrofields engineer beside a Shenda Electric power transformer at a substation, rice fields behind",
+    // Overlay labels for the mission image — relocated verbatim from page.tsx
+    // (AB-MISS-02).
+    tag: "Shenda Electric",
+    caption: "Exclusive Philippine distributor",
+  },
+} as const;
+
+// Shared closing-CTA copy (the About page's CTA). The home/services CTAs are
+// near-identical and MAY adopt this constant in a follow-up; only About consumes
+// it now. Relocated verbatim from page.tsx (AB-CTA-01) — pure content-from-logic.
+export const CONTACT_CTA = {
+  eyebrow: "Get in touch",
+  heading: "Talk to the engineers behind the work.",
+  body: "Send a project brief — utility, developer, or industrial — and we’ll respond inside one business day.",
+  action: "Start a project",
+  href: "/contact-us",
 } as const;
 
 // ---- S2 About — YouTube channel + curated video showcase -------------------
@@ -771,11 +1052,13 @@ export const YOUTUBE_CHANNEL = {
 
 export type AboutVideo = { id: string; title: string };
 
-// Verbatim from the channel (title typo/casing lightly normalized for display).
+// Curated PROJECT/TECHNICAL showcase only (title typo/casing lightly normalized
+// for display). The "JCE Christmas Party 2025" clip was removed from the curated
+// trio (AB-VID-02) — it still surfaces automatically in the live "Latest from our
+// channel" strip, which de-dupes against this set.
 export const ABOUT_VIDEOS: readonly AboutVideo[] = [
   { id: "7K6cMIvBnmo", title: "69 kV transmission line and substation" },
   { id: "SerRpr5E_AA", title: "JCE Projects" },
-  { id: "-WTmKPsrxjE", title: "JCE Christmas Party 2025" },
 ] as const;
 
 // ============================================================================

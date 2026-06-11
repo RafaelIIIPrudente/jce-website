@@ -26,7 +26,10 @@ export function VideoEmbed({
 
   return (
     <figure className={cn("flex flex-col gap-3", className)}>
-      <div className="circuit-card circuit-card-dark relative aspect-video overflow-hidden rounded-(--r-glass) bg-jce-dark-2">
+      <div
+        data-lenis-prevent
+        className="circuit-card circuit-card-dark relative aspect-video overflow-hidden rounded-(--r-glass) bg-jce-dark-2"
+      >
         {active ? (
           <iframe
             src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`}
