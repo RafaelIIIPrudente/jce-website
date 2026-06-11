@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -13,7 +14,6 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { cn } from "@/lib/utils";
 import { FOOTER_LINKS, NAV_LINKS, SITE } from "@/lib/content/site";
-import { OmegaMark } from "@/components/sections/kit/web-omega-mark";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,12 +26,15 @@ import {
 // `data-nav-overlay`, and while the nav floats over it the bar is OVERLAY mode —
 // transparent, light wordmark + links, no pill. Scroll the hero away (or land on
 // a page with no sentinel) and it CONDENSES into the refined glass island with
-// dark ink. The boxless Ω (ohms) mark + wordmark recolour with the mode; the lone
-// constant is the deep-amber inquiry CTA. Every transition is opacity/colour/
+// dark ink. The original JCE Ω badge logo and the deep-amber inquiry CTA are the
+// fixed constants; the wordmark + links recolour with the mode. Every transition
+// is opacity/colour/
 // transform (no layout thrash), is suppressed on first paint so the correct mode
 // renders without a settle-flash, and collapses to instant under reduced motion
 // via the global reduce block. Layout is a true 3-zone grid (wordmark · nav ·
-// action) so the nav reads dead-centre, never false-centred. Tag: Glass chrome.
+// action), each zone pinned to its column (col-start-1/2/3) so the nav reads
+// dead-centre and — crucially — hiding the centre nav on mobile never lets grid
+// auto-placement slide the burger into the middle. Tag: Glass chrome.
 
 function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -203,19 +206,20 @@ export function SiteHeader() {
             <span className="circuit-field absolute inset-0 rounded-(--r-glass) opacity-50" />
           </span>
 
-          {/* Logo lockup — boxless Ω (ohms) mark + wordmark; both recolour by mode. */}
+          {/* Logo lockup — the original JCE Ω badge + wordmark (only the wordmark
+              recolours by mode; the badge is a fixed white-field brand mark). */}
           <Link
             href="/"
             aria-label={SITE.brand}
-            className="focus-ring-jce flex min-w-0 items-center gap-2 justify-self-start rounded-md py-1 pr-2"
+            className="focus-ring-jce col-start-1 flex min-w-0 items-center gap-2 justify-self-start rounded-md py-1 pr-2"
           >
-            <OmegaMark
-              strokeWidth={9}
-              className={cn(
-                "size-8 shrink-0 transition-colors",
-                txn,
-                overlay ? "text-jce-dark-ink" : "text-jce-green-700",
-              )}
+            <Image
+              src="/jce-logo.jpg"
+              alt=""
+              width={40}
+              height={40}
+              priority
+              className="size-9 shrink-0 rounded-md"
             />
             <span className="min-w-0 leading-tight">
               <span
@@ -242,7 +246,7 @@ export function SiteHeader() {
           {/* Desktop nav — true-centred in the middle grid cell. */}
           <nav
             aria-label="Primary"
-            className="hidden items-center gap-0.5 justify-self-center min-[900px]:flex"
+            className="col-start-2 hidden items-center gap-0.5 justify-self-center min-[900px]:flex"
           >
             {NAV_LINKS.map((link) =>
               "children" in link && link.children ? (
@@ -303,7 +307,7 @@ export function SiteHeader() {
           </nav>
 
           {/* Right cluster — inquiry CTA (desktop) / burger (≤900px), end-aligned. */}
-          <div className="flex items-center gap-2 justify-self-end">
+          <div className="col-start-3 flex items-center gap-2 justify-self-end">
             <InquiryCta className="hidden min-[900px]:inline-flex" />
             <button
               ref={burgerRef}
@@ -358,7 +362,7 @@ export function SiteHeader() {
               ref={panelRef}
               tabIndex={-1}
               aria-label="Mobile"
-              className="glass flex max-h-[calc(100svh-5.5rem)] flex-col rounded-(--r-glass) p-2 focus:outline-none"
+              className="glass ml-auto flex w-full max-w-2xs flex-col max-h-[calc(100svh-5.5rem)] rounded-(--r-glass) p-2 focus:outline-none"
             >
               {/* Scrolls internally on short viewports so every link stays
                   reachable; the CTA below is pinned and always in reach. */}
