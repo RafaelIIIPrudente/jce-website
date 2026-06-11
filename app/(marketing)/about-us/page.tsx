@@ -77,34 +77,26 @@ export default function AboutPage() {
               </div>
             </Reveal>
           </div>
-          {/* Real JCE field/project photos alongside the existing control-room
-              shot. Stacks on phones, 2-up at sm, back to a vertical pair from md. */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-1">
-            {ABOUT.historyImages.map((p, i) => {
-              const tag = "tag" in p ? p.tag : undefined;
-              return (
-                <Reveal key={p.img} delay={0.1 + i * 0.08}>
-                  <PhotoCard
-                    src={p.img}
-                    alt={p.alt}
-                    aspect="aspect-[4/3]"
-                    sizes="(min-width: 768px) 44vw, (min-width: 640px) 48vw, 100vw"
-                  >
-                    {tag ? (
-                      <VoltageTag tone="dark" className="mb-2 self-start">
-                        {tag}
-                      </VoltageTag>
-                    ) : null}
-                    <div className="text-ui-14 font-semibold text-jce-dark-ink">
-                      {p.cap}
-                    </div>
-                    <div className="mt-1 text-ui-12 text-jce-dark-ink-2">
-                      {p.loc}
-                    </div>
-                  </PhotoCard>
-                </Reveal>
-              );
-            })}
+          {/* Real JCE field photo — full width of its column; stacks above the
+              text on phones, sits beside it from md. */}
+          <div className="grid grid-cols-1 gap-4">
+            {ABOUT.historyImages.map((p, i) => (
+              <Reveal key={p.img} delay={0.1 + i * 0.08}>
+                <PhotoCard
+                  src={p.img}
+                  alt={p.alt}
+                  aspect="aspect-4/3"
+                  sizes="(min-width: 768px) 44vw, 100vw"
+                >
+                  <div className="text-ui-14 font-semibold text-jce-dark-ink">
+                    {p.cap}
+                  </div>
+                  <div className="mt-1 text-ui-12 text-jce-dark-ink-2">
+                    {p.loc}
+                  </div>
+                </PhotoCard>
+              </Reveal>
+            ))}
           </div>
         </div>
       </WebSection>

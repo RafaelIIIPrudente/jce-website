@@ -975,23 +975,15 @@ export const ABOUT = {
       alt: "The JC Electrofields team gathered together inside a completed substation switchyard",
     },
   },
-  // ---- History-section imagery (real JCE field/project photos; no new claims) --
+  // ---- History-section imagery (real JCE field photo; no new claims) ----------
   // The Sagada still has its baked-in geotag caption cropped off (1800×1260); no
-  // voltage is asserted for it (none is verifiable). The control-room photo keeps
-  // its verified 230 kV tag.
+  // voltage is asserted for it (none is verifiable).
   historyImages: [
     {
       img: "/home/transformer-install-sagada.jpg",
       alt: "JC Electrofields crew installing a large power transformer at a mountain substation in Sagada",
       cap: "Power-transformer installation",
       loc: "Sagada, Cordillera",
-    },
-    {
-      img: "/projects/controlroom-cnp.webp",
-      alt: "JC Electrofields-built SCADA control room for the Cebu–Negros–Panay 230 kV grid backbone",
-      cap: "Cebu–Negros–Panay grid backbone",
-      loc: "Barotac Viejo, Iloilo",
-      tag: "230 kV",
     },
   ],
   // ---- Mission-section imagery (ties to the §9-SAFE Shenda distributorship) ----
