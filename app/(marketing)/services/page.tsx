@@ -12,14 +12,14 @@ import { WebServiceList } from "@/components/sections/services/web-service-list"
 export const metadata: Metadata = {
   title: "Services",
   description:
-    "Turnkey EPC and specialized power services from distribution voltages up to 230 KV — substations, transmission lines, solar, switchgear, NGCP direct connection, maintenance and engineering consultancy.",
+    "EPC and specialized power services up to 230 KV — substations, transmission lines, switchgear, NGCP direct connection, automation and maintenance — plus renewable-energy and engineering consultancy.",
 };
 
 // S3 · Services (web-pages-a.jsx:191-223) — re-skinned into the "electrified"
 // idiom: electrified dark hero, circuit-card service rows (amber icon tile +
-// VoltageTag spec), and an Ω closing CTA. The former /professional-services scope
-// is folded in as the Engineering Consultancy row (PROPOSED). Mobile-first; one
-// <h1> (the hero). Content/IA/metadata unchanged.
+// VoltageTag spec), and an Ω closing CTA. Lists all 14 company-profile services
+// (engineering & construction p.8 + professional consultancy p.9), accurately
+// worded. Mobile-first; one <h1> (the hero).
 export default function ServicesPage() {
   return (
     <>

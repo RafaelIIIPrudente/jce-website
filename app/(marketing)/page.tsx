@@ -17,7 +17,7 @@ import { SERVICES } from "@/lib/content/website";
 // brand title from the root layout; adds the home OG card.
 export const metadata: Metadata = {
   description:
-    "JC Electrofields Power System, Inc. — electrical power-systems EPC in the Philippines since 1997. Substations and transmission to 230 kV, NGCP direct connection, switchgear, and utility-scale solar.",
+    "JC Electrofields Power System, Inc. — electrical power-systems EPC in the Philippines since 1997. Substations and transmission to 230 kV, NGCP direct connection, switchgear, and renewable-energy consultancy.",
   alternates: { canonical: "/" },
   // og:image (and Twitter's large-image card) is provided by the dynamic
   // opengraph-image.tsx route convention in this segment; no static file.
@@ -41,7 +41,7 @@ const HOME_JSON_LD = {
       logo: "https://jcepower.com/jce-logo.jpg",
       image: "https://jcepower.com/jce-logo.jpg",
       description:
-        "Electrical power-systems EPC in the Philippines since 1997 — substations and transmission to 230 kV, NGCP direct connection, switchgear, and utility-scale solar.",
+        "Electrical power-systems EPC in the Philippines since 1997 — substations and transmission to 230 kV, NGCP direct connection, switchgear, and renewable-energy consultancy.",
       foundingDate: "1997",
       telephone: SITE.phone,
       email: SITE.email,

@@ -5,10 +5,11 @@ import { Reveal } from "@/components/sections/kit/web-reveal";
 import { VoltageTag } from "@/components/sections/kit/web-voltage-tag";
 import { SERVICES, type Service } from "@/lib/content/website";
 
-// S3 Services — 6 capability rows + Engineering Consultancy, each with an inline
-// spec and an "Enquire" → contact (web-pages-a.jsx:199-221). Electrified idiom:
-// circuit-card rows, an amber accent icon tile, and a VoltageTag spec badge.
-// Mobile-first: each row stacks (flex-col) and goes inline from sm up.
+// S3 Services — the full company-profile service list (engineering & construction
+// + professional consultancy), each row with an inline spec and an "Enquire" →
+// contact (web-pages-a.jsx:199-221). Electrified idiom: circuit-card rows, an
+// amber accent icon tile, and a VoltageTag spec badge. Mobile-first: each row
+// stacks (flex-col) and goes inline from sm up.
 
 export function WebServiceList({
   services = SERVICES,

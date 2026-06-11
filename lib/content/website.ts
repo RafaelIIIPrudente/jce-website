@@ -82,15 +82,14 @@ export const MARQUEE_CLIENTS: readonly string[] = [
   "BOHECO",
 ] as const;
 
-// ---- S3 Services (flat capability list — reconciled to the company profile) -
-// ONE flat list (no grouped sections). EPC capabilities + specialist services
-// (automation, control wiring/motor controls, power management, electrical
-// consulting) + maintenance (substation + plant electrical). The renewable-energy
-// FIT / NGCP-study / ERC consultancy AND the engineering-design consultancy (PV
-// plant, substation/transmission-line design, industrial-plant electrical) are
-// consolidated into the single Engineering Consultancy row — folded from the
-// former /professional-services page (maps to the INQ_TYPE "Engineering
-// Consultancy"). New rows' specs/descs are derived only from the source titles.
+// ---- S3 Services (faithful to the company profile pp.8–9 = NOTES §3) --------
+// All 14 source services, ordered Engineering & Construction (p.8, items 1–10)
+// then Professional / Consultancy (p.9, items 11–14). `spec` badges and `desc`
+// paraphrases are grounded ONLY in the source — no invented ratings/acronyms and
+// no turnkey-PV-EPC claim: renewables appear as CONSULTANCY (items 11–12) plus the
+// substation/grid-interconnection JCE actually delivers (portfolio §4), not as a
+// PV-plant EPC service. `slug` is a render key only (not routed); the four
+// consultancy rows map to the INQ_TYPE "Engineering Consultancy" bucket.
 export type Service = {
   slug: string;
   icon: LucideIcon;
@@ -100,89 +99,105 @@ export type Service = {
 };
 
 export const SERVICES: readonly Service[] = [
+  // ── Engineering & Construction (company profile p.8) ──
+  {
+    slug: "electrical-consulting-optimization",
+    icon: LineChartIcon,
+    name: "Electrical Consulting & Optimization",
+    spec: "Billing · upgrading",
+    desc: "Electrical consulting covering billing analysis, system upgrading and optimization.",
+  },
+  {
+    slug: "transmission-line-construction",
+    icon: CableIcon,
+    name: "Transmission Line Design & Construction",
+    spec: "Up to 230 KV",
+    desc: "Design and construction of transmission lines, including testing and commissioning, up to 230 KV.",
+  },
   {
     slug: "substation-design-construction",
     icon: TowerControlIcon,
     name: "Substation Design & Construction",
     spec: "Up to 230 KV",
-    desc: "Turnkey EPC for distribution and transmission substations — design, supply, civil, electromechanical, testing and commissioning.",
-  },
-  {
-    slug: "transmission-line-construction",
-    icon: CableIcon,
-    name: "Transmission Line Construction",
-    spec: "Up to 230 KV",
-    desc: "Overhead transmission and distribution lines: surveying, foundations, tower/pole erection, stringing and energization.",
-  },
-  {
-    slug: "solar-renewable-epc",
-    icon: SunIcon,
-    name: "Solar / Renewable Energy EPC",
-    spec: "Utility & C&I scale",
-    desc: "Ground-mount and rooftop PV plants from feasibility through grid connection and performance handover.",
-  },
-  {
-    slug: "switchgear-supply",
-    icon: GaugeIcon,
-    name: "Switchgear Supply",
-    spec: "HVSG · MVSG · LVSG",
-    desc: "High-, medium- and low-voltage switchgear — in-house design, fabrication and assembly, with integration into protection schemes.",
+    desc: "Design and construction of power substations, including testing and commissioning, up to 230 KV.",
   },
   {
     slug: "direct-connection-application",
     icon: ZapIcon,
     name: "Direct Connection Application",
     spec: "NGCP via 69 KV",
-    desc: "End-to-end facilitation of NGCP direct-connection projects, from application through energization.",
+    desc: "Direct-connection application for NGCP via 69 KV lines — facilitated from application through to connection.",
   },
   {
     slug: "automation-controls",
     icon: CpuIcon,
     name: "Automation & Controls",
-    spec: "SCADA · PLC",
-    desc: "SCADA, PLC, and protection-and-control panel engineering for substations and industrial plants.",
+    spec: "Controls engineering",
+    desc: "Automation and control-systems engineering for power and industrial facilities.",
   },
   {
     slug: "control-wiring-motor-controls",
     icon: Settings2Icon,
     name: "Control Wiring & Motor Controls",
-    spec: "Industrial process",
+    spec: "Motor controls",
     desc: "Control wiring and motor-control systems for industrial process electrical works.",
   },
   {
     slug: "power-management-system",
     icon: ActivityIcon,
     name: "Power Management Systems",
-    spec: "Monitoring & control",
-    desc: "Power management systems for the monitoring, control and load management of facility electrical networks.",
+    spec: "Facility networks",
+    desc: "Power management systems for the monitoring and control of facility electrical networks.",
   },
   {
-    slug: "electrical-consulting-optimization",
-    icon: LineChartIcon,
-    name: "Electrical Consulting & Optimization",
-    spec: "Billing · upgrading",
-    desc: "Electrical consulting covering billing analysis, system upgrading and optimization for plant electrical systems.",
+    slug: "switchgear-design-fabrication",
+    icon: ServerIcon,
+    name: "Switchgear — Design, Fabrication & Assembly",
+    spec: "HVSG · MVSG · LVSG",
+    desc: "In-house design, fabrication and assembly of high-, medium- and low-voltage switchgear (HVSG, MVSG, LVSG).",
   },
   {
     slug: "maintenance-servicing",
     icon: WrenchIcon,
     name: "Substation Maintenance & Servicing",
     spec: "Preventive · corrective",
-    desc: "Scheduled maintenance, testing, and emergency servicing for substations, lines and power equipment.",
+    desc: "Maintenance and servicing of substations and power equipment.",
   },
   {
     slug: "plant-electrical-maintenance",
     icon: FactoryIcon,
-    name: "Plant Electrical Maintenance",
-    spec: "Industrial sites",
+    name: "Plant Electrical Maintenance & Servicing",
+    spec: "Industrial plants",
     desc: "Preventive and corrective electrical maintenance and servicing for industrial plant sites.",
   },
+  // ── Professional / Consultancy services (company profile p.9) ──
   {
-    slug: "engineering-consultancy",
+    slug: "renewable-predevelopment-consultancy",
     icon: ClipboardListIcon,
-    name: "Engineering Consultancy",
-    spec: "Studies · FIT · ERC",
-    desc: "Pre-development and engineering consultancy — DOE Feed-in-Tariff, NGCP Systems Impact & Facility studies, and ERC point-to-point approval, plus engineering design for PV-solar plants, substations, transmission lines and industrial-plant electrical systems.",
+    name: "Renewable-Energy Pre-Development Consultancy",
+    spec: "DOE FIT · NGCP · ERC",
+    desc: "Pre-development consultancy for renewable-energy projects: DOE service-contract preparation for Feed-in-Tariff (FIT) availment; the NGCP System Impact Study and Facility Study Report, with coordination and technical-connection compliance; and ERC point-to-point approval.",
+  },
+  {
+    slug: "pv-solar-engineering-consultancy",
+    icon: SunIcon,
+    name: "PV-Solar & Renewables Engineering Consultancy",
+    spec: "PV & renewables",
+    desc: "Engineering consultancy for the construction of PV-solar and other renewable-energy generating plants.",
+  },
+  {
+    slug: "substation-transmission-design-consultancy",
+    icon: UtilityPoleIcon,
+    name: "Substation & Transmission-Line Design Consultancy",
+    spec: "Engineering design",
+    desc: "Consultancy in the engineering design of power substations and transmission lines.",
+  },
+  {
+    slug: "industrial-plant-electrical-consultancy",
+    icon: CircuitBoardIcon,
+    name: "Industrial-Plant Electrical Consultancy",
+    spec: "Industrial systems",
+    desc: "Consultancy in the electrical engineering of industrial-plant electrical systems.",
   },
 ] as const;
 
@@ -503,7 +518,7 @@ export const HOME_CAPABILITY_CORE = {
   eyebrow: "What we do",
   heading: "Full-scope power engineering",
   intro:
-    "Substations, transmission, switchgear and renewables — single-vendor EPC from study to energization, up to 230 kV.",
+    "Substations and transmission lines to 230 kV, in-house switchgear, automation and maintenance — plus renewable-energy and engineering consultancy. Single-vendor, from study to energization.",
   coreLabel: "Power systems EPC",
 } as const;
 
@@ -536,7 +551,7 @@ export const HOME_CAPABILITY_NODES: readonly CapabilityNode[] = [
     id: "solar",
     title: "Solar PV / Renewables",
     blurb:
-      "Ground-mount and rooftop PV plants on an EPC basis — from feasibility through grid connection and performance handover.",
+      "Renewable-energy consultancy and engineering design for PV-solar plants — pre-development studies (DOE FIT, NGCP System Impact & Facility, ERC approval) — plus the substations and grid-interconnection that tie solar farms into the network.",
     icon: SunIcon,
     href: "/services",
     related: ["substations", "testing"],
@@ -571,7 +586,7 @@ export const HOME_CAPABILITY_NODES: readonly CapabilityNode[] = [
     id: "ngcp",
     title: "NGCP Direct Connection",
     blurb:
-      "End-to-end facilitation of NGCP direct-connection projects via 69 kV — from application through to energization.",
+      "Facilitation of NGCP direct-connection projects via 69 kV — from the application through to connection.",
     icon: PlugZapIcon,
     href: "/services",
     related: ["substations", "transmission"],
@@ -592,7 +607,7 @@ export const HOME_HERO = {
   kicker: "JC Electrofields Power System, Inc.",
   headlineLead: "Power infrastructure,",
   headlineAccent: "engineered to energize.",
-  sub: "Single-vendor EPC for substations, transmission, switchgear and solar — engineered, built and energized to 230 kV, nationwide.",
+  sub: "Single-vendor EPC for substations, transmission and switchgear to 230 kV — plus automation, maintenance and renewable-energy consultancy, nationwide.",
 } as const;
 
 // ---- S1 "Proof at scale" — calm photography-led proof band -----------------
@@ -614,7 +629,7 @@ export const HOME_PROOF = {
   eyebrow: "Proof at scale",
   heading: "Built across the archipelago — energized on schedule.",
   intro:
-    "From utility-scale solar to 230 kV transmission substations, the current we engineer reaches the grid across Luzon, Visayas and Mindanao.",
+    "From 230 kV transmission substations to the grid-interconnection of utility-scale solar farms, the current we engineer reaches across Luzon, Visayas and Mindanao.",
   images: [
     {
       img: "/home/solar-farm-coast-aerial.webp",
@@ -643,8 +658,8 @@ export const HOME_PROOF = {
     {
       value: 120,
       suffix: " MWp",
-      label: "Largest solar EPC",
-      sub: "Utility-scale PV, grid-connected",
+      label: "Largest solar interconnection",
+      sub: "Grid-tie substation for a utility-scale PV farm",
     },
     {
       value: 400,
