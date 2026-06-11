@@ -14,7 +14,7 @@ const HOME_CREW = {
   body: "No subcontracted shortcuts. Our directly-employed engineers, linemen and technicians build, test and energize every project — the same hands from foundation to handover.",
   portraits: [
     {
-      img: "/home/crew-rebar-cage-trench-portrait.jpg",
+      img: "/home/crew-rebar-cage-trench-portrait.webp",
       alt: "JC Electrofields worker tying a steel rebar cage inside a deep foundation trench",
     },
     {

@@ -143,6 +143,14 @@
   --text-heading-cta--line-height: 1.05;
   --text-heading-trust: clamp(20px, 2.6vw, 28px);
   --text-heading-trust--line-height: 1.15;
+  /* About: inner dark-hero h1 (30/6vw/60) + mission statement h2 (22/3.2vw/34) —
+     registered so the About headings drop their inline `text-[clamp(...)]`
+     (AB-HERO-03 / AB-MISS-03). Sizes + line-heights match the prior inline values
+     EXACTLY (no visual change). */
+  --text-heading-hero-inner: clamp(30px, 6vw, 60px);
+  --text-heading-hero-inner--line-height: 1.04;
+  --text-heading-statement: clamp(22px, 3.2vw, 34px);
+  --text-heading-statement--line-height: 1.12;
 
   /* Spacing — section / block rhythm (website), exposed as p-section, py-block, etc. */
   --spacing-section: clamp(5rem, 8vw, 9rem);

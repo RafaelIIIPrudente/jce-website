@@ -61,14 +61,14 @@ export function AboutHero({
 
       <div className="mx-auto w-full max-w-6xl px-5 py-24 sm:py-28 md:py-32">
         <p className="kicker text-jce-cyan-bright">Who we are</p>
-        <h1 className="mt-4 max-w-[18ch] text-[clamp(30px,6vw,60px)] leading-[1.04] font-bold tracking-[-0.02em] text-balance text-jce-dark-ink">
+        <h1 className="mt-4 max-w-[18ch] text-heading-hero-inner font-bold tracking-[-0.02em] text-balance text-jce-dark-ink">
           Built on power,{" "}
           <span className="text-jce-cyan-bright">driven by precision.</span>
         </h1>
         <p className="mt-5 max-w-[60ch] text-ui-16 text-pretty text-jce-dark-ink-2 sm:text-ui-18">
           JC Electrofields Power System, Inc. is a Filipino power-engineering
           firm delivering substations, transmission lines and renewable-energy
-          projects nationwide.
+          interconnection nationwide.
         </p>
       </div>
     </section>

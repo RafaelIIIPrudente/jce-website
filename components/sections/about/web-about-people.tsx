@@ -20,7 +20,7 @@ export function AboutPeople() {
         <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
           <CircuitReveal lineClassName="text-jce-cyan" className="max-w-[46ch]">
             <p className="kicker text-jce-cyan-deep">{people.eyebrow}</p>
-            <h2 className="mt-2 text-[clamp(24px,3.6vw,38px)] leading-[1.1] font-bold tracking-[-0.02em] text-balance text-jce-ink">
+            <h2 className="mt-2 text-heading-section font-bold tracking-[-0.02em] text-balance text-jce-ink">
               {people.heading}
             </h2>
             <p className="mt-3 text-ui-16 text-pretty text-jce-ink-2">
@@ -37,7 +37,7 @@ export function AboutPeople() {
                   <PhotoCard
                     src={first.img}
                     alt={first.alt}
-                    aspect="aspect-[3/4]"
+                    aspect="aspect-3/4"
                     className="h-full"
                     sizes="(min-width: 1024px) 25vw, 50vw"
                   />
@@ -48,7 +48,7 @@ export function AboutPeople() {
                   <PhotoCard
                     src={second.img}
                     alt={second.alt}
-                    aspect="aspect-[3/4]"
+                    aspect="aspect-3/4"
                     sizes="(min-width: 1024px) 25vw, 50vw"
                   />
                 </Reveal>
@@ -58,7 +58,7 @@ export function AboutPeople() {
                   <PhotoCard
                     src={third.img}
                     alt={third.alt}
-                    aspect="aspect-[3/4]"
+                    aspect="aspect-3/4"
                     sizes="(min-width: 1024px) 25vw, 50vw"
                   />
                 </Reveal>
@@ -72,7 +72,7 @@ export function AboutPeople() {
           <PhotoCard
             src={people.team.img}
             alt={people.team.alt}
-            aspect="aspect-[2/1]"
+            aspect="aspect-2/1"
             sizes="(min-width: 1280px) 1280px, 100vw"
           />
         </Reveal>

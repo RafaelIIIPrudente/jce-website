@@ -63,7 +63,6 @@ export type HeroStat = {
 
 export const HERO_STATS: readonly HeroStat[] = [
   { value: 1997, label: "Engineering since", grouping: false },
-  { value: 124, suffix: "+", label: "Engineers & technicians" },
   { value: 230, suffix: " kV", label: "Capability class" },
   { value: 45, suffix: "+", label: "Projects nationwide" },
   { value: 1, prefix: "₱", suffix: "B", label: "Authorized capital" },
@@ -940,13 +939,31 @@ export const ABOUT = {
     "JC Electrofields Power System, Inc. (JCE) was founded in 1997 and is headquartered in Valenzuela City, Metro Manila, Philippines.",
     "JCE designs and constructs power substations and transmission lines up to 230 KV nationwide.",
     "JCE is the exclusive Philippine distributor of Shenda Electric power transformers.",
-    "JCE builds utility-scale and commercial/industrial solar PV plants on an EPC basis.",
-    "JCE facilitates NGCP direct-connection projects via 69 KV, from application through to energization.",
+    "JCE supports solar and other renewable-energy projects through pre-development and engineering consultancy, and delivers the substation and grid-interconnection works that bring them online.",
+    "JCE facilitates NGCP direct-connection projects via 69 KV, from application through to connection.",
     "JCE employs approximately 124 engineers and technicians.",
     "JCE has an authorized capital stock of ₱1,000,000,000, reflecting its financial capacity for large-scale power projects.",
     "JCE is BIR-registered and tax-compliant, holding a current Tax Clearance Certificate.",
     "JCE is led by its President, Engr. Jimwel C. Capillo.",
   ],
+  // Section eyebrows + headings for the inline About blocks — relocated VERBATIM
+  // from page.tsx so copy lives with content (AB-HIST-01 / AB-MISS-02 / AB-LIC-03
+  // / AB-FACT-03). The section BODIES already live in ABOUT / LICENSES; these are
+  // only their headers. Wording unchanged (the JSX `&amp;` was entity-encoding —
+  // a literal `&` here renders identically).
+  headers: {
+    history: {
+      eyebrow: "Since 1997",
+      heading: "From repair & fabrication to the national grid.",
+    },
+    mission: { eyebrow: "Mission & commitment" },
+    licenses: {
+      eyebrow: "Credentials",
+      heading: "Licenses & accreditations",
+      note: "Complete documentation available upon request for bidding and accreditation purposes.",
+    },
+    facts: { eyebrow: "The facts", heading: "JCE at a glance" },
+  },
   // ---- "Who we are / our HQ" band ---------------------------------------------
   // The established-and-substantial beat. Every fact is the §9-SAFE set already on
   // the page — no new claims. The HQ still is the page hero (priority LCP, single
@@ -960,7 +977,7 @@ export const ABOUT = {
     facts: ["Established 1997", "Valenzuela City HQ", "Projects nationwide"],
     video: {
       src: "/home/office-aerial.mp4",
-      poster: "/home/office-aerial-poster.jpg",
+      poster: "/home/office-aerial-poster.webp",
     },
   },
   // ---- "Our people" band (real crew photography) ------------------------------
@@ -970,23 +987,23 @@ export const ABOUT = {
   people: {
     eyebrow: "Our people",
     heading: "The hands behind the current.",
-    body: "No subcontracted shortcuts. Our directly-employed engineers, linemen and technicians — about 124 strong — build, test and energize every project, from foundation to handover.",
+    body: "No subcontracted shortcuts. Our directly-employed engineers, linemen and technicians — over 124 strong — build, test and energize every project, from foundation to handover.",
     portraits: [
       {
-        img: "/home/crew-carrying-materials-portrait.jpg",
+        img: "/home/crew-carrying-materials-portrait.webp",
         alt: "A JC Electrofields worker carrying materials on-site past substation equipment",
       },
       {
-        img: "/home/crew-rebar-cage-trench-portrait.jpg",
+        img: "/home/crew-rebar-cage-trench-portrait.webp",
         alt: "A JC Electrofields worker tying a steel rebar cage inside a deep foundation trench",
       },
       {
-        img: "/home/crew-hauling-bucket-portrait.jpg",
+        img: "/home/crew-hauling-bucket-portrait.webp",
         alt: "A JC Electrofields worker hauling a bucket of material across a sunlit construction site",
       },
     ],
     team: {
-      img: "/home/team-group-substation-aerial.jpg",
+      img: "/home/team-group-substation-aerial.webp",
       alt: "The JC Electrofields team gathered together inside a completed substation switchyard",
     },
   },
@@ -1005,7 +1022,22 @@ export const ABOUT = {
   missionImage: {
     img: "/home/substation-shenda-transformer-engineer.webp",
     alt: "A JC Electrofields engineer beside a Shenda Electric power transformer at a substation, rice fields behind",
+    // Overlay labels for the mission image — relocated verbatim from page.tsx
+    // (AB-MISS-02).
+    tag: "Shenda Electric",
+    caption: "Exclusive Philippine distributor",
   },
+} as const;
+
+// Shared closing-CTA copy (the About page's CTA). The home/services CTAs are
+// near-identical and MAY adopt this constant in a follow-up; only About consumes
+// it now. Relocated verbatim from page.tsx (AB-CTA-01) — pure content-from-logic.
+export const CONTACT_CTA = {
+  eyebrow: "Get in touch",
+  heading: "Talk to the engineers behind the work.",
+  body: "Send a project brief — utility, developer, or industrial — and we’ll respond inside one business day.",
+  action: "Start a project",
+  href: "/contact-us",
 } as const;
 
 // ---- S2 About — YouTube channel + curated video showcase -------------------
@@ -1020,11 +1052,13 @@ export const YOUTUBE_CHANNEL = {
 
 export type AboutVideo = { id: string; title: string };
 
-// Verbatim from the channel (title typo/casing lightly normalized for display).
+// Curated PROJECT/TECHNICAL showcase only (title typo/casing lightly normalized
+// for display). The "JCE Christmas Party 2025" clip was removed from the curated
+// trio (AB-VID-02) — it still surfaces automatically in the live "Latest from our
+// channel" strip, which de-dupes against this set.
 export const ABOUT_VIDEOS: readonly AboutVideo[] = [
   { id: "7K6cMIvBnmo", title: "69 kV transmission line and substation" },
   { id: "SerRpr5E_AA", title: "JCE Projects" },
-  { id: "-WTmKPsrxjE", title: "JCE Christmas Party 2025" },
 ] as const;
 
 // ============================================================================

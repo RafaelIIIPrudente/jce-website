@@ -27,7 +27,7 @@ export function AmbientVideo({
   poster: string;
   /** Alt for the poster — it is the meaningful still under reduced motion. */
   posterAlt: string;
-  /** Tailwind aspect utility, e.g. "aspect-video" | "aspect-[4/3]". */
+  /** Tailwind aspect utility, e.g. "aspect-video" | "aspect-4/3". */
   aspect?: string;
   sizes?: string;
   className?: string;

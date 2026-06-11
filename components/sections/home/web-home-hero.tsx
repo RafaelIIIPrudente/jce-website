@@ -87,7 +87,7 @@ export function HomeHero({
           </Link>
         </div>
 
-        <div className="mt-14 grid grid-cols-2 gap-3 sm:grid-cols-3 md:mt-16 lg:grid-cols-5">
+        <div className="mt-14 grid grid-cols-2 gap-3 md:mt-16 lg:grid-cols-4">
           {HERO_STATS.map((s) => (
             <div
               key={s.label}

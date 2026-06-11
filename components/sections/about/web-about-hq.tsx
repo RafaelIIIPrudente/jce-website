@@ -19,7 +19,7 @@ export function AboutHQ() {
         <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
           <CircuitReveal lineClassName="text-jce-cyan" className="max-w-[48ch]">
             <p className="kicker text-jce-cyan-deep">{hq.eyebrow}</p>
-            <h2 className="mt-2 text-[clamp(24px,3.6vw,38px)] leading-[1.1] font-bold tracking-[-0.02em] text-balance text-jce-ink">
+            <h2 className="mt-2 text-heading-section font-bold tracking-[-0.02em] text-balance text-jce-ink">
               {hq.heading}
             </h2>
             <p className="mt-4 text-ui-16 text-pretty text-jce-ink-2">

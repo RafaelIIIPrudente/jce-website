@@ -25,6 +25,12 @@ export type License = {
   since?: string;
   /** Validity end (month + year). Optional. */
   validUntil?: string;
+  /**
+   * §9-SAFE SEC registered office (FR-WEB-19), rendered as a labelled
+   * "Registered office" line. This is DISTINCT from the contact NAP
+   * (3074 F. Bautista St.) and must never be normalized to it. Optional.
+   */
+  address?: string;
 };
 
 // §9 SAFE list only. Optional fields are omitted (not nulled) where the source
@@ -36,6 +42,8 @@ export const LICENSES: readonly License[] = [
     acronym: "SEC",
     licenseNo: "CS200711697",
     detail: "Registered corporation",
+    // §9-SAFE SEC registered office (FR-WEB-19) — distinct from the contact NAP.
+    address: "2129 La Mesa St., Ugong, Valenzuela City",
     since: "July 24, 2007",
   },
   {
