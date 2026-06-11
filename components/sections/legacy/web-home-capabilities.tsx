@@ -4,12 +4,59 @@ import { ArrowRightIcon } from "lucide-react";
 import { Reveal } from "@/components/sections/kit/web-reveal";
 import { CircuitReveal } from "@/components/sections/kit/web-circuit-reveal";
 import { PhotoCard } from "@/components/sections/kit/web-photo-card";
-import { HOME_CAPABILITIES } from "@/lib/content/website";
 
-// S1 capability band — six EPC capabilities backed by real cropped textures
-// (PhotoCard, circuit-trace border + hover glow). The heading traces in
-// (CircuitReveal); cards fade up staggered (Reveal). Photographic alts; the
-// card chrome is decorative.
+// QUARANTINED — the former home "What we do" PhotoCard grid, replaced by the
+// orbital CapabilityOrbit. Its content (formerly HOME_CAPABILITIES + the
+// CapabilityCard type in lib/content/website.ts) is inlined below so this file
+// is self-contained and the live content file carries no orphaned export. Not
+// imported by any route. The heading traces in (CircuitReveal); cards fade up
+// staggered (Reveal). Photographic alts; the card chrome is decorative.
+
+type CapabilityCard = {
+  name: string;
+  spec: string;
+  img: string;
+  href: string;
+};
+
+const HOME_CAPABILITIES: readonly CapabilityCard[] = [
+  {
+    name: "Substations to 230 kV",
+    spec: "Design–build EPC",
+    img: "/home/substation-transformer-mountains.webp",
+    href: "/services",
+  },
+  {
+    name: "Transmission & Distribution Lines",
+    spec: "Switchyard & line work",
+    img: "/home/distribution-line-bucket-truck-aerial.webp",
+    href: "/services",
+  },
+  {
+    name: "Solar PV / Renewables",
+    spec: "Utility & C&I scale",
+    img: "/home/solar-farm-rows-aerial.webp",
+    href: "/services",
+  },
+  {
+    name: "Testing & Commissioning",
+    spec: "Energization-ready",
+    img: "/home/substation-shenda-transformer-engineer.webp",
+    href: "/services",
+  },
+  {
+    name: "Switchgear HVSG/MVSG/LVSG",
+    spec: "Supply & integration",
+    img: "/home/substation-topdown-aerial.webp",
+    href: "/products",
+  },
+  {
+    name: "NGCP Direct Connection",
+    spec: "Application → energization",
+    img: "/home/substation-ricefield-aerial.webp",
+    href: "/services",
+  },
+] as const;
 
 export function HomeCapabilities() {
   return (

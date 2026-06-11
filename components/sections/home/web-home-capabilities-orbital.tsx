@@ -18,7 +18,7 @@ export function HomeCapabilities() {
           className="mb-10 max-w-[46ch] md:mb-12"
         >
           <p className="kicker text-jce-cyan-bright">{eyebrow}</p>
-          <h2 className="mt-2 text-[clamp(24px,3.6vw,38px)] leading-[1.1] font-bold tracking-[-0.02em] text-balance text-jce-dark-ink">
+          <h2 className="mt-2 text-heading-section font-bold tracking-[-0.02em] text-balance text-jce-dark-ink">
             {heading}
           </h2>
           <p className="mt-3 text-ui-16 text-pretty text-jce-dark-ink-2">

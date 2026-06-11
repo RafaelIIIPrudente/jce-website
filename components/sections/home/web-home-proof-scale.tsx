@@ -20,7 +20,7 @@ export function HomeProofScale() {
       <div className="mx-auto w-full max-w-6xl">
         <Reveal className="max-w-[56ch]">
           <p className="kicker text-jce-cyan-bright">{HOME_PROOF.eyebrow}</p>
-          <h2 className="mt-3 text-[clamp(24px,4vw,40px)] leading-[1.08] font-bold tracking-[-0.02em] text-balance text-jce-dark-ink">
+          <h2 className="mt-3 text-heading-proof font-bold tracking-[-0.02em] text-balance text-jce-dark-ink">
             {HOME_PROOF.heading}
           </h2>
           <p className="mt-4 text-ui-16 text-pretty text-jce-dark-ink-2">

@@ -127,6 +127,23 @@
   --text-ui-28: 28px;
   --text-ui-36: 36px;
 
+  /* Marketing heading fluid type — registered so home sections share one token
+     instead of copy-pasting `text-[clamp(...)] leading-[...]`. Sizes + line-heights
+     match the prior inline values EXACTLY (no visual change); exposed as
+     text-heading-{name}. Weight/tracking stay as utilities (font-bold tracking-*). */
+  --text-heading-hero: clamp(32px, 6vw, 68px);
+  --text-heading-hero--line-height: 1.03;
+  --text-heading-section: clamp(24px, 3.6vw, 38px);
+  --text-heading-section--line-height: 1.1;
+  --text-heading-proof: clamp(24px, 4vw, 40px);
+  --text-heading-proof--line-height: 1.08;
+  --text-heading-band: clamp(26px, 4vw, 42px);
+  --text-heading-band--line-height: 1.08;
+  --text-heading-cta: clamp(26px, 4vw, 42px);
+  --text-heading-cta--line-height: 1.05;
+  --text-heading-trust: clamp(20px, 2.6vw, 28px);
+  --text-heading-trust--line-height: 1.15;
+
   /* Spacing — section / block rhythm (website), exposed as p-section, py-block, etc. */
   --spacing-section: clamp(5rem, 8vw, 9rem);
   --spacing-block: clamp(2rem, 4vw, 4rem);

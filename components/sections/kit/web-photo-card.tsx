@@ -13,7 +13,7 @@ export function PhotoCard({
   alt,
   sizes = "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw",
   priority = false,
-  aspect = "aspect-[16/10]",
+  aspect = "aspect-16/10",
   tone = "light",
   className,
   children,
@@ -24,7 +24,7 @@ export function PhotoCard({
   alt: string;
   sizes?: string;
   priority?: boolean;
-  /** Tailwind aspect utility, e.g. "aspect-[16/10]" | "aspect-[4/5]". */
+  /** Tailwind aspect utility, e.g. "aspect-16/10" | "aspect-4/5". */
   aspect?: string;
   tone?: "light" | "dark";
   className?: string;
@@ -55,7 +55,7 @@ export function PhotoCard({
           fill
           sizes={sizes}
           priority={priority}
-          className="object-cover transition-transform duration-500 ease-jce group-hover/photo:scale-[1.04]"
+          className="object-cover transition-transform duration-500 ease-jce motion-safe:group-hover/photo:scale-[1.04] motion-reduce:transition-none"
         />
       ) : (
         <span

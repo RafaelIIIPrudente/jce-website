@@ -24,7 +24,7 @@ export function HomeCta() {
       <div className="relative z-10 mx-auto w-full max-w-3xl px-5 py-20 text-center sm:py-24 md:py-28">
         <Reveal>
           <OmegaMark className="mx-auto mb-5 size-10 text-jce-green-700" />
-          <h2 className="text-[clamp(26px,4vw,42px)] leading-[1.05] font-bold tracking-[-0.02em] text-balance text-jce-ink">
+          <h2 className="text-heading-cta font-bold tracking-[-0.02em] text-balance text-jce-ink">
             Let&rsquo;s energize what&rsquo;s next.
           </h2>
           <p className="mx-auto mt-4 max-w-[52ch] text-ui-16 text-pretty text-jce-ink-2 sm:text-ui-18">

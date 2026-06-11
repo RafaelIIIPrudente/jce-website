@@ -90,7 +90,7 @@ export function HomeOmegaReveal() {
             muted
             playsInline
             autoPlay
-            preload="auto"
+            preload="metadata"
             poster="/home/jce-omega-reveal-poster.jpg"
             aria-hidden
             onEnded={() => setShow(false)}

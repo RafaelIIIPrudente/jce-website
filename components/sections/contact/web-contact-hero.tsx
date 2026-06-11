@@ -12,7 +12,10 @@ import { OmegaMark } from "@/components/sections/kit/web-omega-mark";
 
 export function ContactHero() {
   return (
-    <section className="dark-section circuit-field relative isolate overflow-hidden">
+    <section
+      data-nav-overlay
+      className="dark-section circuit-field relative isolate overflow-hidden"
+    >
       {/* Large faint Ω brand watermark — decorative, behind content, clipped. */}
       <OmegaMark className="pointer-events-none absolute top-1/2 -right-12 -z-10 size-[clamp(220px,42vw,440px)] -translate-y-1/2 text-jce-cyan/10" />
 

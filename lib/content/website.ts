@@ -472,60 +472,16 @@ export const FEATURED_PROJECTS: readonly FeaturedProject[] = [
   },
 ] as const;
 
-// S1 capability band — six EPC capabilities backed by real cropped textures.
-export type CapabilityCard = {
-  name: string;
-  spec: string;
-  img: string;
-  href: string;
-};
-
-// Refreshed with the 2026 real-photography set (public/home/*) — strongest
-// real aerials/field shots, one per capability (next/image optimizes JPG→webp
-// at serve). Distinct from the HOME_PROOF scrub set below to avoid repetition.
-export const HOME_CAPABILITIES: readonly CapabilityCard[] = [
-  {
-    name: "Substations to 230 kV",
-    spec: "Design–build EPC",
-    img: "/home/substation-transformer-mountains.jpg",
-    href: "/services",
-  },
-  {
-    name: "Transmission & Distribution Lines",
-    spec: "Switchyard & line work",
-    img: "/home/distribution-line-bucket-truck-aerial.jpg",
-    href: "/services",
-  },
-  {
-    name: "Solar PV / Renewables",
-    spec: "Utility & C&I scale",
-    img: "/home/solar-farm-rows-aerial.jpg",
-    href: "/services",
-  },
-  {
-    name: "Testing & Commissioning",
-    spec: "Energization-ready",
-    img: "/home/substation-shenda-transformer-engineer.jpg",
-    href: "/services",
-  },
-  {
-    name: "Switchgear HVSG/MVSG/LVSG",
-    spec: "Supply & integration",
-    img: "/home/substation-topdown-aerial.jpg",
-    href: "/products",
-  },
-  {
-    name: "NGCP Direct Connection",
-    spec: "Application → energization",
-    img: "/home/substation-ricefield-aerial.jpg",
-    href: "/services",
-  },
-] as const;
+// NOTE: the former HOME_CAPABILITIES PhotoCard-grid set + its CapabilityCard
+// type were retired from the live content here and inlined into the quarantined
+// components/sections/legacy/web-home-capabilities.tsx (its only consumer), so
+// this file carries no orphaned export. The live "What we do" surface is the
+// orbital HOME_CAPABILITY_NODES below.
 
 // ---- S1 "What we do" — energy-core orbital capabilities ---------------------
 // The interactive showpiece: the Ω brand mark as the core, JCE's real EPC
 // capabilities orbiting it. Sourced from SERVICES (descriptions verbatim-derived)
-// + the HOME_CAPABILITIES set + the Shenda transformer distributorship; photos
+// + the Shenda transformer distributorship; photos
 // from the 2026 public/home set. `related` cross-links node ids. No invented
 // metrics/status — capabilities only.
 export type CapabilityNode = {
@@ -560,7 +516,7 @@ export const HOME_CAPABILITY_NODES: readonly CapabilityNode[] = [
     icon: TowerControlIcon,
     href: "/services",
     related: ["transmission", "testing", "ngcp"],
-    img: "/home/substation-transformer-mountains.jpg",
+    img: "/home/substation-transformer-mountains.webp",
     imgAlt:
       "Substation with a power transformer and red-roofed control house against a green mountain backdrop",
   },
@@ -572,7 +528,7 @@ export const HOME_CAPABILITY_NODES: readonly CapabilityNode[] = [
     icon: UtilityPoleIcon,
     href: "/services",
     related: ["substations", "ngcp"],
-    img: "/home/distribution-line-bucket-truck-aerial.jpg",
+    img: "/home/distribution-line-bucket-truck-aerial.webp",
     imgAlt:
       "Aerial of a bucket truck servicing a distribution line over green fields",
   },
@@ -584,7 +540,7 @@ export const HOME_CAPABILITY_NODES: readonly CapabilityNode[] = [
     icon: SunIcon,
     href: "/services",
     related: ["substations", "testing"],
-    img: "/home/solar-farm-rows-aerial.jpg",
+    img: "/home/solar-farm-rows-aerial.webp",
     imgAlt:
       "Aerial of dense rows of solar panels beside white control buildings",
   },
@@ -596,7 +552,7 @@ export const HOME_CAPABILITY_NODES: readonly CapabilityNode[] = [
     icon: GaugeIcon,
     href: "/services",
     related: ["substations", "solar"],
-    img: "/home/substation-shenda-transformer-engineer.jpg",
+    img: "/home/substation-shenda-transformer-engineer.webp",
     imgAlt:
       "Engineer standing beside a SHENDA power transformer at a substation, rice fields behind",
   },
@@ -608,7 +564,7 @@ export const HOME_CAPABILITY_NODES: readonly CapabilityNode[] = [
     icon: ServerIcon,
     href: "/products",
     related: ["substations", "ngcp"],
-    img: "/home/substation-topdown-aerial.jpg",
+    img: "/home/substation-topdown-aerial.webp",
     imgAlt: "Top-down aerial of a substation showing the equipment layout",
   },
   {
@@ -619,24 +575,31 @@ export const HOME_CAPABILITY_NODES: readonly CapabilityNode[] = [
     icon: PlugZapIcon,
     href: "/services",
     related: ["substations", "transmission"],
-    img: "/home/substation-ricefield-aerial.jpg",
+    img: "/home/substation-ricefield-aerial.webp",
     imgAlt:
       "Aerial of a substation beside bright green rice paddies and rural houses",
   },
 ] as const;
 
-// ---- S1 home hero photo (2026 real photography) ----------------------------
+// ---- S1 home hero photo + copy (2026 real photography) ---------------------
 // Strongest aerial — coastal solar farm + substation switchyard. Drives the
-// priority LCP <Image> in HomeHero. nsec-hero.jpg is the alternate.
+// priority LCP <Image> in HomeHero. Copy lives here (content-from-logic): the
+// kicker, the two-part headline, and a DISTINCT scope sub-line — the verbatim
+// TAGLINE is reserved for the closing CTA so it is never shown twice on the page.
 export const HOME_HERO = {
-  img: "/home/solar-farm-substation-coast-hero.jpg",
+  img: "/home/solar-farm-substation-coast-hero.webp",
   alt: "Aerial of a coastal solar farm and substation switchyard built by JC Electrofields, the sea on the horizon",
+  kicker: "JC Electrofields Power System, Inc.",
+  headlineLead: "Power infrastructure,",
+  headlineAccent: "engineered to energize.",
+  sub: "Single-vendor EPC for substations, transmission, switchgear and solar — engineered, built and energized to 230 kV, nationwide.",
 } as const;
 
-// ---- S1 "Proof at scale" — pinned scrollytelling centerpiece ---------------
-// Aerials scrub as the section is scrolled; verified corporate figures count
-// up; a current-trace draws along. Figures are §9-SAFE corporate facts — no
-// invented MW/km totals (reframed from STATS + the NGCP 300 MVA / 230 kV note).
+// ---- S1 "Proof at scale" — calm photography-led proof band -----------------
+// Four corporate aerials + a current-trace divider + figures that count up on
+// view. Figures are §9-SAFE delivered-scale facts, deliberately DISTINCT from
+// the hero stat strip (no duplicate 230 kV / 45+ / 1997 count-ups): largest
+// transformer, largest solar EPC, largest capacitor bank, regions energized.
 export type ProofImage = { img: string; alt: string };
 export type ProofStat = {
   value: number;
@@ -654,48 +617,81 @@ export const HOME_PROOF = {
     "From utility-scale solar to 230 kV transmission substations, the current we engineer reaches the grid across Luzon, Visayas and Mindanao.",
   images: [
     {
-      img: "/home/solar-farm-coast-aerial.jpg",
+      img: "/home/solar-farm-coast-aerial.webp",
       alt: "Aerial of a coastal solar farm, panels reaching toward the shoreline",
     },
     {
-      img: "/home/solar-farm-nsec-hero.jpg",
-      alt: "Aerial of the Nuevo Solar Energy Corp. (NSEC) facility — a vast solar panel field by the sea",
+      img: "/home/solar-farm-nsec-hero.webp",
+      alt: "Aerial of a vast utility-scale solar panel field stretching toward the horizon",
     },
     {
-      img: "/home/substation-solar-panorama-aerial.jpg",
+      img: "/home/substation-solar-panorama-aerial.webp",
       alt: "Panoramic aerial of a substation switchyard with a solar farm behind it under a clear sky",
     },
     {
-      img: "/home/distribution-line-bucket-truck-aerial.jpg",
+      img: "/home/distribution-line-bucket-truck-aerial.webp",
       alt: "Aerial of a bucket truck servicing a distribution line over green fields",
     },
   ] satisfies readonly ProofImage[],
   stats: [
     {
-      value: 230,
-      suffix: " kV",
-      label: "Transmission class",
-      sub: "Substations & lines built to 230 kV",
-    },
-    {
       value: 300,
       suffix: " MVA",
-      label: "Largest substation",
-      sub: "NGCP 230 kV substation work",
+      label: "Largest transformer",
+      sub: "NGCP 230 kV substation, energized on schedule",
     },
     {
-      value: 45,
-      suffix: "+",
-      label: "Projects nationwide",
+      value: 120,
+      suffix: " MWp",
+      label: "Largest solar EPC",
+      sub: "Utility-scale PV, grid-connected",
+    },
+    {
+      value: 400,
+      suffix: " MVAr",
+      label: "Largest capacitor bank",
+      sub: "NGCP 230 kV shunt bank (4×100 MVAr)",
+    },
+    {
+      value: 3,
+      grouping: false,
+      label: "Regions energized",
       sub: "Luzon · Visayas · Mindanao",
     },
-    {
-      value: 1997,
-      grouping: false,
-      label: "Energizing since",
-      sub: "Power engineering for the grid",
-    },
   ] satisfies readonly ProofStat[],
+} as const;
+
+// ---- S1 trust bar copy -----------------------------------------------------
+// NGCP credentials split per the company profile (§4): the 300 MVA / 230 kV
+// figure is Luzon Grid Expansion I (Cabanatuan/Biñan); the Cebu–Negros–Panay
+// 230 kV backbone is a SEPARATE credential with no MVA rating — so the two are
+// stated as distinct claims, not joined. `headingAccent` is the highlighted figure.
+export const HOME_CLIENTS = {
+  eyebrow: "Trusted by",
+  headingLead: "Flagship NGCP credentials — ",
+  headingAccent: "300 MVA / 230 kV",
+  headingTail:
+    " Luzon Grid substations, and the Cebu–Negros–Panay 230 kV backbone.",
+  distributorLead: "Exclusive Philippine distributor of ",
+  distributorName: "Shenda Electric",
+  distributorTail: " power transformers.",
+} as const;
+
+// ---- S1 "engineering in motion" dark band copy -----------------------------
+export const HOME_MOTION_BAND = {
+  eyebrow: "On site, after dark",
+  heading: "Engineering in motion",
+  body1:
+    "Night transformer lifts. Live switchyard work. Crews mobilized across Luzon, Visayas and Mindanao — energizing on the dates we commit to.",
+  body2:
+    "Single-vendor accountability from study to handover, with 124+ engineers and technicians under one roof.",
+  tags: ["Up to 230 kV", "300 MVA", "Since 1997"],
+  photo: {
+    src: "/projects/switchyard-bauang.webp",
+    alt: "JC Electrofields crews performing live switchyard assembly at the Bauang 230/69 kV substation",
+    tag: "100 MVA · 230/69 kV",
+    caption: "Bauang Switchyard — Luzon Grid Expansion I",
+  },
 } as const;
 
 // ---- S6 News ---------------------------------------------------------------
@@ -1000,7 +996,7 @@ export const ABOUT = {
   ],
   // ---- Mission-section imagery (ties to the §9-SAFE Shenda distributorship) ----
   missionImage: {
-    img: "/home/substation-shenda-transformer-engineer.jpg",
+    img: "/home/substation-shenda-transformer-engineer.webp",
     alt: "A JC Electrofields engineer beside a Shenda Electric power transformer at a substation, rice fields behind",
   },
 } as const;

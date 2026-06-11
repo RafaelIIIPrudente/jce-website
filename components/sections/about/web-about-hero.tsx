@@ -25,7 +25,10 @@ export function AboutHero({
   priority?: boolean;
 }) {
   return (
-    <section className="dark-section circuit-field relative isolate overflow-hidden">
+    <section
+      data-nav-overlay
+      className="dark-section circuit-field relative isolate overflow-hidden"
+    >
       {imageSrc ? (
         <>
           <Image

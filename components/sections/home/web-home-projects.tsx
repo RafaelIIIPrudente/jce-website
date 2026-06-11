@@ -23,7 +23,7 @@ export function HomeProjects({ limit = 6 }: { limit?: number }) {
             <PhotoCard
               src={p.img}
               alt={`${p.name}${p.client ? ` for ${p.client}` : ""}, ${p.loc} — JC Electrofields`}
-              aspect="aspect-[16/10]"
+              aspect="aspect-16/10"
               sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
             >
               <VoltageTag tone="dark" className="mb-2 self-start">

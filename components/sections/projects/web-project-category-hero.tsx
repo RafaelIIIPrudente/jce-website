@@ -38,7 +38,10 @@ export function WebProjectCategoryHero({
   subtitle: string;
 }) {
   return (
-    <section className="dark-section circuit-field relative isolate overflow-hidden">
+    <section
+      data-nav-overlay
+      className="dark-section circuit-field relative isolate overflow-hidden"
+    >
       {/* Large faint Ω brand watermark — decorative, behind content, clipped;
           drifts furthest for a layered depth cue as the hero scrolls away. */}
       <HeroParallax

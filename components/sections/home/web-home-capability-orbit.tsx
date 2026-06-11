@@ -170,6 +170,7 @@ function OrbitView({
 
   const active = activeId ? byId(activeId) : undefined;
   const panelId = `orbit-panel-${reactId}`;
+  const headingId = `${panelId}-title`;
 
   return (
     <div
@@ -273,17 +274,19 @@ function OrbitView({
             type="button"
             aria-label="Close capability details"
             onClick={closeAndRefocus}
-            className="absolute inset-0 cursor-default"
+            className="focus-ring-cyan absolute inset-0 cursor-default"
           />
           <div
             id={panelId}
-            role="group"
-            aria-label={active.title}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={headingId}
             className="absolute top-1/2 left-1/2 w-72 max-w-[calc(100%-1.5rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-(--r-glass) border border-jce-cyan/30 bg-jce-dark-2 shadow-(--current-glow)"
           >
             <OrbitCardBody
               node={active}
               headingRef={headingRef}
+              headingId={headingId}
               onSelect={onSelect}
               onClose={closeAndRefocus}
             />
@@ -297,11 +300,13 @@ function OrbitView({
 function OrbitCardBody({
   node,
   headingRef,
+  headingId,
   onSelect,
   onClose,
 }: {
   node: CapabilityNode;
   headingRef: React.RefObject<HTMLHeadingElement | null>;
+  headingId: string;
   onSelect: (id: string) => void;
   onClose: () => void;
 }) {
@@ -330,9 +335,10 @@ function OrbitCardBody({
       </div>
       <div className="p-4">
         <h3
+          id={headingId}
           ref={headingRef}
           tabIndex={-1}
-          className="text-ui-16 font-semibold text-balance text-jce-dark-ink focus:outline-none"
+          className="focus-ring-cyan rounded-(--r-input) text-ui-16 font-semibold text-balance text-jce-dark-ink"
         >
           {node.title}
         </h3>
