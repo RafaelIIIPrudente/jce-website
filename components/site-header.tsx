@@ -60,14 +60,14 @@ function InquiryCta({
       href="/contact-us"
       onClick={onClick}
       className={cn(
-        "group/cta focus-ring-jce relative inline-flex min-h-11 items-center justify-center gap-1.5 rounded-(--r-input) bg-jce-cyan-deep px-4 text-ui-14 font-semibold text-white shadow-(--shadow-soft) ring-1 ring-inset ring-black/10 transition-[box-shadow] duration-300 ease-(--ease-editorial) hover:shadow-(--shadow-elevated)",
+        "group/cta focus-ring-jce relative inline-flex min-h-11 items-center justify-center gap-1.5 rounded-(--r-input) bg-jce-cyan-deep px-4 text-ui-14 font-semibold text-white shadow-(--shadow-soft) ring-1 ring-inset ring-black/10 transition-shadow duration-300 ease-editorial hover:shadow-(--shadow-elevated)",
         className,
       )}
     >
       Send an inquiry
       <ArrowUpRightIcon
         aria-hidden
-        className="size-4 transition-transform duration-300 ease-(--ease-editorial) group-hover/cta:-translate-y-0.5 group-hover/cta:translate-x-0.5"
+        className="size-4 transition-transform duration-300 ease-editorial group-hover/cta:-translate-y-0.5 group-hover/cta:translate-x-0.5"
       />
     </Link>
   );
