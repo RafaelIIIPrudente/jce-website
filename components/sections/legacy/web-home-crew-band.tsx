@@ -1,16 +1,36 @@
 import { Reveal } from "@/components/sections/kit/web-reveal";
 import { HeroParallax } from "@/components/sections/kit/web-hero-parallax";
 import { PhotoCard } from "@/components/sections/kit/web-photo-card";
-import { HOME_CREW } from "@/lib/content/website";
 
-// S1 "From the ground" crew band — the missing human layer. A LIGHT editorial
-// section between a dark pinned section above and lighter sections below:
-// kept bright and calm. A text column states the directly-employed-crew
-// promise next to a 3:4 portrait cluster (PhotoCard, clean photo + circuit-
-// trace border, no scrim), then a wide 16:9 team group shot spans the row.
-// HeroParallax drifts the portrait cluster a few percent for subtle depth;
-// Reveal staggers the fade-ups. All motion self-gates under reduced-motion.
-// Server component — composes client leaves only. Below the fold → no priority.
+// QUARANTINED (2026-06-09) — removed from the home page. The "From the ground"
+// crew/people band. Kept here for potential reuse; its content (formerly
+// HOME_CREW in lib/content/website.ts) is inlined below so this file is
+// self-contained and no longer references removed exports. Not imported by any
+// route. The original was a thin server section composing the kit client leaves.
+
+const HOME_CREW = {
+  eyebrow: "From the ground",
+  heading: "Executed by our own crews.",
+  body: "No subcontracted shortcuts. Our directly-employed engineers, linemen and technicians build, test and energize every project — the same hands from foundation to handover.",
+  portraits: [
+    {
+      img: "/home/crew-rebar-cage-trench-portrait.jpg",
+      alt: "JC Electrofields worker tying a steel rebar cage inside a deep foundation trench",
+    },
+    {
+      img: "/home/crew-rebar-column-portrait.jpg",
+      alt: "JC Electrofields crew member at a rebar column in an excavated foundation trench",
+    },
+    {
+      img: "/home/crew-team-hauling-buckets-portrait.jpg",
+      alt: "JC Electrofields crew hauling buckets in line, the company logo on their uniforms",
+    },
+  ],
+  team: {
+    img: "/home/team-group-substation.jpg",
+    alt: "The JC Electrofields team in a group photo in front of an energized substation",
+  },
+} as const;
 
 export function HomeCrewBand() {
   const [first, second, third] = HOME_CREW.portraits;

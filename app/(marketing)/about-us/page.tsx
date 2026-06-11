@@ -14,7 +14,6 @@ import { MagneticButton } from "@/components/sections/kit/web-magnetic-button";
 import { AboutHero } from "@/components/sections/about/web-about-hero";
 import { AboutHQ } from "@/components/sections/about/web-about-hq";
 import { AboutPeople } from "@/components/sections/about/web-about-people";
-import { AboutStatBand } from "@/components/sections/about/web-about-stat-band";
 import { AboutVideos } from "@/components/sections/about/web-about-videos";
 import { ABOUT } from "@/lib/content/website";
 import { LICENSES } from "@/lib/content/accreditations";
@@ -29,7 +28,7 @@ export const metadata: Metadata = {
 // S2 · About — the company-story page: photography-led + editorially restrained.
 // Order: photo hero → who-we-are / HQ (muted aerial loop) → history (real field
 // imagery) → mission & commitment (work image +
-// the three commitments) → our people (crew band) → stat band → watch (YouTube
+// the three commitments) → our people (crew band) → watch (YouTube
 // showcase) → licenses (RE-SKIN ONLY; §9-SAFE content unchanged) → canonical facts
 // → Ω CTA. Server-first; client motion lives in kit leaves. One <h1> (the hero) +
 // an ordered set of h2s. Lenis smooth-scroll + scroll-progress + the condensing
@@ -162,9 +161,6 @@ export default function AboutPage() {
 
       {/* Our people — the human layer */}
       <AboutPeople />
-
-      {/* Stat band — EnergizedCounters on a dark section */}
-      <AboutStatBand />
 
       {/* Watch — curated YouTube showcase + live, de-duped channel strip */}
       <AboutVideos />

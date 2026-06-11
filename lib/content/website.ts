@@ -698,36 +698,6 @@ export const HOME_PROOF = {
   ] satisfies readonly ProofStat[],
 } as const;
 
-// ---- S1 "From the ground" — crew / people band -----------------------------
-// The missing human layer: our own directly-employed crews. Portraits are
-// 1200×1600 (3:4) — design for that aspect, don't force full-bleed. The team
-// group shot is 16:9.
-export type CrewPortrait = { img: string; alt: string };
-
-export const HOME_CREW = {
-  eyebrow: "From the ground",
-  heading: "Executed by our own crews.",
-  body: "No subcontracted shortcuts. Our directly-employed engineers, linemen and technicians build, test and energize every project — the same hands from foundation to handover.",
-  portraits: [
-    {
-      img: "/home/crew-rebar-cage-trench-portrait.jpg",
-      alt: "JC Electrofields worker tying a steel rebar cage inside a deep foundation trench",
-    },
-    {
-      img: "/home/crew-rebar-column-portrait.jpg",
-      alt: "JC Electrofields crew member at a rebar column in an excavated foundation trench",
-    },
-    {
-      img: "/home/crew-team-hauling-buckets-portrait.jpg",
-      alt: "JC Electrofields crew hauling buckets in line, the company logo on their uniforms",
-    },
-  ] satisfies readonly CrewPortrait[],
-  team: {
-    img: "/home/team-group-substation.jpg",
-    alt: "The JC Electrofields team in a group photo in front of an energized substation",
-  },
-} as const;
-
 // ---- S6 News ---------------------------------------------------------------
 export type NewsArticle = {
   slug: string;
